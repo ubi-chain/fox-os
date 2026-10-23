@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { playBootSound } from "@/lib/fox/boot-sound";
 import { useFox } from "@/lib/fox/store";
 import { FoxMark } from "./fox-mark";
 
@@ -37,9 +38,11 @@ export function BootOverlay() {
   const finishBoot = useFox((s) => s.finishBoot);
   const [leaving, setLeaving] = useState(false);
   const done = useRef(false);
+  const sound = useRef<{ stop: () => void; resume: () => void } | null>(null);
 
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!reduce) sound.current = playBootSound();
     const wait = reduce ? 400 : 3600;
     const fade = window.setTimeout(() => {
       if (done.current) return;
@@ -50,11 +53,16 @@ export function BootOverlay() {
     return () => {
       window.clearTimeout(fade);
       window.clearTimeout(end);
+      sound.current?.stop();
+      sound.current = null;
     };
   }, [finishBoot]);
 
   return (
-    <div className={leaving ? "fox-boot is-leaving" : "fox-boot"}>
+    <div
+      className={leaving ? "fox-boot is-leaving" : "fox-boot"}
+      onPointerDown={() => sound.current?.resume()}
+    >
       <svg className="fox-hive" viewBox="0 0 1200 740" aria-hidden="true">
         {CELLS.map((cell, index) => (
           <polygon key={index} points={cell.points} style={{ animationDelay: cell.delay }} />

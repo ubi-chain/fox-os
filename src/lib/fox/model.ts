@@ -21,7 +21,7 @@ export type OsState = {
   tests: "none" | "passing" | "failing";
   testDetail: string;
   log: string[];
-  lang: "en" | "he";
+  lang: "en" | "he" | "ja";
 };
 
 export type ChatMessage = {

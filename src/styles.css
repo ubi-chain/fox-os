@@ -88,9 +88,10 @@
     color: var(--color-accent);
   }
 
-  .fox-brand svg {
-    width: 1.25rem;
-    height: 1.25rem;
+  .fox-brand .fox-mark {
+    width: 1.35rem;
+    height: 1.55rem;
+    color: var(--color-fg);
   }
 
   .fox-meta {
@@ -423,11 +424,11 @@
     animation: fox-in 0.7s ease 2s both;
   }
 
-  .fox-boot-center svg {
-    width: 7rem;
-    height: 7rem;
-    color: var(--color-accent);
-    filter: drop-shadow(0 0 10px color-mix(in srgb, var(--color-accent) 70%, transparent));
+  .fox-boot-center .fox-mark {
+    width: 7.5rem;
+    height: 8.6rem;
+    color: var(--color-fg);
+    filter: drop-shadow(0 0 12px color-mix(in srgb, var(--color-accent) 55%, transparent));
   }
 
   .fox-boot-center h1 {

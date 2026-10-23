@@ -1,0 +1,10 @@
+cache/
+chroot/
+binary/
+.live-build/
+*.iso
+*.hybrid.iso
+*.contents
+*.files
+*.packages
+*.zsync

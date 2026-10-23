@@ -1,0 +1,19 @@
+#!/bin/sh
+set -eu
+
+lb config noauto \
+	--mode ubuntu \
+	--distribution noble \
+	--parent-distribution noble \
+	--architectures amd64 \
+	--archive-areas "main universe" \
+	--parent-archive-areas "main universe" \
+	--linux-packages linux-image \
+	--linux-flavours generic \
+	--bootappend-live "boot=casper username=fox hostname=fox-os quiet splash" \
+	--debian-installer none \
+	--iso-application "FOX OS" \
+	--iso-volume "FOX-OS" \
+	--image-name fox-os \
+	--apt-recommends true \
+	"${@}"

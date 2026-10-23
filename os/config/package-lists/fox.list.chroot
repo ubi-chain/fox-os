@@ -1,0 +1,16 @@
+git
+curl
+ca-certificates
+build-essential
+libssl-dev
+libyaml-dev
+zlib1g-dev
+libreadline-dev
+sqlite3
+libsqlite3-dev
+konsole
+plasma-desktop
+sddm
+plymouth
+fonts-noto-cjk
+nano

@@ -1,0 +1,36 @@
+#!/bin/sh
+set -eu
+export DEBIAN_FRONTEND=noninteractive
+export MISE_DATA_DIR=/opt/mise
+export MISE_CONFIG_DIR=/etc/mise
+
+MISE_VERSION=v2026.2.9
+tmpdir=$(mktemp -d)
+trap 'rm -rf "$tmpdir"' EXIT
+
+curl -fsSL -o "$tmpdir/mise.tar.gz" \
+  "https://github.com/jdx/mise/releases/download/${MISE_VERSION}/mise-${MISE_VERSION}-linux-x64.tar.gz"
+tar -xzf "$tmpdir/mise.tar.gz" -C "$tmpdir"
+install -m 0755 "$tmpdir/mise/bin/mise" /usr/local/bin/mise
+
+mkdir -p /etc/mise /etc/profile.d /opt/mise
+cat > /etc/mise/config.toml <<'EOF'
+[tools]
+ruby = "3.3.6"
+EOF
+
+mise install -y
+mise exec ruby@3.3.6 -- gem install bundler -v 2.5.16 --no-document
+mise exec ruby@3.3.6 -- gem install rails -v 7.2.2 --no-document
+
+cat > /etc/profile.d/fox-mise.sh <<'EOF'
+export MISE_DATA_DIR=/opt/mise
+export MISE_CONFIG_DIR=/etc/mise
+export PATH="/opt/mise/shims:${PATH}"
+EOF
+chmod 0644 /etc/profile.d/fox-mise.sh
+
+if command -v plymouth-set-default-theme >/dev/null 2>&1; then
+  plymouth-set-default-theme fox-os || true
+fi
+update-initramfs -u || true

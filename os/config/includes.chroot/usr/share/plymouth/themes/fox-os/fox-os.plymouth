@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=FOX OS
+Description=FOX OS boot mark
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/fox-os
+ScriptFile=/usr/share/plymouth/themes/fox-os/fox-os.script

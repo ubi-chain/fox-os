@@ -1,29 +1,17 @@
 # FOX OS
 
-情報機関のワークステーションを模した、ブラウザで動く開発机です。
-狐のエンブレムと、中央から広がるハニカムで起動します。
+Ubuntu 24.04 のライブ ISO を作る定義は [os/README.md](os/README.md) です。
+ビルドは Ubuntu 機で `sudo ./os/build.sh --i-understand` です。ISO 自体はリポジトリに入っていません。
 
-これは Ubuntu の ISO でも、Linux カーネルでもありません。
-Ruby / Rails の操作は画面の中のワークスペースで再現しています。
-ターミナルを閉じても、起動した開発サーバーの状態は残ります。
+ブラウザの画面は、その机の見た目を確認するものです。起動カーネルではありません。
 
-## 固定バージョン
+紋章は背景なしの白い狐です。目と鼻は抜けています。
 
-| ツール | バージョン |
-| --- | --- |
-| Ruby | 3.3.6（mise 想定。システム Ruby は触らない） |
-| Rails | 7.2.2 |
-| Bundler | 2.5.16 |
-| DB | SQLite（プロジェクト単位） |
+ブラウザ机で試せること:
 
-## 試せること
+- `ruby -v` / `rails -v`
+- `cd sample_app` のあと `bin/rails test` と `bin/rails server`
+- アシスタントのコマンドは承認するまで実行しない
 
-- `ruby -v` / `rails -v` / `bundle -v`
-- `cd sample_app` のあと `bin/rails test`
-- `bin/rails server` と `bin/rails server --stop`
-- `rails new NAME`
-- Q-DEV のボタン（表示はコマンド結果と一致）
-- 機内アシスタント。コマンドは承認するまで実行しない
-
-破壊的な操作（`rm`、`db:drop`、`db:rollback`）は確認が出ます。
-API キーはこのリポジトリに含まれていません。
+固定バージョン（机の中、および ISO のフック）: Ruby 3.3.6、Rails 7.2.2、Bundler 2.5.16、mise v2026.2.9。
+API キーは含めていません。

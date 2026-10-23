@@ -49,9 +49,30 @@
     display: flex;
     flex-direction: column;
     background:
-      radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--color-accent) 16%, transparent), transparent 42%),
-      var(--color-bg);
+      linear-gradient(#e31c2b, #e31c2b) left / 14px 100% no-repeat,
+      linear-gradient(#e31c2b, #e31c2b) right / 14px 100% no-repeat,
+      #100608;
     color: var(--color-fg);
+  }
+
+  .fox-roof {
+    position: relative;
+    z-index: 4;
+    flex: none;
+    height: 28px;
+    margin: 0 2px;
+    background: #141414;
+    clip-path: polygon(0 62%, 7% 0, 93% 0, 100% 62%, 100% 100%, 0 100%);
+  }
+
+  .fox-roof::after {
+    content: "";
+    position: absolute;
+    left: 4%;
+    right: 4%;
+    bottom: 0;
+    height: 9px;
+    background: #e31c2b;
   }
 
   .fox-root::before {
@@ -74,9 +95,17 @@
     flex-wrap: wrap;
     gap: 0.5rem 1rem;
     min-height: 3rem;
-    padding: 0.4rem 1rem;
-    border-bottom: 1px solid var(--color-line);
-    background: color-mix(in srgb, var(--color-panel) 92%, transparent);
+    margin: 0 14px;
+    padding: 0.35rem 1rem 0.45rem;
+    border: none;
+    border-bottom: 4px solid #ffd24a;
+    background: #e31c2b;
+  }
+
+  .fox-top .fox-btn {
+    border-color: #ffd24a;
+    background: #100608;
+    color: var(--color-fg);
   }
 
   .fox-brand {
@@ -134,7 +163,12 @@
     grid-template-columns: 4.6rem minmax(0, 1.5fr) minmax(13rem, 0.85fr) minmax(13rem, 0.85fr);
     grid-template-rows: minmax(0, 1fr) auto;
     gap: 0.75rem;
+    margin: 0 14px;
     padding: 0.75rem;
+    background:
+      linear-gradient(#e31c2b, #e31c2b) left / 10px 100% no-repeat,
+      linear-gradient(#e31c2b, #e31c2b) right / 10px 100% no-repeat,
+      #100608;
   }
 
   .fox-panel {
@@ -144,9 +178,11 @@
     min-width: 0;
     overflow: hidden;
     opacity: 0.62;
-    background: color-mix(in srgb, var(--color-panel) 94%, transparent);
-    border: 1px solid var(--color-line);
-    border-radius: var(--radius-sm);
+    background: #14080c;
+    border-style: solid;
+    border-width: 0 10px 8px;
+    border-color: #e31c2b;
+    border-radius: 0;
   }
 
   .fox-panel.is-active {
@@ -163,9 +199,12 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
-    padding: 0.6rem 0.8rem;
-    border-bottom: 1px solid var(--color-line);
-    color: var(--color-accent);
+    padding: 0.85rem 0.8rem 0.4rem;
+    border-bottom: 3px solid #ffd24a;
+    background:
+      linear-gradient(#141414, #141414) top / 100% 7px no-repeat,
+      #e31c2b;
+    color: #f6f3f0;
     font-size: 0.72rem;
     letter-spacing: 0.16em;
   }
@@ -217,6 +256,14 @@
   .fox-term {
     grid-column: 2;
     grid-row: 1 / span 2;
+    border-left-width: 16px;
+    border-right-width: 16px;
+    border-bottom-width: 12px;
+  }
+
+  .fox-term .fox-panel-h {
+    margin-top: 0;
+    min-height: 2.8rem;
   }
 
   .fox-qdev {
@@ -240,7 +287,7 @@
     min-height: 0;
     display: flex;
     flex-direction: column;
-    background: var(--color-bg);
+    background: #0c0608;
   }
 
   .fox-scan {

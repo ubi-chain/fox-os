@@ -11,7 +11,7 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: APP_NAME },
-      { name: "description", content: "FOX OS — 狐のエンブレムを持つ情報機関型ワークステーション" },
+      { name: "description", content: "FOX OS — 情報機関型ワークステーション" },
       { name: "theme-color", content: "#070A0E" },
     ],
     links: [

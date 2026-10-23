@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { FoxMark } from "./fox-mark";
 import { useFox } from "@/lib/fox/store";
 
 type Cell = { points: string; delay: string };
@@ -62,7 +61,6 @@ export function BootOverlay() {
         ))}
       </svg>
       <div className="fox-boot-center">
-        <FoxMark />
         <h1>FOX OS</h1>
         <p>Q DIVISION WORKSTATION</p>
       </div>

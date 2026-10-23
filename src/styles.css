@@ -88,12 +88,6 @@
     color: var(--color-accent);
   }
 
-  .fox-brand .fox-mark {
-    width: 1.35rem;
-    height: 1.55rem;
-    color: var(--color-fg);
-  }
-
   .fox-meta {
     display: flex;
     align-items: center;
@@ -422,13 +416,6 @@
     z-index: 1;
     text-align: center;
     animation: fox-in 0.7s ease 2s both;
-  }
-
-  .fox-boot-center .fox-mark {
-    width: 7.5rem;
-    height: 8.6rem;
-    color: var(--color-fg);
-    filter: drop-shadow(0 0 12px color-mix(in srgb, var(--color-accent) 55%, transparent));
   }
 
   .fox-boot-center h1 {

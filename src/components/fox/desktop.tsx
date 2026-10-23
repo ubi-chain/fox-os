@@ -3,7 +3,6 @@ import { previewBody } from "@/lib/fox/model";
 import { useFox } from "@/lib/fox/store";
 import { AiPanel } from "./ai-panel";
 import { BootOverlay } from "./boot-overlay";
-import { FoxMark } from "./fox-mark";
 import { QdevPanel } from "./qdev-panel";
 import { SysPanel } from "./sys-panel";
 import { TerminalPanel } from "./terminal-panel";
@@ -46,10 +45,7 @@ export function Desktop() {
   return (
     <div className="fox-root">
       <header className="fox-top">
-        <div className="fox-brand">
-          <FoxMark />
-          FOX OS
-        </div>
+        <div className="fox-brand">FOX OS</div>
         <div className="fox-meta">
           <span>
             LINK <strong>{clock}</strong>

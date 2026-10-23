@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useFox } from "@/lib/fox/store";
+import { HiveMark } from "./hive-mark";
 
 type Cell = { points: string; delay: string };
 
@@ -19,12 +20,12 @@ function hiveCells(): Cell[] {
       const dist = Math.hypot(x - cx, y - cy);
       let points = "";
       for (let i = 0; i < 6; i += 1) {
-        const angle = (Math.PI / 3) * i;
+        const angle = (Math.PI / 3) * i - Math.PI / 6;
         const px = (x + size * Math.cos(angle)).toFixed(1);
         const py = (y + size * Math.sin(angle)).toFixed(1);
         points += `${i === 0 ? "" : " "}${px},${py}`;
       }
-      cells.push({ points, delay: `${(dist * 1.6).toFixed(0)}ms` });
+      cells.push({ points, delay: `${(dist * 2.2).toFixed(0)}ms` });
     }
   }
   return cells;
@@ -39,7 +40,7 @@ export function BootOverlay() {
 
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const wait = reduce ? 400 : 3400;
+    const wait = reduce ? 400 : 3600;
     const fade = window.setTimeout(() => {
       if (done.current) return;
       done.current = true;
@@ -54,15 +55,14 @@ export function BootOverlay() {
 
   return (
     <div className={leaving ? "fox-boot is-leaving" : "fox-boot"}>
-      <p className="fox-boot-phase">HIVE INITIALIZATION</p>
       <svg className="fox-hive" viewBox="0 0 1200 740" aria-hidden="true">
         {CELLS.map((cell, index) => (
           <polygon key={index} points={cell.points} style={{ animationDelay: cell.delay }} />
         ))}
       </svg>
       <div className="fox-boot-center">
+        <HiveMark />
         <h1>FOX OS</h1>
-        <p>Q DIVISION WORKSTATION</p>
       </div>
       <button
         type="button"

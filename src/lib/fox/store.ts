@@ -44,7 +44,7 @@ type FoxStore = OsState & {
 };
 
 const intro: Line[] = [
-  { kind: "sys", text: "FOX OS workstation" },
+  { kind: "sys", text: "FOX OS workspace" },
   { kind: "sys", text: "実行層はブラウザ内です。Ubuntu カーネルではありません。" },
   { kind: "sys", text: "help でコマンド一覧。sample_app は cd sample_app にあります。" },
 ];

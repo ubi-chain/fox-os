@@ -3,6 +3,7 @@ import { previewBody } from "@/lib/fox/model";
 import { useFox } from "@/lib/fox/store";
 import { AiPanel } from "./ai-panel";
 import { BootOverlay } from "./boot-overlay";
+import { HiveMark } from "./hive-mark";
 import { QdevPanel } from "./qdev-panel";
 import { SysPanel } from "./sys-panel";
 import { TerminalPanel } from "./terminal-panel";
@@ -45,10 +46,14 @@ export function Desktop() {
   return (
     <div className="fox-root">
       <header className="fox-top">
-        <div className="fox-brand">FOX OS</div>
+        <div className="fox-brand">
+          <HiveMark />
+          FOX OS
+        </div>
         <div className="fox-meta">
-          <span>
-            LINK <strong>{clock}</strong>
+          <span className="fox-link">
+            <HiveMark />
+            <strong>{clock}</strong>
           </span>
           <button type="button" className="fox-btn" onClick={termVisual === "closed" ? openTerm : closeTerm}>
             {termVisual === "closed" ? "ターミナル展開" : "ターミナル消去"}

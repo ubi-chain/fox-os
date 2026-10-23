@@ -26,6 +26,8 @@ const HELP = [
   "git status         ブランチと変更",
   "kill PID           サーバー停止",
   "clear              画面消去",
+  "/change to hebrew  コマンドをヘブライ語にする",
+  "/change to english 英語に戻す",
   "hello.exe qdev.exe sys.exe ai.exe",
 ].join("\n");
 
@@ -45,6 +47,65 @@ function tokenize(input: string): string[] {
   let match: RegExpExecArray | null;
   while ((match = re.exec(input))) tokens.push(match[1] ?? match[2] ?? match[0]);
   return tokens;
+}
+
+const TO_HEBREW: Record<string, string> = {
+  help: "עזרה",
+  clear: "נקה",
+  pwd: "נתיב",
+  whoami: "מיאני",
+  date: "תאריך",
+  echo: "הדפס",
+  ls: "רשימה",
+  cd: "עבור",
+  cat: "קרא",
+  rm: "מחק",
+  ruby: "רובי",
+  rails: "ריילס",
+  git: "גיט",
+  kill: "עצור",
+  bundle: "באנדל",
+  mise: "מיז",
+  new: "חדש",
+  server: "שרת",
+  test: "בדיקה",
+  status: "מצב",
+  branch: "ענף",
+  install: "התקן",
+  console: "מסוף",
+  stop: "הפסק",
+};
+
+const FROM_HEBREW: Record<string, string> = Object.fromEntries(
+  Object.entries(TO_HEBREW).map(([en, he]) => [he, en]),
+);
+
+function mapWords(input: string, table: Record<string, string>): string {
+  return tokenize(input)
+    .map((word) => table[word] ?? word)
+    .join(" ");
+}
+
+function changeLanguage(input: string): CommandResult | null {
+  if (!input.startsWith("/change")) return null;
+  const rest = input.slice("/change".length).trim().replace(/^to\s+/i, "");
+  if (rest === "hebrew" || rest.startsWith("hebrew ") || rest === "עברית" || rest.startsWith("עברית ")) {
+    const sample = rest.replace(/^hebrew\s+/i, "").replace(/^עברית\s+/, "").trim();
+    const lines: Line[] = [
+      sys("ヘブライ語のコマンドを受け付けます。英語のままでも動きます。"),
+      out(
+        ["help", "ls", "cd", "pwd", "cat", "ruby", "rails", "git", "clear", "rm"]
+          .map((en) => `${en}  →  ${TO_HEBREW[en]}`)
+          .join("\n"),
+      ),
+    ];
+    if (sample) lines.push(out(`${sample}  →  ${mapWords(sample, TO_HEBREW)}`));
+    return { lines, patch: { lang: "he" } };
+  }
+  if (rest === "english" || rest === "en" || rest === "英語") {
+    return { lines: [sys("コマンドを英語に戻しました。")], patch: { lang: "en" } };
+  }
+  return { lines: [err("/change to hebrew [コマンド]  または  /change to english")] };
 }
 
 function destructive(command: string): string | null {
@@ -117,8 +178,11 @@ function runExe(path: string, content: string): CommandResult {
 }
 
 export function runCommand(raw: string, state: OsState, confirmed = false): CommandResult {
-  const input = raw.trim();
-  if (!input) return { lines: [] };
+  const typed = raw.trim();
+  if (!typed) return { lines: [] };
+  const changed = changeLanguage(typed);
+  if (changed) return changed;
+  const input = state.lang === "he" ? mapWords(typed, FROM_HEBREW) : typed;
   const warning = destructive(input);
   if (warning && !confirmed) return { lines: [], confirm: { command: input, warning } };
 

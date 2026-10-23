@@ -21,6 +21,7 @@ export type OsState = {
   tests: "none" | "passing" | "failing";
   testDetail: string;
   log: string[];
+  lang: "en" | "he";
 };
 
 export type ChatMessage = {
@@ -86,6 +87,7 @@ export function initialOs(): OsState {
     tests: "passing",
     testDetail: "3 runs, 0 failures",
     log: ["FOX OS session start", "sample_app: SQLite ready"],
+    lang: "en",
     files: {
       "/home/fox/README.md": "FOX OS home directory.\nこのワークスペースはブラウザ内です。\nhello.exe と qdev.exe が実行できます。\n",
       "/home/fox/hello.exe": "FOXEXE\nprint hello.exe: FOX OS workspace\n",

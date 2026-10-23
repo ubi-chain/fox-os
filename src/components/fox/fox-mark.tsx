@@ -1,10 +1,22 @@
 export function FoxMark() {
   return (
-    <svg className="fox-mark" viewBox="0 0 200 230" aria-hidden="true">
-      <path
-        fillRule="evenodd"
-        d="M100 6 L66 0 L46 58 L24 96 L4 136 L40 148 L58 114 L70 150 L88 180 L100 222 L112 180 L130 150 L142 114 L160 148 L196 136 L176 96 L154 58 L134 0 Z M74 36 L54 14 L48 62 L92 78 Z M126 36 L146 14 L152 62 L108 78 Z M100 84 L78 106 L100 120 L122 106 Z M56 128 L86 112 L100 136 L68 150 Z M70 134 L82 126 L88 138 L74 144 Z M144 128 L114 112 L100 136 L132 150 Z M130 134 L118 126 L112 138 L126 144 Z M100 160 L84 178 L100 202 L116 178 Z"
-      />
+    <svg className="fox-mark" viewBox="0 0 200 220" aria-hidden="true">
+      <polygon points="100,4 184,52 184,156 100,204 16,156 16,52" fill="none" stroke="#f6f3f0" strokeWidth="3" />
+      <polygon points="100,16 172,58 172,148 100,190 28,148 28,58" fill="none" stroke="#e31c2b" strokeWidth="1.4" />
+      <path stroke="#e31c2b" strokeWidth="1.2" fill="none" d="M40 70 V132 M160 70 V132 M48 86 H72 M152 86 H128 M48 116 H70 M152 116 H130" />
+      <circle cx="40" cy="70" r="2.2" fill="#ffd24a" />
+      <circle cx="160" cy="70" r="2.2" fill="#ffd24a" />
+      <circle cx="40" cy="132" r="2.2" fill="#ffd24a" />
+      <circle cx="160" cy="132" r="2.2" fill="#ffd24a" />
+      <path fill="#f6f3f0" fillRule="evenodd" d="M100 42 L74 24 L58 58 L36 78 L24 112 L46 122 L62 102 L72 128 L100 168 L128 128 L138 102 L154 122 L176 112 L164 78 L142 58 L126 24 Z M78 40 L62 28 L56 56 L84 66 Z M122 40 L138 28 L144 56 L116 66 Z" />
+      <path fill="#e31c2b" d="M72 96 L90 88 L96 104 L78 110 Z M128 96 L110 88 L104 104 L122 110 Z" />
+      <path fill="#100608" d="M100 128 L90 140 L100 152 L110 140 Z" />
+      <g fill="none" stroke="#ffd24a" strokeWidth="2.4">
+        <circle cx="34" cy="146" r="8" />
+        <circle cx="46" cy="138" r="7" />
+        <circle cx="46" cy="154" r="7" />
+        <path d="M52 146 H158 M150 146 V136 H166 V156 H150 V146 M158 140 H164 M158 152 H164" />
+      </g>
     </svg>
   );
 }

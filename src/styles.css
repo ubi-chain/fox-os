@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #070a0e;
-  --color-panel: #0b1118;
-  --color-sub: #101923;
-  --color-accent: #53ddf4;
-  --color-accent-dim: #91e8f5;
-  --color-warn: #d9a85b;
-  --color-fg: #d8e5ec;
-  --color-muted: #78909e;
-  --color-line: #243945;
-  --color-ok: #7dcea0;
+  --color-bg: #100608;
+  --color-panel: #1a0c10;
+  --color-sub: #261016;
+  --color-accent: #e31c2b;
+  --color-accent-dim: #ffd24a;
+  --color-warn: #ffd24a;
+  --color-fg: #f6f3f0;
+  --color-muted: #e7c4bc;
+  --color-line: #7a2a32;
+  --color-ok: #ffd24a;
   --font-sans: "IBM Plex Sans JP", "IBM Plex Sans", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
   --radius-sm: 2px;
@@ -60,7 +60,7 @@
     position: absolute;
     inset: 0;
     opacity: 0.35;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='56' height='48' viewBox='0 0 56 48'><path d='M28 2 L42 10 L42 26 L28 34 L14 26 L14 10 Z' fill='none' stroke='%23243945' stroke-width='1'/></svg>");
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='56' height='48' viewBox='0 0 56 48'><path d='M28 2 L42 10 L42 26 L28 34 L14 26 L14 10 Z' fill='none' stroke='%237a2a32' stroke-width='1'/></svg>");
     background-size: 56px 48px;
     mask-image: radial-gradient(ellipse at 50% 40%, #000 20%, transparent 75%);
   }
@@ -85,7 +85,7 @@
     gap: 0.75rem;
     letter-spacing: 0.22em;
     font-size: 0.8rem;
-    color: var(--color-accent);
+    color: var(--color-fg);
   }
 
   .fox-meta {
@@ -99,15 +99,9 @@
     font-size: 0.75rem;
   }
 
-  .fox-brand .fox-mark,
-  .fox-link .fox-mark,
-  .fox-boot-center .fox-mark {
-    color: var(--color-fg);
-  }
-
   .fox-brand .fox-mark {
-    width: 1.15rem;
-    height: 1.32rem;
+    width: 2rem;
+    height: 2.2rem;
   }
 
   .fox-link {
@@ -117,16 +111,12 @@
   }
 
   .fox-link .fox-mark {
-    width: 0.9rem;
-    height: 1.04rem;
-  }
-
-  .fox-mark path {
-    fill: currentColor;
+    width: 1.35rem;
+    height: 1.5rem;
   }
 
   .fox-meta strong {
-    color: var(--color-fg);
+    color: var(--color-warn);
     font-weight: 500;
   }
 
@@ -136,7 +126,7 @@
     flex: 1;
     min-height: 0;
     display: grid;
-    grid-template-columns: minmax(0, 1.5fr) minmax(16rem, 0.9fr) minmax(16rem, 0.9fr);
+    grid-template-columns: 4.6rem minmax(0, 1.5fr) minmax(13rem, 0.85fr) minmax(13rem, 0.85fr);
     grid-template-rows: minmax(0, 1fr) auto;
     gap: 0.75rem;
     padding: 0.75rem;
@@ -172,23 +162,57 @@
     padding: 0.8rem;
   }
 
-  .fox-term {
+  .fox-apps {
     grid-column: 1;
+    grid-row: 1 / span 2;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-height: 0;
+  }
+
+  .fox-app {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+    padding: 0.3rem 0.15rem;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--color-fg);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+  }
+
+  .fox-app .fox-mark {
+    width: 2.7rem;
+    height: 3rem;
+  }
+
+  .fox-app.is-on,
+  .fox-app:hover {
+    border-color: var(--color-warn);
+    background: color-mix(in srgb, var(--color-accent) 28%, transparent);
+  }
+
+  .fox-term {
+    grid-column: 2;
     grid-row: 1 / span 2;
   }
 
   .fox-qdev {
-    grid-column: 2;
+    grid-column: 3;
     grid-row: 1;
   }
 
   .fox-ai {
-    grid-column: 3;
+    grid-column: 4;
     grid-row: 1 / span 2;
   }
 
   .fox-sys {
-    grid-column: 2;
+    grid-column: 3;
     grid-row: 2;
   }
 
@@ -325,20 +349,21 @@
     padding: 0.4rem 0.75rem;
     background: transparent;
     color: var(--color-fg);
-    border: 1px solid var(--color-line);
+    border: 1px solid var(--color-accent);
     border-radius: var(--radius-sm);
     font-size: 0.75rem;
     letter-spacing: 0.04em;
   }
 
   .fox-btn:hover {
-    border-color: var(--color-accent);
-    color: var(--color-accent);
+    border-color: var(--color-warn);
+    color: var(--color-warn);
   }
 
   .fox-btn-accent {
-    border-color: color-mix(in srgb, var(--color-accent) 55%, var(--color-line));
-    color: var(--color-accent);
+    border-color: var(--color-warn);
+    color: var(--color-warn);
+    background: color-mix(in srgb, var(--color-accent) 24%, transparent);
   }
 
   .fox-btn-warn {
@@ -406,21 +431,34 @@
   .fox-dock {
     position: relative;
     z-index: 3;
-    display: flex;
+    display: none;
     justify-content: center;
     gap: 0.4rem;
     margin: 0 0.75rem 0.75rem;
     padding: 0.35rem;
-    border: 1px solid var(--color-line);
+    border: 1px solid var(--color-accent);
     border-radius: 16px;
     background: color-mix(in srgb, var(--color-panel) 88%, transparent);
+  }
+
+  .fox-dock .fox-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1rem;
+    min-width: 0;
+  }
+
+  .fox-dock .fox-mark {
+    width: 1.7rem;
+    height: 1.85rem;
   }
 
   .fox-boot {
     position: absolute;
     inset: 0;
     z-index: 5;
-    background: #070a0e;
+    background: #100608;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -454,9 +492,8 @@
   }
 
   .fox-boot-center .fox-mark {
-    width: 5.2rem;
-    height: 6rem;
-    color: var(--color-fg);
+    width: 8.4rem;
+    height: 9.2rem;
   }
 
   .fox-boot-center h1 {
@@ -575,6 +612,10 @@
 
   .fox-term.is-closed.is-active {
     display: flex;
+  }
+
+  .fox-apps {
+    display: none;
   }
 
   .fox-dock {

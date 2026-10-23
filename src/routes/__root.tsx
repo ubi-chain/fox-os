@@ -12,7 +12,7 @@ export const Route = createRootRoute({
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: APP_NAME },
       { name: "description", content: "FOX OS — ハニカムの開発机" },
-      { name: "theme-color", content: "#070A0E" },
+      { name: "theme-color", content: "#100608" },
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },

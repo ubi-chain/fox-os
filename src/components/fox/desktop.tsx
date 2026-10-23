@@ -64,6 +64,19 @@ export function Desktop() {
         </div>
       </header>
       <div className="fox-stage">
+        <nav className="fox-apps" aria-label="ソフト">
+          {PANES.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={pane === item.id ? "fox-app is-on" : "fox-app"}
+              onClick={() => setPane(item.id)}
+            >
+              <FoxMark />
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </nav>
         <TerminalPanel />
         <QdevPanel />
         <AiPanel />
@@ -88,6 +101,7 @@ export function Desktop() {
             className={pane === item.id ? "fox-btn fox-btn-accent" : "fox-btn"}
             onClick={() => setPane(item.id)}
           >
+            <FoxMark />
             {item.label}
           </button>
         ))}

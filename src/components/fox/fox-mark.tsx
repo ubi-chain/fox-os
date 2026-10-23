@@ -1,22 +1,3 @@
 export function FoxMark() {
-  return (
-    <svg className="fox-mark" viewBox="0 0 200 220" aria-hidden="true">
-      <polygon points="100,4 184,52 184,156 100,204 16,156 16,52" fill="none" stroke="#f6f3f0" strokeWidth="3" />
-      <polygon points="100,16 172,58 172,148 100,190 28,148 28,58" fill="none" stroke="#e31c2b" strokeWidth="1.4" />
-      <path stroke="#e31c2b" strokeWidth="1.2" fill="none" d="M40 70 V132 M160 70 V132 M48 86 H72 M152 86 H128 M48 116 H70 M152 116 H130" />
-      <circle cx="40" cy="70" r="2.2" fill="#ffd24a" />
-      <circle cx="160" cy="70" r="2.2" fill="#ffd24a" />
-      <circle cx="40" cy="132" r="2.2" fill="#ffd24a" />
-      <circle cx="160" cy="132" r="2.2" fill="#ffd24a" />
-      <path fill="#f6f3f0" fillRule="evenodd" d="M100 42 L74 24 L58 58 L36 78 L24 112 L46 122 L62 102 L72 128 L100 168 L128 128 L138 102 L154 122 L176 112 L164 78 L142 58 L126 24 Z M78 40 L62 28 L56 56 L84 66 Z M122 40 L138 28 L144 56 L116 66 Z" />
-      <path fill="#e31c2b" d="M72 96 L90 88 L96 104 L78 110 Z M128 96 L110 88 L104 104 L122 110 Z" />
-      <path fill="#100608" d="M100 128 L90 140 L100 152 L110 140 Z" />
-      <g fill="none" stroke="#ffd24a" strokeWidth="2.4">
-        <circle cx="34" cy="146" r="8" />
-        <circle cx="46" cy="138" r="7" />
-        <circle cx="46" cy="154" r="7" />
-        <path d="M52 146 H158 M150 146 V136 H166 V156 H150 V146 M158 140 H164 M158 152 H164" />
-      </g>
-    </svg>
-  );
+  return <img className="fox-mark" src="/emblem.png" alt="" />;
 }

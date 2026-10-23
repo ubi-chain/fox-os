@@ -99,6 +99,11 @@
     font-size: 0.75rem;
   }
 
+  img.fox-mark {
+    display: block;
+    object-fit: contain;
+  }
+
   .fox-brand .fox-mark {
     width: 2rem;
     height: 2.2rem;

@@ -51,7 +51,6 @@ export function Desktop() {
 
   return (
     <div className="fox-root">
-      <div className="fox-roof" aria-hidden="true" />
       <header className="fox-top">
         <div className="fox-brand">
           <FoxMark />

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useFox } from "@/lib/fox/store";
-import { HiveMark } from "./hive-mark";
+import { FoxMark } from "./fox-mark";
 
 type Cell = { points: string; delay: string };
 
@@ -61,7 +61,7 @@ export function BootOverlay() {
         ))}
       </svg>
       <div className="fox-boot-center">
-        <HiveMark />
+        <FoxMark />
         <h1>FOX OS</h1>
       </div>
       <button

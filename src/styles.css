@@ -100,13 +100,14 @@
   }
 
   .fox-brand .fox-mark,
-  .fox-link .fox-mark {
-    color: var(--color-accent);
+  .fox-link .fox-mark,
+  .fox-boot-center .fox-mark {
+    color: var(--color-fg);
   }
 
   .fox-brand .fox-mark {
-    width: 1.35rem;
-    height: 1.24rem;
+    width: 1.15rem;
+    height: 1.32rem;
   }
 
   .fox-link {
@@ -116,14 +117,12 @@
   }
 
   .fox-link .fox-mark {
-    width: 1rem;
-    height: 0.92rem;
+    width: 0.9rem;
+    height: 1.04rem;
   }
 
-  .fox-mark polygon {
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2.2;
+  .fox-mark path {
+    fill: currentColor;
   }
 
   .fox-meta strong {
@@ -455,9 +454,9 @@
   }
 
   .fox-boot-center .fox-mark {
-    width: 4.6rem;
-    height: 4.2rem;
-    color: var(--color-accent);
+    width: 5.2rem;
+    height: 6rem;
+    color: var(--color-fg);
   }
 
   .fox-boot-center h1 {

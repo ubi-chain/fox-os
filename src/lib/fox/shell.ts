@@ -1,3 +1,4 @@
+import { planBuild } from "./copilot";
 import {
   BUNDLER_VERSION,
   RAILS_VERSION,
@@ -26,6 +27,9 @@ const HELP = [
   "git status         ブランチと変更",
   "kill PID           サーバー停止",
   "clear              画面消去",
+  "gem install NAME   Gemfile へ追記",
+  "gem list           入っている gem",
+  "copilot 説明       承認後に Rails のファイルを書く",
   "/change to hebrew  コマンドをヘブライ語にする",
   "/change to japanese コマンドを日本語にする",
   "/change to english 英語に戻す",
@@ -449,6 +453,65 @@ export function runCommand(raw: string, state: OsState, confirmed = false): Comm
     if (!project || !files[`${project}/Gemfile`]) return { lines: [err("Gemfile がありません")] };
     return {
       lines: [out(`Bundle complete! rails (${RAILS_VERSION})`), sys("ワークスペース内の解決です。ネットワークへは出ていません。")],
+    };
+  }
+
+  if (cmd === "gem") {
+    const name = tokens[2];
+    if (tokens[1] === "list" || !tokens[1]) {
+      const listed = Object.entries(files)
+        .filter(([path]) => path.endsWith("/Gemfile"))
+        .flatMap(([, body]) => [...body.matchAll(/gem "([^"]+)"(?:, "([^"]+)")?/g)].map((m) => `${m[1]} (${m[2] ?? "unpinned"})`));
+      return { lines: [out(listed.join("\n") || "(none)")] };
+    }
+    if (tokens[1] === "install") {
+      if (!name || !/^[\w.-]+$/.test(name)) return { lines: [err("gem install NAME の形式です")] };
+      const project = requireProject(state);
+      if (!project) return { lines: [err("Rails プロジェクトの中で実行してください（cd sample_app）")] };
+      const known: Record<string, string> = {
+        puma: "6.4.3",
+        sqlite3: "2.1.1",
+        bootsnap: "1.18.4",
+        rack: "3.1.8",
+      };
+      const version = known[name] ?? "0.1.0";
+      const gemfilePath = `${project}/Gemfile`;
+      const current = files[gemfilePath] ?? `source "https://rubygems.org"\n`;
+      if (!current.includes(`gem "${name}"`)) {
+        files[gemfilePath] = `${current.replace(/\s*$/, "\n")}gem "${name}", "${version}"\n`;
+      }
+      return {
+        lines: [
+          out(`Successfully installed ${name}-${version}`),
+          sys("ワークスペースの Gemfile に追記しました。rubygems.org には接続していません。"),
+        ],
+        patch: { files, dirty: true, project, log: [...state.log, `gem install ${name} ${version}`] },
+      };
+    }
+    return { lines: [err("gem: list と install に対応しています")] };
+  }
+
+  if (cmd === "copilot") {
+    const write = tokens[1] === "--write";
+    const prompt = (write ? tokens.slice(2) : tokens.slice(1)).join(" ").trim();
+    if (!prompt) return { lines: [err("copilot のあとに、作りたいものを書いてください")] };
+    const project = requireProject(state) ?? state.project;
+    if (!project) return { lines: [err("Rails プロジェクトがありません")] };
+    const plan = planBuild(prompt, project);
+    if (!write) {
+      const safe = prompt.replace(/"/g, "'");
+      return {
+        lines: [out(plan.summary), out(plan.note), ...plan.files.map((file) => out(`create ${file.path}`))],
+        confirm: {
+          command: `copilot --write "${safe}"`,
+          warning: "これらのファイルを Rails プロジェクトに書き込みます。承認するまで書きません。",
+        },
+      };
+    }
+    for (const file of plan.files) files[file.path] = file.body;
+    return {
+      lines: plan.files.map((file) => out(`wrote ${file.path}`)),
+      patch: { files, dirty: true, project, log: [...state.log, `copilot wrote ${plan.files.length} files`] },
     };
   }
 

@@ -1,5 +1,22 @@
+import { useState } from "react";
+import { planBuild, type BuildPlan } from "@/lib/fox/copilot";
 import { RAILS_VERSION, RUBY_VERSION } from "@/lib/fox/model";
 import { serverLabel, useFox } from "@/lib/fox/store";
+
+function folderEntries(files: Record<string, string>, dir: string) {
+  const prefix = `${dir}/`;
+  const names = new Map<string, "dir" | "file">();
+  for (const path of Object.keys(files)) {
+    if (!path.startsWith(prefix)) continue;
+    const rest = path.slice(prefix.length);
+    const [head, ...more] = rest.split("/");
+    if (!head || head === ".keep") continue;
+    const kind = more.length > 0 ? "dir" : "file";
+    const prev = names.get(head);
+    names.set(head, prev === "dir" || kind === "dir" ? "dir" : "file");
+  }
+  return [...names.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+}
 
 export function QdevPanel() {
   const branch = useFox((s) => s.branch);
@@ -15,10 +32,34 @@ export function QdevPanel() {
   const submit = useFox((s) => s.submit);
   const openTerm = useFox((s) => s.openTerm);
   const openPreview = useFox((s) => s.openPreview);
+  const files = useFox((s) => s.files);
+  const applyFiles = useFox((s) => s.applyFiles);
+  const [folder, setFolder] = useState<string | null>(null);
+  const [reading, setReading] = useState<string | null>(null);
+  const [idea, setIdea] = useState("投稿 タイトル 本文");
+  const [plan, setPlan] = useState<BuildPlan | null>(null);
 
   const run = (command: string) => {
     openTerm();
     submit(command);
+  };
+
+  const root = project ?? "/home/fox/sample_app";
+  const here = folder ?? root;
+  const entries = folderEntries(files, here);
+
+  const askCopilot = async () => {
+    try {
+      const response = await fetch("/api/copilot", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ prompt: idea }),
+      });
+      if (!response.ok) throw new Error("status");
+      setPlan((await response.json()) as BuildPlan);
+    } catch {
+      setPlan(planBuild(idea, root));
+    }
   };
 
   return (
@@ -82,6 +123,62 @@ export function QdevPanel() {
             アプリを開く
           </button>
         </div>
+        <div className="fox-tree">
+          <p className="fox-note">{here}</p>
+          {folder ? (
+            <button
+              type="button"
+              onClick={() => {
+                const parent = folder.slice(0, folder.lastIndexOf("/"));
+                setFolder(parent === root ? null : parent);
+              }}
+            >
+              ../
+            </button>
+          ) : null}
+          {entries.map(([name, kind]) => (
+            <button
+              key={name}
+              type="button"
+              onClick={() => {
+                const next = `${here}/${name}`;
+                if (kind === "dir") {
+                  setFolder(next);
+                  setReading(null);
+                  return;
+                }
+                setReading(next);
+              }}
+            >
+              {kind === "dir" ? `${name}/` : name}
+            </button>
+          ))}
+          {reading ? <pre>{files[reading] || "(empty)"}</pre> : null}
+        </div>
+        <form
+          className="fox-ai-form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void askCopilot();
+          }}
+        >
+          <input value={idea} aria-label="構築したいもの" onChange={(event) => setIdea(event.target.value)} />
+          <button type="submit" className="fox-btn fox-btn-accent">
+            計画
+          </button>
+        </form>
+        {plan ? (
+          <div className="fox-tree">
+            <p className="fox-note">{plan.summary}</p>
+            <p className="fox-note">{plan.note}</p>
+            {plan.files.map((file) => (
+              <p key={file.path}>{file.path}</p>
+            ))}
+            <button type="button" className="fox-btn fox-btn-warn" onClick={() => applyFiles(plan.files)}>
+              承認して書く
+            </button>
+          </div>
+        ) : null}
       </div>
     </section>
   );

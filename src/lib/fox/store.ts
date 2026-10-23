@@ -27,6 +27,10 @@ type FoxStore = OsState & {
   previewOpen: boolean;
   notice: string;
   pulse: Pane | null;
+  slackOpen: boolean;
+  slackChannel: "general" | "dev";
+  slackRooms: Record<"general" | "dev", { who: string; text: string }[]>;
+  slackDraft: string;
   finishBoot: () => void;
   replayBoot: () => void;
   setPane: (pane: Pane) => void;
@@ -42,6 +46,12 @@ type FoxStore = OsState & {
   resolveProposal: (index: number, action: "run" | "dismiss") => void;
   openPreview: () => void;
   closePreview: () => void;
+  openSlack: () => void;
+  closeSlack: () => void;
+  setSlackChannel: (channel: "general" | "dev") => void;
+  setSlackDraft: (draft: string) => void;
+  sendSlack: () => void;
+  applyFiles: (entries: { path: string; body: string }[]) => void;
   historyNav: (dir: -1 | 1) => void;
 };
 
@@ -75,6 +85,13 @@ export const useFox = create<FoxStore>((set, get) => ({
   previewOpen: false,
   notice: "",
   pulse: null,
+  slackOpen: false,
+  slackChannel: "general",
+  slackDraft: "",
+  slackRooms: {
+    general: [{ who: "q", text: "この部屋はこのブラウザの中だけです。Slack には送っていません。" }],
+    dev: [{ who: "q", text: "sample_app の話はこちら。" }],
+  },
 
   finishBoot: () => set({ phase: "desktop", termVisual: "opening" }),
   replayBoot: () => set({ phase: "boot", previewOpen: false }),
@@ -195,6 +212,31 @@ export const useFox = create<FoxStore>((set, get) => ({
   },
 
   closePreview: () => set({ previewOpen: false }),
+
+  openSlack: () => set({ slackOpen: true }),
+  closeSlack: () => set({ slackOpen: false }),
+  setSlackChannel: (slackChannel) => set({ slackChannel }),
+  setSlackDraft: (slackDraft) => set({ slackDraft }),
+  sendSlack: () => {
+    const text = get().slackDraft.trim();
+    if (!text) return;
+    const channel = get().slackChannel;
+    const rooms = get().slackRooms;
+    set({
+      slackDraft: "",
+      slackRooms: { ...rooms, [channel]: [...rooms[channel], { who: "fox", text }] },
+    });
+  },
+  applyFiles: (entries) => {
+    const files = { ...get().files };
+    for (const entry of entries) files[entry.path] = entry.body;
+    set({
+      files,
+      dirty: true,
+      notice: `${entries.length} ファイルを書きました`,
+      log: [...get().log, `copilot wrote ${entries.length} files`],
+    });
+  },
 
   historyNav: (dir) => {
     const { history, histIndex, draft } = get();

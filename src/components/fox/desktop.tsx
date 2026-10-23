@@ -5,6 +5,7 @@ import { AiPanel } from "./ai-panel";
 import { BootOverlay } from "./boot-overlay";
 import { FoxMark } from "./fox-mark";
 import { QdevPanel } from "./qdev-panel";
+import { SlackPanel } from "./slack-panel";
 import { SysPanel } from "./sys-panel";
 import { TerminalPanel } from "./terminal-panel";
 
@@ -25,6 +26,7 @@ export function Desktop() {
   const pane = useFox((s) => s.pane);
   const launch = useFox((s) => s.launch);
   const submit = useFox((s) => s.submit);
+  const openSlack = useFox((s) => s.openSlack);
   const termVisual = useFox((s) => s.termVisual);
   const openTerm = useFox((s) => s.openTerm);
   const closeTerm = useFox((s) => s.closeTerm);
@@ -96,6 +98,10 @@ export function Desktop() {
               <span>{item.label}</span>
             </button>
           ))}
+          <button type="button" className="fox-app" onClick={openSlack}>
+            <FoxMark />
+            <span>CHAT</span>
+          </button>
         </nav>
         <TerminalPanel />
         <QdevPanel />
@@ -141,6 +147,7 @@ export function Desktop() {
         ))}
       </nav>
       {phase === "boot" ? <BootOverlay /> : null}
+      <SlackPanel />
     </div>
   );
 }

@@ -566,6 +566,80 @@
     font-size: 0.72rem;
   }
 
+  .fox-tree {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    margin-top: 0.8rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+  }
+
+  .fox-tree button {
+    min-height: 2rem;
+    padding: 0.2rem 0.4rem;
+    text-align: left;
+    background: transparent;
+    color: var(--color-fg);
+    border: 0;
+  }
+
+  .fox-tree pre {
+    margin: 0.4rem 0 0;
+    white-space: pre-wrap;
+    color: var(--color-muted);
+  }
+
+  .fox-slack {
+    position: absolute;
+    z-index: 6;
+    inset: 4.5rem 1rem 1rem;
+    display: grid;
+    grid-template-columns: 9rem minmax(0, 1fr);
+    background: #100608;
+    border: 10px solid #e31c2b;
+    border-top: 0;
+  }
+
+  .fox-slack aside {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.6rem;
+    background: #1a0c10;
+    border-right: 1px solid var(--color-line);
+  }
+
+  .fox-slack aside button {
+    min-height: 2.25rem;
+    text-align: left;
+    background: transparent;
+    color: var(--color-fg);
+    border: 0;
+  }
+
+  .fox-slack aside button.is-on {
+    color: var(--color-warn);
+  }
+
+  .fox-slack section {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .fox-slack-log {
+    flex: 1;
+    overflow: auto;
+    padding: 0.8rem;
+  }
+
+  .fox-slack-log b {
+    color: var(--color-warn);
+    margin-right: 0.4rem;
+  }
+
   .fox-browser pre {
     margin: 0;
     padding: 1.2rem;

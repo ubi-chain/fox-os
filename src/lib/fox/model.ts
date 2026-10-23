@@ -98,8 +98,13 @@ export function initialOs(): OsState {
       [`${project}/README.md`]: "Sample Rails app for FOX OS.\n",
       [`${project}/app/controllers/home_controller.rb`]:
         "class HomeController < ApplicationController\n  def index\n    render plain: \"FOX OS\"\n  end\nend\n",
+      [`${project}/app/models/.keep`]: "",
+      [`${project}/app/views/home/index.html.erb`]: "<h1>FOX OS</h1>\n",
+      [`${project}/config/routes.rb`]:
+        "Rails.application.routes.draw do\n  root \"home#index\"\nend\n",
       [`${project}/config/database.yml`]:
         "development:\n  adapter: sqlite3\n  database: storage/development.sqlite3\n",
+      [`${project}/db/schema.rb`]: "ActiveRecord::Schema[7.2].define(version: 0) do\nend\n",
       [`${project}/log/development.log`]:
         "Started GET \"/\" for 127.0.0.1\nCompleted 200 OK in 8ms\n",
     },

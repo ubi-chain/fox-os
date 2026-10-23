@@ -8,6 +8,7 @@ import {
   type CommandResult,
   type Line,
   type OsState,
+  type Pane,
 } from "./model";
 
 const HELP = [
@@ -25,6 +26,7 @@ const HELP = [
   "git status         ブランチと変更",
   "kill PID           サーバー停止",
   "clear              画面消去",
+  "hello.exe qdev.exe sys.exe ai.exe",
 ].join("\n");
 
 function out(text: string): Line {
@@ -91,6 +93,27 @@ function scaffold(path: string): Record<string, string> {
 
 function requireProject(state: OsState): string | null {
   return projectFrom(state.cwd, state.files, state.project);
+}
+
+function runExe(path: string, content: string): CommandResult {
+  if (content.startsWith("MZ")) {
+    return { lines: [err("Windows の実行ファイルです。この机はブラウザ内なので、その形式は起動できません。")] };
+  }
+  if (!content.startsWith("FOXEXE\n")) {
+    const prints = [...content.matchAll(/puts\s+["']([^"']*)["']/g)].map((m) => m[1]);
+    return { lines: prints.length ? prints.map(out) : [sys(`${baseName(path)} を実行しました`)] };
+  }
+  const lines: Line[] = [];
+  let open: Pane | undefined;
+  for (const row of content.split("\n").slice(1)) {
+    if (row.startsWith("print ")) lines.push(out(row.slice(6)));
+    if (row.startsWith("open ")) {
+      const pane = row.slice(5).trim();
+      if (pane === "term" || pane === "dev" || pane === "ai" || pane === "sys") open = pane;
+    }
+  }
+  if (lines.length === 0) lines.push(sys(`${baseName(path)} を起動しました`));
+  return { lines, open };
 }
 
 export function runCommand(raw: string, state: OsState, confirmed = false): CommandResult {
@@ -300,6 +323,13 @@ export function runCommand(raw: string, state: OsState, confirmed = false): Comm
     }
 
     return { lines: [err(`bin/rails ${rargs.join(" ")} はこの段階では未対応です`)] };
+  }
+
+  if (cmd.endsWith(".exe")) {
+    const direct = joinPath(state.cwd, cmd);
+    const path = files[direct] != null ? direct : files[`/home/fox/${baseName(cmd)}`] != null ? `/home/fox/${baseName(cmd)}` : null;
+    if (!path) return { lines: [err(`${cmd}: ありません`)] };
+    return runExe(path, files[path]);
   }
 
   if (cmd === "bundle" && tokens[1] === "install") {

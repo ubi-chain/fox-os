@@ -15,10 +15,16 @@ const PANES = [
   { id: "sys", label: "SYS" },
 ] as const;
 
+const EXES = [
+  { file: "hello.exe", label: "HELLO" },
+  { file: "qdev.exe", label: "QDEV" },
+] as const;
+
 export function Desktop() {
   const phase = useFox((s) => s.phase);
   const pane = useFox((s) => s.pane);
-  const setPane = useFox((s) => s.setPane);
+  const launch = useFox((s) => s.launch);
+  const submit = useFox((s) => s.submit);
   const termVisual = useFox((s) => s.termVisual);
   const openTerm = useFox((s) => s.openTerm);
   const closeTerm = useFox((s) => s.closeTerm);
@@ -70,7 +76,21 @@ export function Desktop() {
               key={item.id}
               type="button"
               className={pane === item.id ? "fox-app is-on" : "fox-app"}
-              onClick={() => setPane(item.id)}
+              onClick={() => launch(item.id)}
+            >
+              <FoxMark />
+              <span>{item.label}</span>
+            </button>
+          ))}
+          {EXES.map((item) => (
+            <button
+              key={item.file}
+              type="button"
+              className="fox-app"
+              onClick={() => {
+                openTerm();
+                submit(item.file);
+              }}
             >
               <FoxMark />
               <span>{item.label}</span>
@@ -99,7 +119,21 @@ export function Desktop() {
             key={item.id}
             type="button"
             className={pane === item.id ? "fox-btn fox-btn-accent" : "fox-btn"}
-            onClick={() => setPane(item.id)}
+            onClick={() => launch(item.id)}
+          >
+            <FoxMark />
+            {item.label}
+          </button>
+        ))}
+        {EXES.map((item) => (
+          <button
+            key={item.file}
+            type="button"
+            className="fox-btn"
+            onClick={() => {
+              openTerm();
+              submit(item.file);
+            }}
           >
             <FoxMark />
             {item.label}

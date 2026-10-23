@@ -13,6 +13,7 @@ export function TerminalPanel() {
   const dismissConfirm = useFox((s) => s.dismissConfirm);
   const termVisual = useFox((s) => s.termVisual);
   const pane = useFox((s) => s.pane);
+  const pulse = useFox((s) => s.pulse);
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -25,7 +26,7 @@ export function TerminalPanel() {
   }, [termVisual, pane]);
 
   return (
-    <section className={`fox-panel fox-term is-${termVisual}${pane === "term" ? " is-active" : ""}`}>
+    <section className={`fox-panel fox-term is-${termVisual}${pane === "term" ? " is-active" : ""}${pulse === "term" ? " is-launch" : ""}`}>
       <header className="fox-panel-h">
         <span>TERMINAL</span>
         <span>MATERIALIZE</span>

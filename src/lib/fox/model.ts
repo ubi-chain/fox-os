@@ -43,6 +43,7 @@ export type CommandResult = {
   clear?: boolean;
   patch?: Partial<OsState>;
   confirm?: { command: string; warning: string };
+  open?: Pane;
 };
 
 export function norm(path: string): string {
@@ -86,7 +87,11 @@ export function initialOs(): OsState {
     testDetail: "3 runs, 0 failures",
     log: ["FOX OS session start", "sample_app: SQLite ready"],
     files: {
-      "/home/fox/README.md": "FOX OS home directory.\nこのワークスペースはブラウザ内です。\n",
+      "/home/fox/README.md": "FOX OS home directory.\nこのワークスペースはブラウザ内です。\nhello.exe と qdev.exe が実行できます。\n",
+      "/home/fox/hello.exe": "FOXEXE\nprint hello.exe: FOX OS workspace\n",
+      "/home/fox/qdev.exe": "FOXEXE\nopen dev\nprint Q-DEV を前面に出しました\n",
+      "/home/fox/sys.exe": "FOXEXE\nopen sys\nprint SYS を前面に出しました\n",
+      "/home/fox/ai.exe": "FOXEXE\nopen ai\nprint AI を前面に出しました\n",
       [`${project}/Gemfile`]: `source "https://rubygems.org"\ngem "rails", "${RAILS_VERSION}"\n`,
       [`${project}/README.md`]: "Sample Rails app for FOX OS.\n",
       [`${project}/app/controllers/home_controller.rb`]:

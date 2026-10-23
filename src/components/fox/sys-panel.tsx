@@ -10,6 +10,7 @@ type Telemetry = {
 
 export function SysPanel() {
   const pane = useFox((s) => s.pane);
+  const pulse = useFox((s) => s.pulse);
   const [telemetry, setTelemetry] = useState<Telemetry>({
     cores: 0,
     online: true,
@@ -43,7 +44,7 @@ export function SysPanel() {
   }, []);
 
   return (
-    <section className={`fox-panel fox-sys${pane === "sys" ? " is-active" : ""}`}>
+    <section className={`fox-panel fox-sys${pane === "sys" ? " is-active" : ""}${pulse === "sys" ? " is-launch" : ""}`}>
       <header className="fox-panel-h">
         <span>SYSTEM</span>
         <span>THIS BROWSER</span>

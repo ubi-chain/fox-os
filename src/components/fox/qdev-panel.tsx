@@ -11,6 +11,7 @@ export function QdevPanel() {
   const testDetail = useFox((s) => s.testDetail);
   const notice = useFox((s) => s.notice);
   const pane = useFox((s) => s.pane);
+  const pulse = useFox((s) => s.pulse);
   const submit = useFox((s) => s.submit);
   const openTerm = useFox((s) => s.openTerm);
   const openPreview = useFox((s) => s.openPreview);
@@ -21,7 +22,7 @@ export function QdevPanel() {
   };
 
   return (
-    <section className={`fox-panel fox-qdev${pane === "dev" ? " is-active" : ""}`}>
+    <section className={`fox-panel fox-qdev${pane === "dev" ? " is-active" : ""}${pulse === "dev" ? " is-launch" : ""}`}>
       <header className="fox-panel-h">
         <span>Q-DEV</span>
         <span>RAILS</span>

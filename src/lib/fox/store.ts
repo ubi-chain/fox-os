@@ -26,9 +26,11 @@ type FoxStore = OsState & {
   confirm: Confirm | null;
   previewOpen: boolean;
   notice: string;
+  pulse: Pane | null;
   finishBoot: () => void;
   replayBoot: () => void;
   setPane: (pane: Pane) => void;
+  launch: (pane: Pane) => void;
   openTerm: () => void;
   closeTerm: () => void;
   setDraft: (draft: string) => void;
@@ -72,10 +74,22 @@ export const useFox = create<FoxStore>((set, get) => ({
   confirm: null,
   previewOpen: false,
   notice: "",
+  pulse: null,
 
   finishBoot: () => set({ phase: "desktop", termVisual: "opening" }),
   replayBoot: () => set({ phase: "boot", previewOpen: false }),
-  setPane: (pane) => set({ pane }),
+  setPane: (pane) => set({ pane, pulse: pane }),
+  launch: (pane) => {
+    const visual = get().termVisual;
+    const openTerm = pane === "term" && (visual === "closed" || visual === "closing");
+    set({ pane, pulse: null, termVisual: openTerm ? "opening" : visual });
+    window.requestAnimationFrame(() => set({ pulse: pane }));
+    if (openTerm) {
+      window.setTimeout(() => {
+        if (get().termVisual === "opening") set({ termVisual: "open" });
+      }, 700);
+    }
+  },
   openTerm: () => {
     set({ termVisual: "opening", pane: "term" });
     window.setTimeout(() => {
@@ -109,14 +123,18 @@ export const useFox = create<FoxStore>((set, get) => ({
       return;
     }
     const patch = result.patch ?? {};
+    const nextPane = result.open ?? state.pane;
     set({
       ...patch,
+      pane: nextPane,
+      pulse: null,
       draft: "",
       history: [...state.history, input],
       histIndex: -1,
       confirm: null,
       lines: result.clear ? [] : append(state.lines, [echo, ...result.lines]),
     });
+    if (result.open) window.requestAnimationFrame(() => set({ pulse: result.open ?? null }));
   },
 
   confirmRun: () => {

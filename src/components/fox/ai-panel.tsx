@@ -7,9 +7,10 @@ export function AiPanel() {
   const ask = useFox((s) => s.ask);
   const resolveProposal = useFox((s) => s.resolveProposal);
   const pane = useFox((s) => s.pane);
+  const pulse = useFox((s) => s.pulse);
 
   return (
-    <section className={`fox-panel fox-ai${pane === "ai" ? " is-active" : ""}`}>
+    <section className={`fox-panel fox-ai${pane === "ai" ? " is-active" : ""}${pulse === "ai" ? " is-launch" : ""}`}>
       <header className="fox-panel-h">
         <span>ASSISTANT</span>
         <span>ONBOARD</span>

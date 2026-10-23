@@ -500,6 +500,9 @@
     stroke: var(--color-accent);
     stroke-width: 1;
     opacity: 0;
+  }
+
+  .fox-boot.is-audible .fox-hive polygon {
     animation: hive-cell 1.35s ease both;
   }
 
@@ -507,7 +510,18 @@
     position: relative;
     z-index: 1;
     text-align: center;
+    opacity: 1;
+  }
+
+  .fox-boot.is-audible .fox-boot-center {
     animation: fox-in 0.7s ease 1.6s both;
+  }
+
+  .fox-boot-center .fox-boot-hint {
+    margin: 0.8rem 0 0;
+    color: var(--color-warn);
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
   }
 
   .fox-boot-center .fox-mark {

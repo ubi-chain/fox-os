@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { playBootSound } from "@/lib/fox/boot-sound";
+import { holdBootSound, playBootSound, releaseBootSound, takeBootSound } from "@/lib/fox/boot-sound";
 import { useFox } from "@/lib/fox/store";
 import { FoxMark } from "./fox-mark";
 
@@ -37,12 +37,50 @@ const CELLS = hiveCells();
 export function BootOverlay() {
   const finishBoot = useFox((s) => s.finishBoot);
   const [leaving, setLeaving] = useState(false);
+  const [audible, setAudible] = useState(false);
   const done = useRef(false);
-  const sound = useRef<{ stop: () => void; resume: () => void } | null>(null);
+  const sound = useRef<ReturnType<typeof playBootSound> | null>(null);
+  const ticket = useRef(0);
+
+  const adopt = (voice: ReturnType<typeof playBootSound>) => {
+    sound.current = voice;
+    ticket.current = holdBootSound(voice);
+    setAudible(true);
+  };
+
+  const start = () => {
+    if (done.current || audible) return;
+    const voice = playBootSound();
+    adopt(voice);
+    void voice.resume();
+  };
 
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!reduce) sound.current = playBootSound();
+    if (reduce) {
+      setAudible(true);
+      return;
+    }
+    const armed = takeBootSound();
+    if (armed?.running) adopt(armed);
+    else {
+      if (armed) armed.stop();
+      const trial = playBootSound();
+      if (trial.running) adopt(trial);
+      else trial.stop();
+    }
+    return () => {
+      const voice = sound.current;
+      const heldTicket = ticket.current;
+      window.setTimeout(() => {
+        if (voice) releaseBootSound(voice, heldTicket);
+      }, 0);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!audible) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const wait = reduce ? 400 : 3600;
     const fade = window.setTimeout(() => {
       if (done.current) return;
@@ -53,15 +91,13 @@ export function BootOverlay() {
     return () => {
       window.clearTimeout(fade);
       window.clearTimeout(end);
-      sound.current?.stop();
-      sound.current = null;
     };
-  }, [finishBoot]);
+  }, [audible, finishBoot]);
 
   return (
     <div
-      className={leaving ? "fox-boot is-leaving" : "fox-boot"}
-      onPointerDown={() => sound.current?.resume()}
+      className={`fox-boot${audible ? " is-audible" : ""}${leaving ? " is-leaving" : ""}`}
+      onPointerDown={start}
     >
       <svg className="fox-hive" viewBox="0 0 1200 740" aria-hidden="true">
         {CELLS.map((cell, index) => (
@@ -71,12 +107,15 @@ export function BootOverlay() {
       <div className="fox-boot-center">
         <FoxMark />
         <h1>FOX OS</h1>
+        {audible ? null : <p className="fox-boot-hint">画面を押すと鳴って起動します</p>}
       </div>
       <button
         type="button"
         className="fox-btn fox-boot-skip"
+        onPointerDown={(event) => event.stopPropagation()}
         onClick={() => {
           done.current = true;
+          sound.current?.stop();
           finishBoot();
         }}
       >

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { armBootSound } from "@/lib/fox/boot-sound";
 import { previewBody } from "@/lib/fox/model";
 import { useFox } from "@/lib/fox/store";
 import { AiPanel } from "./ai-panel";
@@ -66,7 +67,14 @@ export function Desktop() {
           <button type="button" className="fox-btn" onClick={termVisual === "closed" ? openTerm : closeTerm}>
             {termVisual === "closed" ? "ターミナル展開" : "ターミナル消去"}
           </button>
-          <button type="button" className="fox-btn" onClick={replayBoot}>
+          <button
+            type="button"
+            className="fox-btn"
+            onClick={() => {
+              armBootSound();
+              replayBoot();
+            }}
+          >
             再初期化
           </button>
         </div>

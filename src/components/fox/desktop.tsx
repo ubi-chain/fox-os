@@ -1,40 +1,31 @@
 import { useEffect, useState } from "react";
 import { armBootSound } from "@/lib/fox/boot-sound";
-import { previewBody } from "@/lib/fox/model";
-import { useFox } from "@/lib/fox/store";
-import { AiPanel } from "./ai-panel";
+import { useFox, type WinKind } from "@/lib/fox/store";
 import { BootOverlay } from "./boot-overlay";
+import { DeskWindows } from "./desk-windows";
 import { FoxMark } from "./fox-mark";
-import { QdevPanel } from "./qdev-panel";
-import { SlackPanel } from "./slack-panel";
-import { SysPanel } from "./sys-panel";
-import { TerminalPanel } from "./terminal-panel";
+import { LoginScreen } from "./login-screen";
 
-const PANES = [
-  { id: "term", label: "TERM" },
-  { id: "dev", label: "DEV" },
-  { id: "ai", label: "AI" },
-  { id: "sys", label: "SYS" },
-] as const;
-
-const EXES = [
-  { file: "hello.exe", label: "HELLO" },
-  { file: "qdev.exe", label: "QDEV" },
-] as const;
+const ICONS: { kind: WinKind; label: string }[] = [
+  { kind: "browser", label: "ブラウザ" },
+  { kind: "explorer", label: "エクスプローラ" },
+  { kind: "term", label: "TERM" },
+  { kind: "dev", label: "DEV" },
+  { kind: "ai", label: "AI" },
+  { kind: "sys", label: "SYS" },
+  { kind: "chat", label: "CHAT" },
+];
 
 export function Desktop() {
   const phase = useFox((s) => s.phase);
-  const pane = useFox((s) => s.pane);
-  const launch = useFox((s) => s.launch);
-  const submit = useFox((s) => s.submit);
-  const openSlack = useFox((s) => s.openSlack);
+  const openWindow = useFox((s) => s.openWindow);
+  const windows = useFox((s) => s.windows);
+  const focusWindow = useFox((s) => s.focusWindow);
   const termVisual = useFox((s) => s.termVisual);
   const openTerm = useFox((s) => s.openTerm);
   const closeTerm = useFox((s) => s.closeTerm);
   const replayBoot = useFox((s) => s.replayBoot);
-  const previewOpen = useFox((s) => s.previewOpen);
-  const closePreview = useFox((s) => s.closePreview);
-  const body = useFox((s) => previewBody(s));
+  const submit = useFox((s) => s.submit);
   const [clock, setClock] = useState("--:--:--");
 
   useEffect(() => {
@@ -79,83 +70,37 @@ export function Desktop() {
           </button>
         </div>
       </header>
-      <div className="fox-stage">
+      <div className="fox-stage fox-desk">
         <nav className="fox-apps" aria-label="ソフト">
-          {PANES.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className={pane === item.id ? "fox-app is-on" : "fox-app"}
-              onClick={() => launch(item.id)}
-            >
+          {ICONS.map((item) => (
+            <button key={item.kind} type="button" className="fox-app" onClick={() => openWindow(item.kind)}>
               <FoxMark />
               <span>{item.label}</span>
             </button>
           ))}
-          {EXES.map((item) => (
-            <button
-              key={item.file}
-              type="button"
-              className="fox-app"
-              onClick={() => {
-                openTerm();
-                submit(item.file);
-              }}
-            >
-              <FoxMark />
-              <span>{item.label}</span>
-            </button>
-          ))}
-          <button type="button" className="fox-app" onClick={openSlack}>
-            <FoxMark />
-            <span>CHAT</span>
-          </button>
-        </nav>
-        <TerminalPanel />
-        <QdevPanel />
-        <AiPanel />
-        <SysPanel />
-        {previewOpen ? (
-          <div className="fox-browser" role="dialog" aria-label="アプリプレビュー">
-            <header>
-              <span>127.0.0.1:3000 — ワークスペース内プレビュー</span>
-              <button type="button" className="fox-btn" onClick={closePreview}>
-                閉じる
-              </button>
-            </header>
-            <pre>{body}</pre>
-          </div>
-        ) : null}
-      </div>
-      <nav className="fox-dock" aria-label="パネル">
-        {PANES.map((item) => (
           <button
-            key={item.id}
             type="button"
-            className={pane === item.id ? "fox-btn fox-btn-accent" : "fox-btn"}
-            onClick={() => launch(item.id)}
-          >
-            <FoxMark />
-            {item.label}
-          </button>
-        ))}
-        {EXES.map((item) => (
-          <button
-            key={item.file}
-            type="button"
-            className="fox-btn"
+            className="fox-app"
             onClick={() => {
-              openTerm();
-              submit(item.file);
+              openWindow("term");
+              submit("hello.exe");
             }}
           >
             <FoxMark />
-            {item.label}
+            <span>HELLO</span>
+          </button>
+        </nav>
+        {phase === "desktop" ? <DeskWindows /> : null}
+      </div>
+      <nav className="fox-dock" aria-label="ウィンドウ">
+        {windows.map((win) => (
+          <button key={win.id} type="button" className="fox-btn" onClick={() => focusWindow(win.id)}>
+            {win.title}
           </button>
         ))}
       </nav>
       {phase === "boot" ? <BootOverlay /> : null}
-      <SlackPanel />
+      {phase === "login" ? <LoginScreen /> : null}
     </div>
   );
 }

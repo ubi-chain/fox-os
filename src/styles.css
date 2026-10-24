@@ -500,6 +500,7 @@
     stroke: var(--color-accent);
     stroke-width: 1;
     opacity: 0;
+    animation: hive-cell 1.35s ease both;
   }
 
   .fox-boot.is-audible .fox-hive polygon {
@@ -668,6 +669,132 @@
     border: 1px solid var(--color-warn);
     color: var(--color-warn);
     font-size: 0.78rem;
+  }
+}
+
+.fox-login {
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
+    background: #100608;
+  }
+
+  .fox-login .fox-mark {
+    width: 5rem;
+    height: 5.5rem;
+  }
+
+  .fox-login h1 {
+    margin: 0;
+    letter-spacing: 0.28em;
+    font-size: 1rem;
+  }
+
+  .fox-login label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    width: min(18rem, 86vw);
+    color: var(--color-muted);
+    font-size: 0.75rem;
+  }
+
+  .fox-login input {
+    min-height: 2.5rem;
+    background: #0c0608;
+    color: var(--color-fg);
+    border: 1px solid var(--color-line);
+    padding: 0 0.6rem;
+  }
+
+  .fox-login p {
+    margin: 0;
+    color: var(--color-warn);
+  }
+
+  .fox-login-go {
+    margin-top: 1.1rem;
+  }
+
+  .fox-desk {
+    display: block;
+  }
+
+  .fox-desk .fox-apps {
+    position: absolute;
+    left: 0.45rem;
+    top: 0.45rem;
+    bottom: 0.45rem;
+    width: 5rem;
+  }
+
+  .fox-window {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    min-width: 16rem;
+    background: #14080c;
+    border: 8px solid #e31c2b;
+    overflow: hidden;
+  }
+
+  .fox-window-body {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+  }
+
+  .fox-window .fox-panel,
+  .fox-window .fox-term,
+  .fox-window .fox-qdev,
+  .fox-window .fox-ai,
+  .fox-window .fox-sys {
+    grid-column: auto;
+    grid-row: auto;
+    height: 100%;
+    border-width: 0;
+    opacity: 1;
+  }
+
+  .fox-slack.is-embedded {
+    position: relative;
+    inset: auto;
+    height: 100%;
+    border: 0;
+  }
+
+  .fox-web,
+  .fox-explorer {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+  }
+
+  .fox-web iframe {
+    flex: 1;
+    min-height: 12rem;
+    border: 0;
+    background: #fff;
+  }
+
+  .fox-web pre,
+  .fox-explorer pre {
+    margin: 0;
+    padding: 0.8rem;
+    white-space: pre-wrap;
+  }
+
+  .fox-web-home {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.8rem;
   }
 }
 

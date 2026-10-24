@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { holdBootSound, playBootSound, releaseBootSound, takeBootSound } from "@/lib/fox/boot-sound";
+import { armBootSound, holdBootSound, playBootSound, releaseBootSound, takeBootSound } from "@/lib/fox/boot-sound";
 import { useFox } from "@/lib/fox/store";
 import { FoxMark } from "./fox-mark";
 
@@ -95,10 +95,7 @@ export function BootOverlay() {
   }, [audible, finishBoot]);
 
   return (
-    <div
-      className={`fox-boot${audible ? " is-audible" : ""}${leaving ? " is-leaving" : ""}`}
-      onPointerDown={start}
-    >
+    <div className={`fox-boot${audible ? " is-audible" : ""}${leaving ? " is-leaving" : ""}`}>
       <svg className="fox-hive" viewBox="0 0 1200 740" aria-hidden="true">
         {CELLS.map((cell, index) => (
           <polygon key={index} points={cell.points} style={{ animationDelay: cell.delay }} />
@@ -107,20 +104,18 @@ export function BootOverlay() {
       <div className="fox-boot-center">
         <FoxMark />
         <h1>FOX OS</h1>
-        {audible ? null : <p className="fox-boot-hint">画面を押すと鳴って起動します</p>}
+        <button
+          type="button"
+          className="fox-btn fox-btn-accent fox-login-go"
+          onClick={() => {
+            armBootSound();
+            done.current = true;
+            finishBoot();
+          }}
+        >
+          LOGIN
+        </button>
       </div>
-      <button
-        type="button"
-        className="fox-btn fox-boot-skip"
-        onPointerDown={(event) => event.stopPropagation()}
-        onClick={() => {
-          done.current = true;
-          sound.current?.stop();
-          finishBoot();
-        }}
-      >
-        スキップ
-      </button>
     </div>
   );
 }

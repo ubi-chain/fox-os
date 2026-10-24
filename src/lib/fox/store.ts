@@ -13,8 +13,31 @@ import { runCommand } from "./shell";
 
 type Confirm = { command: string; warning: string };
 
+export type WinKind = "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat";
+
+export type DeskWindow = {
+  id: string;
+  kind: WinKind;
+  title: string;
+  x: number;
+  y: number;
+  z: number;
+  w: number;
+  h: number;
+};
+
+const WIN_TITLE: Record<WinKind, string> = {
+  term: "ターミナル",
+  dev: "Q-DEV",
+  ai: "AI",
+  sys: "SYS",
+  browser: "ブラウザ",
+  explorer: "エクスプローラ",
+  chat: "CHAT",
+};
+
 type FoxStore = OsState & {
-  phase: "boot" | "desktop";
+  phase: "boot" | "login" | "desktop";
   pane: Pane;
   termVisual: TermVisual;
   lines: Line[];
@@ -52,6 +75,13 @@ type FoxStore = OsState & {
   setSlackDraft: (draft: string) => void;
   sendSlack: () => void;
   applyFiles: (entries: { path: string; body: string }[]) => void;
+  windows: DeskWindow[];
+  nextZ: number;
+  openWindow: (kind: WinKind) => void;
+  closeWindow: (id: string) => void;
+  focusWindow: (id: string) => void;
+  moveWindow: (id: string, x: number, y: number) => void;
+  signIn: (id: string, pass: string) => boolean;
   historyNav: (dir: -1 | 1) => void;
 };
 
@@ -92,9 +122,18 @@ export const useFox = create<FoxStore>((set, get) => ({
     general: [{ who: "q", text: "この部屋はこのブラウザの中だけです。Slack には送っていません。" }],
     dev: [{ who: "q", text: "sample_app の話はこちら。" }],
   },
+  windows: [],
+  nextZ: 1,
 
-  finishBoot: () => set({ phase: "desktop", termVisual: "opening" }),
-  replayBoot: () => set({ phase: "boot", previewOpen: false }),
+  finishBoot: () => set({ phase: "login" }),
+  replayBoot: () => set({ phase: "boot", previewOpen: false, windows: [] }),
+  signIn: (id, pass) => {
+    if (id === "admin" && pass === "admin") {
+      set({ phase: "desktop", termVisual: "opening" });
+      return true;
+    }
+    return false;
+  },
   setPane: (pane) => set({ pane, pulse: pane }),
   launch: (pane) => {
     const visual = get().termVisual;
@@ -237,6 +276,40 @@ export const useFox = create<FoxStore>((set, get) => ({
       log: [...get().log, `copilot wrote ${entries.length} files`],
     });
   },
+
+  openWindow: (kind) => {
+    const count = get().windows.length;
+    const z = get().nextZ + 1;
+    const win: DeskWindow = {
+      id: `${kind}-${Date.now()}`,
+      kind,
+      title: WIN_TITLE[kind],
+      x: 92 + (count % 6) * 28,
+      y: 16 + (count % 6) * 24,
+      z,
+      w: kind === "term" || kind === "browser" || kind === "dev" ? 560 : 420,
+      h: 420,
+    };
+    set({
+      windows: [...get().windows, win],
+      nextZ: z,
+      slackOpen: kind === "chat" ? true : get().slackOpen,
+      pane: kind === "term" || kind === "dev" || kind === "ai" || kind === "sys" ? kind : get().pane,
+      termVisual: kind === "term" ? "open" : get().termVisual,
+    });
+  },
+  closeWindow: (id) => set({ windows: get().windows.filter((win) => win.id !== id) }),
+  focusWindow: (id) => {
+    const z = get().nextZ + 1;
+    set({
+      nextZ: z,
+      windows: get().windows.map((win) => (win.id === id ? { ...win, z } : win)),
+    });
+  },
+  moveWindow: (id, x, y) =>
+    set({
+      windows: get().windows.map((win) => (win.id === id ? { ...win, x: Math.max(8, x), y: Math.max(8, y) } : win)),
+    }),
 
   historyNav: (dir) => {
     const { history, histIndex, draft } = get();

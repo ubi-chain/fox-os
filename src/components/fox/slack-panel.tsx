@@ -1,6 +1,6 @@
 import { useFox } from "@/lib/fox/store";
 
-export function SlackPanel() {
+export function SlackPanel({ embedded = false }: { embedded?: boolean }) {
   const open = useFox((s) => s.slackOpen);
   const channel = useFox((s) => s.slackChannel);
   const rooms = useFox((s) => s.slackRooms);
@@ -9,11 +9,11 @@ export function SlackPanel() {
   const setChannel = useFox((s) => s.setSlackChannel);
   const setDraft = useFox((s) => s.setSlackDraft);
   const send = useFox((s) => s.sendSlack);
-  if (!open) return null;
+  if (!open && !embedded) return null;
   const messages = rooms[channel] ?? [];
 
   return (
-    <div className="fox-slack" role="dialog" aria-label="チャット">
+    <div className={embedded ? "fox-slack is-embedded" : "fox-slack"} role="dialog" aria-label="チャット">
       <aside>
         <p>FOX CHAT</p>
         {(["general", "dev"] as const).map((id) => (
@@ -21,9 +21,11 @@ export function SlackPanel() {
             #{id}
           </button>
         ))}
-        <button type="button" onClick={closeSlack}>
-          閉じる
-        </button>
+        {embedded ? null : (
+          <button type="button" onClick={closeSlack}>
+            閉じる
+          </button>
+        )}
       </aside>
       <section>
         <header className="fox-panel-h">

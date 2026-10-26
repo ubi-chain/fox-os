@@ -7,14 +7,24 @@ import { FoxMark } from "./fox-mark";
 import { LoginScreen } from "./login-screen";
 
 const ICONS: { kind: WinKind; label: string }[] = [
-  { kind: "browser", label: "ブラウザ" },
-  { kind: "explorer", label: "エクスプローラ" },
-  { kind: "term", label: "TERM" },
+  { kind: "browser", label: "WEB" },
+  { kind: "explorer", label: "EXP" },
+  { kind: "term", label: "TRM" },
   { kind: "dev", label: "DEV" },
   { kind: "ai", label: "AI" },
   { kind: "sys", label: "SYS" },
-  { kind: "chat", label: "CHAT" },
+  { kind: "chat", label: "CHT" },
 ];
+
+const SHORT: Record<WinKind, string> = {
+  browser: "WEB",
+  explorer: "EXP",
+  term: "TRM",
+  dev: "DEV",
+  ai: "AI",
+  sys: "SYS",
+  chat: "CHT",
+};
 
 export function Desktop() {
   const phase = useFox((s) => s.phase);
@@ -91,7 +101,7 @@ export function Desktop() {
             }}
           >
             <FoxMark />
-            <span>HELLO</span>
+            <span>EXE</span>
           </button>
         </nav>
         {phase === "desktop" ? <DeskWindows /> : null}
@@ -99,29 +109,33 @@ export function Desktop() {
       <nav className="fox-dock" aria-label="タスクバー">
         <div className="fox-task-apps">
           {ICONS.map((item) => (
-            <button key={item.kind} type="button" className="fox-btn" onClick={() => openWindow(item.kind)}>
-              {item.label}
+            <button key={item.kind} type="button" className="fox-task-ico" onClick={() => openWindow(item.kind)}>
+              <FoxMark />
+              <span>{item.label}</span>
             </button>
           ))}
         </div>
         <div className="fox-task-wins">
           {windows.map((win) => (
-            <button key={win.id} type="button" className="fox-btn fox-btn-accent" onClick={() => focusWindow(win.id)}>
-              {win.title}
+            <button key={win.id} type="button" className="fox-task-ico is-on" onClick={() => focusWindow(win.id)}>
+              <FoxMark />
+              <span>{SHORT[win.kind]}</span>
             </button>
           ))}
         </div>
         <div className="fox-task-tray">
           <button
             type="button"
-            className="fox-btn"
+            className="fox-task-ico"
             aria-label="IME"
             onClick={() => setLang(lang === "ja" ? "en" : "ja")}
           >
-            {lang === "ja" ? "あ" : lang === "he" ? "ע" : "A"}
+            <FoxMark />
+            <span>{lang === "ja" ? "あ" : lang === "he" ? "ע" : "A"}</span>
           </button>
           <label className="fox-vol">
-            <span>{volume === 0 ? "消音" : "音量"}</span>
+            <FoxMark />
+            <span>VOL</span>
             <input
               type="range"
               min={0}
@@ -131,8 +145,9 @@ export function Desktop() {
               onChange={(event) => setVolume(Number(event.target.value))}
             />
           </label>
-          <button type="button" className="fox-btn" aria-label="ネットワーク" onClick={() => setOnline((value) => !value)}>
-            {online ? "NET" : "切断"}
+          <button type="button" className="fox-task-ico" aria-label="ネットワーク" onClick={() => setOnline((value) => !value)}>
+            <FoxMark />
+            <span>{online ? "NET" : "OFF"}</span>
           </button>
           <strong>{clock}</strong>
         </div>

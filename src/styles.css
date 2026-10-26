@@ -498,6 +498,33 @@
     border-color: #ffd24a;
   }
 
+  .fox-task-ico {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.05rem;
+    min-width: 2.5rem;
+    padding: 0.12rem 0.2rem;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #f6f3f0;
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.06em;
+  }
+
+  .fox-task-ico .fox-mark,
+  .fox-vol .fox-mark {
+    width: 1.25rem;
+    height: 1.4rem;
+  }
+
+  .fox-task-ico:hover,
+  .fox-task-ico.is-on {
+    border-color: #ffd24a;
+    background: #100608;
+  }
+
   .fox-dock strong {
     color: #ffd24a;
     font-size: 0.75rem;

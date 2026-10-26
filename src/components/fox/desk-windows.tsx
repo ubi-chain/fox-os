@@ -1,4 +1,5 @@
 import type { PointerEvent } from "react";
+import { useState } from "react";
 import { useFox, type DeskWindow } from "@/lib/fox/store";
 import { AiPanel } from "./ai-panel";
 import { BrowserWindow } from "./browser-window";
@@ -23,6 +24,13 @@ export function DeskWindows() {
   const focusWindow = useFox((s) => s.focusWindow);
   const closeWindow = useFox((s) => s.closeWindow);
   const moveWindow = useFox((s) => s.moveWindow);
+  const [closing, setClosing] = useState<Record<string, true>>({});
+
+  const requestClose = (id: string) => {
+    if (closing[id]) return;
+    setClosing((state) => ({ ...state, [id]: true }));
+    window.setTimeout(() => closeWindow(id), 420);
+  };
 
   const drag = (event: PointerEvent, win: DeskWindow) => {
     if ((event.target as HTMLElement).closest("button")) return;
@@ -45,13 +53,13 @@ export function DeskWindows() {
       {windows.map((win) => (
         <section
           key={win.id}
-          className="fox-window"
+          className={closing[win.id] ? "fox-window is-line-out" : "fox-window is-line-in"}
           style={{ left: win.x, top: win.y, zIndex: win.z, width: win.w, height: win.h }}
           onPointerDown={() => focusWindow(win.id)}
         >
           <header className="fox-panel-h" onPointerDown={(event) => drag(event, win)}>
             <span>{win.title}</span>
-            <button type="button" className="fox-btn" onClick={() => closeWindow(win.id)}>
+            <button type="button" className="fox-btn" onClick={() => requestClose(win.id)}>
               閉じる
             </button>
           </header>

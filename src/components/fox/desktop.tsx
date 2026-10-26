@@ -26,6 +26,23 @@ const SHORT: Record<WinKind, string> = {
   chat: "CHT",
 };
 
+const TIME_ZONES = [
+  { label: "UTC", timeZone: "UTC" },
+  { label: "JST", timeZone: "Asia/Tokyo" },
+  { label: "NYC", timeZone: "America/New_York" },
+  { label: "LON", timeZone: "Europe/London" },
+] as const;
+
+function formatTimeInZone(date: Date, timeZone: string) {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).format(date);
+}
+
 export function Desktop() {
   const phase = useFox((s) => s.phase);
   const openWindow = useFox((s) => s.openWindow);
@@ -39,11 +56,26 @@ export function Desktop() {
   const lang = useFox((s) => s.lang);
   const setLang = useFox((s) => s.setLang);
   const [clock, setClock] = useState("--:--:--");
+  const [worldClock, setWorldClock] = useState(() =>
+    TIME_ZONES.map((zone) => ({
+      ...zone,
+      value: formatTimeInZone(new Date(), zone.timeZone),
+    })),
+  );
   const [volume, setVolume] = useState(70);
   const [online, setOnline] = useState(true);
 
   useEffect(() => {
-    const tick = () => setClock(new Date().toLocaleTimeString("ja-JP", { hour12: false }));
+    const tick = () => {
+      const now = new Date();
+      setClock(now.toLocaleTimeString("ja-JP", { hour12: false }));
+      setWorldClock(
+        TIME_ZONES.map((zone) => ({
+          ...zone,
+          value: formatTimeInZone(now, zone.timeZone),
+        })),
+      );
+    };
     tick();
     const id = window.setInterval(tick, 1000);
     return () => window.clearInterval(id);
@@ -65,6 +97,14 @@ export function Desktop() {
           FOX OS
         </div>
         <div className="fox-meta">
+          <div className="fox-clock" aria-live="polite">
+            {worldClock.map((zone) => (
+              <div key={zone.label} className="fox-clock-item">
+                <span>{zone.label}</span>
+                <strong>{zone.value}</strong>
+              </div>
+            ))}
+          </div>
           <span className="fox-link">
             <FoxMark />
             <strong>{clock}</strong>

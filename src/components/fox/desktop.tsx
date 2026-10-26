@@ -26,7 +26,11 @@ export function Desktop() {
   const closeTerm = useFox((s) => s.closeTerm);
   const replayBoot = useFox((s) => s.replayBoot);
   const submit = useFox((s) => s.submit);
+  const lang = useFox((s) => s.lang);
+  const setLang = useFox((s) => s.setLang);
   const [clock, setClock] = useState("--:--:--");
+  const [volume, setVolume] = useState(70);
+  const [online, setOnline] = useState(true);
 
   useEffect(() => {
     const tick = () => setClock(new Date().toLocaleTimeString("ja-JP", { hour12: false }));
@@ -92,12 +96,46 @@ export function Desktop() {
         </nav>
         {phase === "desktop" ? <DeskWindows /> : null}
       </div>
-      <nav className="fox-dock" aria-label="ウィンドウ">
-        {windows.map((win) => (
-          <button key={win.id} type="button" className="fox-btn" onClick={() => focusWindow(win.id)}>
-            {win.title}
+      <nav className="fox-dock" aria-label="タスクバー">
+        <div className="fox-task-apps">
+          {ICONS.map((item) => (
+            <button key={item.kind} type="button" className="fox-btn" onClick={() => openWindow(item.kind)}>
+              {item.label}
+            </button>
+          ))}
+        </div>
+        <div className="fox-task-wins">
+          {windows.map((win) => (
+            <button key={win.id} type="button" className="fox-btn fox-btn-accent" onClick={() => focusWindow(win.id)}>
+              {win.title}
+            </button>
+          ))}
+        </div>
+        <div className="fox-task-tray">
+          <button
+            type="button"
+            className="fox-btn"
+            aria-label="IME"
+            onClick={() => setLang(lang === "ja" ? "en" : "ja")}
+          >
+            {lang === "ja" ? "あ" : lang === "he" ? "ע" : "A"}
           </button>
-        ))}
+          <label className="fox-vol">
+            <span>{volume === 0 ? "消音" : "音量"}</span>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={volume}
+              aria-label="音量"
+              onChange={(event) => setVolume(Number(event.target.value))}
+            />
+          </label>
+          <button type="button" className="fox-btn" aria-label="ネットワーク" onClick={() => setOnline((value) => !value)}>
+            {online ? "NET" : "切断"}
+          </button>
+          <strong>{clock}</strong>
+        </div>
       </nav>
       {phase === "boot" ? <BootOverlay /> : null}
       {phase === "login" ? <LoginScreen /> : null}

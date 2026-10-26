@@ -449,15 +449,58 @@
 
   .fox-dock {
     position: relative;
-    z-index: 3;
-    display: none;
-    justify-content: center;
-    gap: 0.4rem;
-    margin: 0 0.75rem 0.75rem;
-    padding: 0.35rem;
-    border: 1px solid var(--color-accent);
-    border-radius: 16px;
-    background: color-mix(in srgb, var(--color-panel) 88%, transparent);
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 3rem;
+    margin: 0 14px 0.35rem;
+    padding: 0.28rem 0.45rem;
+    border-top: 4px solid #141414;
+    background: #e31c2b;
+  }
+
+  .fox-task-apps,
+  .fox-task-wins,
+  .fox-task-tray {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-width: 0;
+  }
+
+  .fox-task-wins {
+    flex: 1;
+    overflow: auto;
+  }
+
+  .fox-task-tray {
+    margin-left: auto;
+  }
+
+  .fox-vol {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: #f6f3f0;
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+  }
+
+  .fox-vol input {
+    width: 5.2rem;
+    accent-color: #ffd24a;
+  }
+
+  .fox-dock .fox-btn {
+    background: #100608;
+    color: #f6f3f0;
+    border-color: #ffd24a;
+  }
+
+  .fox-dock strong {
+    color: #ffd24a;
+    font-size: 0.75rem;
   }
 
   .fox-dock .fox-btn {
@@ -796,7 +839,6 @@
     gap: 0.5rem;
     padding: 0.8rem;
   }
-}
 
 @keyframes term-up {
   from { clip-path: inset(100% 0 0 0); }
@@ -858,14 +900,9 @@
   }
 
   .fox-dock {
-    position: relative;
-    z-index: 3;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.35rem;
-    padding: 0.45rem;
-    border-top: 1px solid var(--color-line);
-    background: var(--color-panel);
+    display: flex;
+    flex-wrap: wrap;
+    grid-template-columns: none;
   }
 }
 

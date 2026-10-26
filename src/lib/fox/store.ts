@@ -82,6 +82,7 @@ type FoxStore = OsState & {
   focusWindow: (id: string) => void;
   moveWindow: (id: string, x: number, y: number) => void;
   signIn: (id: string, pass: string) => boolean;
+  setLang: (lang: OsState["lang"]) => void;
   historyNav: (dir: -1 | 1) => void;
 };
 
@@ -128,12 +129,13 @@ export const useFox = create<FoxStore>((set, get) => ({
   finishBoot: () => set({ phase: "login" }),
   replayBoot: () => set({ phase: "boot", previewOpen: false, windows: [] }),
   signIn: (id, pass) => {
-    if (id === "admin" && pass === "admin") {
+    if (id.trim() === "admin" && pass === "admin") {
       set({ phase: "desktop", termVisual: "opening" });
       return true;
     }
     return false;
   },
+  setLang: (lang) => set({ lang }),
   setPane: (pane) => set({ pane, pulse: pane }),
   launch: (pane) => {
     const visual = get().termVisual;

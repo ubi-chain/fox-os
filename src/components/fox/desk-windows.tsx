@@ -5,6 +5,7 @@ import { useFox, type DeskWindow } from "@/lib/fox/store";
 import { AiPanel } from "./ai-panel";
 import { BrowserWindow } from "./browser-window";
 import { DictWindow } from "./dict-window";
+import { PkgWindow } from "./pkg-window";
 import { ExplorerWindow } from "./explorer-window";
 import { QdevPanel } from "./qdev-panel";
 import { SlackPanel } from "./slack-panel";
@@ -21,6 +22,7 @@ function body(kind: DeskWindow["kind"]) {
   if (kind === "browser") return <BrowserWindow />;
   if (kind === "explorer") return <ExplorerWindow />;
   if (kind === "dict") return <DictWindow />;
+  if (kind === "pkg") return <PkgWindow />;
   return <SlackPanel embedded />;
 }
 

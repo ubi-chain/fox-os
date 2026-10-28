@@ -1229,32 +1229,335 @@
     border: 1px solid #7a2a32;
   }
 
-  .fox-dict {
+  .fox-dict,
+  .fox-pkg,
+  .fox-chrome {
     display: flex;
     flex-direction: column;
-    gap: 0.45rem;
     height: 100%;
-    padding: 0.6rem;
+    min-height: 0;
+    background: #202124;
+    color: #e8eaed;
   }
 
-  .fox-dict-list {
+  .fox-dict header,
+  .fox-pkg header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.45rem 0.6rem;
+    background: #292a2d;
+  }
+
+  .fox-dict header span,
+  .fox-pkg small,
+  .fox-chrome small {
+    color: #9aa0a6;
+  }
+
+  .fox-dict .fox-kana,
+  .fox-dict input,
+  .fox-pkg > input {
+    margin: 0.4rem 0.6rem 0;
+  }
+
+  .fox-dict-body,
+  .fox-pkg-grid {
+    display: grid;
+    grid-template-columns: 11rem 1fr;
+    gap: 0.4rem;
+    min-height: 0;
+    flex: 1;
+    padding: 0.45rem 0.6rem;
+  }
+
+  .fox-dict-body ul,
+  .fox-pkg-grid ul,
+  .fox-pkg aside {
     margin: 0;
     padding: 0;
     list-style: none;
     overflow: auto;
   }
 
-  .fox-dict-list li {
+  .fox-dict-body button,
+  .fox-pkg button {
     display: grid;
-    grid-template-columns: 6rem 5rem 1fr;
-    gap: 0.25rem 0.5rem;
-    padding: 0.35rem 0;
-    border-bottom: 1px solid #3a1820;
+    width: 100%;
+    text-align: left;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    padding: 0.3rem 0.35rem;
   }
 
-  .fox-dict-list small {
-    grid-column: 1 / -1;
+  .fox-dict-body button.is-on,
+  .fox-pkg header button.is-on {
+    background: #3c4043;
+  }
+
+  .fox-dict article {
+    padding: 0.4rem 0.2rem;
+  }
+
+  .fox-dict h2 {
+    margin: 0.15rem 0;
+    font-size: 1.6rem;
+    color: #f2d2cb;
+  }
+
+  .fox-dict blockquote {
+    margin: 0.6rem 0 0;
+    color: #e8eaed;
+  }
+
+  .fox-pkg header div {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .fox-pkg header button {
+    width: auto;
+    border-radius: 999px;
+    padding: 0.15rem 0.45rem;
+  }
+
+  .fox-pkg-grid {
+    grid-template-columns: 1fr 9.5rem;
+  }
+
+  .fox-pkg-grid li {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.1rem 0.4rem;
+    border-bottom: 1px solid #3c4043;
+    padding: 0.25rem 0;
+  }
+
+  .fox-pkg-grid li small {
+    grid-column: 1;
+  }
+
+  .fox-pkg pre {
+    margin: 0;
+    max-height: 5.5rem;
+    overflow: auto;
+    padding: 0.4rem 0.6rem;
+    background: #171717;
     color: #e7c4bc;
+    white-space: pre-wrap;
+  }
+
+  .fox-chrome-tabs {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.2rem;
+    padding: 0.35rem 0.4rem 0;
+    background: #202124;
+  }
+
+  .fox-chrome-tabs > button {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    max-width: 11rem;
+    height: 2rem;
+    padding: 0 0.55rem;
+    border: 0;
+    border-radius: 0.55rem 0.55rem 0 0;
+    background: transparent;
+    color: #9aa0a6;
+  }
+
+  .fox-chrome-tabs > button.is-on {
+    background: #323639;
+    color: #e8eaed;
+  }
+
+  .fox-chrome-tabs span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .fox-chrome-tabs i {
+    font-style: normal;
+  }
+
+  .fox-chrome-add {
+    width: 2rem;
+    justify-content: center;
+  }
+
+  .fox-chrome-nav {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.35rem 0.45rem;
+    background: #323639;
+  }
+
+  .fox-chrome-nav > button,
+  .fox-chrome-marks button,
+  .fox-ntp button,
+  .fox-chrome-menu button,
+  .fox-chrome-embed > button {
+    border: 0;
+    background: transparent;
+    color: #e8eaed;
+  }
+
+  .fox-chrome-nav > button {
+    width: 1.8rem;
+    height: 1.8rem;
+    border-radius: 50%;
+  }
+
+  .fox-chrome-nav > button:disabled {
+    opacity: 0.35;
+  }
+
+  .fox-chrome-nav .is-star {
+    color: #f2c14e;
+  }
+
+  .fox-omnibox {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 0.35rem;
+    height: 2rem;
+    padding: 0 0.7rem;
+    border-radius: 1rem;
+    background: #202124;
+    border: 1px solid #5f6368;
+  }
+
+  .fox-omnibox input {
+    flex: 1;
+    border: 0;
+    background: transparent;
+    color: #e8eaed;
+    outline: none;
+  }
+
+  .fox-chrome-menu {
+    position: absolute;
+    top: 2.4rem;
+    right: 0.4rem;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    min-width: 12rem;
+    padding: 0.3rem;
+    background: #292a2d;
+    border-radius: 0.4rem;
+    box-shadow: 0 8px 24px #0008;
+  }
+
+  .fox-chrome-menu button {
+    text-align: left;
+    padding: 0.35rem 0.5rem;
+  }
+
+  .fox-chrome-marks {
+    display: flex;
+    gap: 0.35rem;
+    padding: 0.2rem 0.55rem 0.35rem;
+    background: #323639;
+    overflow: auto;
+  }
+
+  .fox-chrome-page {
+    flex: 1;
+    min-height: 0;
+    background: #fff;
+    color: #202124;
+  }
+
+  .fox-chrome-page iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: #fff;
+  }
+
+  .fox-ntp {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+    height: 100%;
+    background: #202124;
+    color: #e8eaed;
+  }
+
+  .fox-ntp b {
+    font-size: 2.4rem;
+    letter-spacing: 0.2rem;
+    color: #e24b4b;
+  }
+
+  .fox-ntp form {
+    width: min(28rem, 90%);
+  }
+
+  .fox-ntp input {
+    width: 100%;
+    height: 2.6rem;
+    border-radius: 1.3rem;
+    border: 1px solid #5f6368;
+    background: #303134;
+    color: #e8eaed;
+    padding: 0 1rem;
+  }
+
+  .fox-ntp div {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  .fox-chrome-list {
+    margin: 0;
+    padding: 0.6rem;
+    list-style: none;
+    color: #e8eaed;
+    background: #202124;
+    height: 100%;
+    overflow: auto;
+  }
+
+  .fox-chrome-list button {
+    display: grid;
+    width: 100%;
+    text-align: left;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    padding: 0.4rem 0;
+  }
+
+  .fox-chrome-card,
+  .fox-chrome-embed {
+    height: 100%;
+    padding: 0.8rem;
+    background: #202124;
+    color: #e8eaed;
+    overflow: auto;
+  }
+
+  .fox-chrome-embed {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+  }
+
+  .fox-chrome-embed > button {
+    margin: 0.4rem;
+    align-self: flex-start;
   }
   .fox-exp-row {
     display: flex;

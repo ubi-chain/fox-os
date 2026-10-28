@@ -1,6 +1,6 @@
 import { joinPath, type Line } from "./model";
 
-export type DeskKind = "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict";
+export type DeskKind = "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg";
 
 export type DeskWindowRef = { id: string; kind: DeskKind; title: string; z: number };
 
@@ -53,6 +53,9 @@ const KINDS: Record<string, DeskKind> = {
   "dict.exe": "dict",
   "dictionary.exe": "dict",
   "jisho.exe": "dict",
+  "pkg.exe": "pkg",
+  "apt.exe": "pkg",
+  "packages.exe": "pkg",
 };
 
 const TITLES: Record<DeskKind, string> = {
@@ -64,6 +67,7 @@ const TITLES: Record<DeskKind, string> = {
   explorer: "エクスプローラ",
   chat: "CHAT",
   dict: "辞典",
+  pkg: "パッケージ",
 };
 
 function out(text: string): Line {

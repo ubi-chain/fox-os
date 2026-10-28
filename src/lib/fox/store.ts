@@ -16,7 +16,7 @@ import type { SnapMode } from "./snap";
 
 type Confirm = { command: string; warning: string };
 
-export type WinKind = "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict";
+export type WinKind = "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg";
 
 export type DeskWindow = {
   id: string;
@@ -43,6 +43,7 @@ const WIN_TITLE: Record<WinKind, string> = {
   explorer: "エクスプローラ",
   chat: "CHAT",
   dict: "辞典",
+  pkg: "パッケージ",
 };
 
 type FoxStore = OsState & {
@@ -500,8 +501,8 @@ export const useFox = create<FoxStore>((set, get) => ({
       x: 92 + (count % 6) * 28,
       y: 16 + (count % 6) * 24,
       z,
-      w: kind === "term" || kind === "browser" || kind === "dev" ? 560 : 420,
-      h: 420,
+      w: kind === "browser" ? 760 : kind === "dict" || kind === "pkg" || kind === "term" || kind === "dev" ? 640 : 420,
+      h: kind === "browser" || kind === "dict" || kind === "pkg" ? 480 : 420,
       min: false,
       max: false,
       snap: "free",

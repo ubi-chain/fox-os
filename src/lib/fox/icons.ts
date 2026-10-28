@@ -1,6 +1,6 @@
 export type DeskIcon = {
   id: string;
-  kind: "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "exe" | "bin";
+  kind: "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg" | "exe" | "bin";
   label: string;
   col: number;
   row: number;
@@ -15,6 +15,7 @@ export const ICON_SEED: DeskIcon[] = [
   { id: "sys", kind: "sys", label: "SYS", col: 0, row: 5 },
   { id: "cht", kind: "chat", label: "CHT", col: 0, row: 6 },
   { id: "dict", kind: "dict", label: "DICT", col: 0, row: 7 },
+  { id: "pkg", kind: "pkg", label: "PKG", col: 1, row: 1 },
   { id: "exe", kind: "exe", label: "EXE", col: 0, row: 8 },
   { id: "bin", kind: "bin", label: "BIN", col: 1, row: 0 },
 ];

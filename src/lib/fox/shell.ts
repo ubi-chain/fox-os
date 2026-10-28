@@ -1,8 +1,6 @@
 import { planBuild } from "./copilot";
+import { runPackage } from "./packages";
 import {
-  BUNDLER_VERSION,
-  RAILS_VERSION,
-  RUBY_VERSION,
   baseName,
   joinPath,
   projectFrom,
@@ -14,26 +12,34 @@ import {
 
 const HELP = [
   "FOX OS ワークスペース（ブラウザ内。Ubuntu 実機ではない）",
-  "ruby -v            Ruby の固定バージョン",
-  "rails -v           Rails の固定バージョン",
-  "bundle -v          Bundler",
-  "mise current       バージョンマネージャの表示",
-  "ls  cd  pwd  cat   ファイル操作",
-  "rails new NAME     プロジェクト生成",
-  "bin/rails server   開発サーバー起動",
-  "bin/rails server --stop",
-  "bin/rails test     テスト",
-  "bin/rails db:prepare",
-  "git status         ブランチと変更",
-  "kill PID           サーバー停止",
-  "clear              画面消去",
-  "gem install NAME   Gemfile へ追記",
-  "gem list           入っている gem",
-  "copilot 説明       承認後に Rails のファイルを書く",
-  "/change to hebrew  コマンドをヘブライ語にする",
-  "/change to japanese コマンドを日本語にする",
-  "/change to english 英語に戻す",
-  "hello.exe qdev.exe sys.exe ai.exe",
+  "ls  cd  pwd  cat  rm   ファイル操作",
+  "apt install NAME      パッケージ導入（模擬）",
+  "apt remove / search / list / update",
+  "yum install NAME      Red Hat 系",
+  "dnf install NAME      dnf",
+  "rpm -ivh FILE.rpm     rpm 導入",
+  "rpm -qa / -qi / -e",
+  "dpkg -i FILE.deb      deb 導入",
+  "dpkg -l / -r",
+  "git status            ブランチと変更",
+  "clear                 画面消去",
+  "copilot 説明          承認後にメモを書く",
+  "/change to hebrew    コマンドをヘブライ語にする",
+  "/change to japanese  コマンドを日本語にする",
+  "/change to english   英語に戻す",
+  "hello.exe qdev.exe sys.exe ai.exe dict.exe",
+  "/lock  /sleep  /shutdown",
+  "/open NAME.exe   /close NAME.exe   /name to タイトル",
+  "/true enter      改行入力    /false enter で終了",
+  "name to FILE save",
+  "/catch packet of IP    /stop catch packet",
+  "/change packet to A to B name as ソケット",
+  "/send socket 名前 to IP/PORT",
+  "/catch asembla by ソフト    /change asembla to A to B",
+  "/deploy FILE to IP/PORT name to サーバー",
+  "/stop deploy サーバー",
+  "/download IP.拡張子",
+  "/upload to FTP IP PORT USER PASS",
 ].join("\n");
 
 function out(text: string): Line {
@@ -65,12 +71,9 @@ const TO_HEBREW: Record<string, string> = {
   cd: "עבור",
   cat: "קרא",
   rm: "מחק",
-  ruby: "רובי",
-  rails: "ריילס",
   git: "גיט",
   kill: "עצור",
-  bundle: "באנדל",
-  mise: "מיז",
+  apt: "התקן",
   new: "חדש",
   server: "שרת",
   test: "בדיקה",
@@ -96,12 +99,9 @@ const TO_JAPANESE: Record<string, string> = {
   cd: "移動",
   cat: "読む",
   rm: "削除",
-  ruby: "ルビー",
-  rails: "レイルズ",
   git: "ギット",
   kill: "終了",
-  bundle: "バンドル",
-  mise: "ミーズ",
+  apt: "導入",
   new: "新規",
   server: "サーバ",
   test: "テスト",
@@ -125,7 +125,7 @@ function mapWords(input: string, table: Record<string, string>): string {
     .join(" ");
 }
 
-const SHOWN = ["help", "ls", "cd", "pwd", "cat", "ruby", "rails", "git", "clear", "rm"];
+const SHOWN = ["help", "ls", "cd", "pwd", "cat", "apt", "git", "clear", "rm"];
 
 function languageResult(lang: "he" | "ja", sample: string, note: string): CommandResult {
   const table = TO_LANG[lang];
@@ -162,9 +162,9 @@ function changeLanguage(input: string): CommandResult | null {
 
 function destructive(command: string): string | null {
   if (/\brm\b/.test(command)) return "ファイルを削除します。元に戻せません。";
-  if (/db:(drop|reset)/.test(command)) return "データベースを破棄します。";
-  if (/db:rollback/.test(command)) return "直前のマイグレーションを取り消します。";
   if (/git\s+reset\s+--hard/.test(command)) return "未コミットの変更を破棄します。";
+  if (/\b(apt|apt-get|yum|dnf)\s+(remove|purge|erase)\b/.test(command)) return "パッケージを外します。";
+  if (/\brpm\s+-e\b/.test(command) || /\bdpkg\s+-r\b/.test(command)) return "パッケージを外します。";
   return null;
 }
 
@@ -184,24 +184,6 @@ function listDir(cwd: string, files: Record<string, string>): { name: string; ki
   return [...names.entries()]
     .map(([name, kind]) => ({ name, kind }))
     .sort((a, b) => a.name.localeCompare(b.name));
-}
-
-function railsArgs(tokens: string[]): string[] | null {
-  if (tokens[0] === "rails" || tokens[0] === "bin/rails") return tokens.slice(1);
-  if (tokens[0] === "bundle" && tokens[1] === "exec" && tokens[2] === "rails") return tokens.slice(3);
-  return null;
-}
-
-function scaffold(path: string): Record<string, string> {
-  return {
-    [`${path}/Gemfile`]: `source "https://rubygems.org"\ngem "rails", "${RAILS_VERSION}"\n`,
-    [`${path}/README.md`]: `${baseName(path)}\nFOX OS workspace で生成。\n`,
-    [`${path}/app/controllers/home_controller.rb`]:
-      'class HomeController < ApplicationController\n  def index\n    render plain: "FOX OS"\n  end\nend\n',
-    [`${path}/config/database.yml`]:
-      "development:\n  adapter: sqlite3\n  database: storage/development.sqlite3\n",
-    [`${path}/log/development.log`]: "Created project. Database not prepared.\n",
-  };
 }
 
 function requireProject(state: OsState): string | null {
@@ -289,26 +271,16 @@ export function runCommand(raw: string, state: OsState, confirmed = false): Comm
     };
   }
 
-  if (cmd === "ruby" && (tokens[1] === "-v" || tokens[1] === "--version")) {
-    return { lines: [out(`ruby ${RUBY_VERSION} (mise, workspace pin)`)] };
-  }
-  if (cmd === "ruby" && tokens[1] === "-e") {
-    const code = tokens.slice(2).join(" ");
-    const prints = [...code.matchAll(/puts\s+["']([^"']*)["']/g)].map((m) => m[1]);
-    return { lines: prints.length ? prints.map(out) : [sys("(出力なし) 対応しているのは puts \"...\" です")] };
-  }
-  if (cmd === "ruby" && tokens[1]) {
-    const path = joinPath(state.cwd, tokens[1]);
-    const content = files[path];
-    if (content == null) return { lines: [err(`ruby: ${tokens[1]}: ありません`)] };
-    const prints = [...content.matchAll(/puts\s+["']([^"']*)["']/g)].map((m) => m[1]);
-    return { lines: prints.length ? prints.map(out) : [sys(`${tokens[1]} を実行しました（表示出力なし）`)] };
+  if (cmd === "sudo") {
+    return runCommand(tokens.slice(1).join(" "), state, confirmed);
   }
 
-  if (cmd === "mise") return { lines: [out(`ruby ${RUBY_VERSION}`), sys("システム Ruby は変更していません")] };
-
-  if (cmd === "bundle" && (tokens[1] === "-v" || tokens[1] === "--version")) {
-    return { lines: [out(`Bundler version ${BUNDLER_VERSION}`)] };
+  const packaged = runPackage(tokens, state.packages ?? {});
+  if (packaged) {
+    return {
+      lines: packaged.lines,
+      patch: packaged.packages ? { packages: packaged.packages, log: [...state.log, tokens.join(" ")] } : undefined,
+    };
   }
 
   if (cmd === "git") {
@@ -335,112 +307,6 @@ export function runCommand(raw: string, state: OsState, confirmed = false): Comm
     };
   }
 
-  const rargs = railsArgs(tokens);
-  if (rargs) {
-    if (rargs[0] === "-v" || rargs[0] === "--version" || rargs.length === 0) {
-      return { lines: [out(`Rails ${RAILS_VERSION}`)] };
-    }
-    if (rargs[0] === "new") {
-      const name = rargs[1];
-      if (!name || name.startsWith("-")) return { lines: [err("rails new NAME の形式です")] };
-      const path = joinPath(state.cwd, name);
-      if (Object.keys(files).some((p) => p.startsWith(`${path}/`))) {
-        return { lines: [err(`${name} は既にあります`)] };
-      }
-      Object.assign(files, scaffold(path));
-      return {
-        lines: [
-          out(`create ${path}`),
-          out(`Rails ${RAILS_VERSION} / SQLite をプロジェクトに固定`),
-          sys("作業ディレクトリを新しいプロジェクトへ移しました"),
-        ],
-        patch: {
-          files,
-          cwd: path,
-          project: path,
-          dirty: false,
-          server: null,
-          db: "missing",
-          tests: "none",
-          testDetail: "未実行",
-          log: [`created ${path}`],
-        },
-      };
-    }
-
-    const project = requireProject(state);
-    if (!project) return { lines: [err("Rails プロジェクトの中で実行してください（cd sample_app）")] };
-
-    if (rargs[0] === "server") {
-      const stop = rargs.includes("--stop") || rargs[1] === "stop";
-      if (stop) {
-        if (!state.server) return { lines: [sys("開発サーバーは動いていません")] };
-        return {
-          lines: [sys(`pid ${state.server.pid} を停止しました。接続は切っています。`)],
-          patch: { server: null, log: [...state.log, "server stopped"] },
-        };
-      }
-      if (state.server) return { lines: [sys(`既に起動中です  port ${state.server.port}  pid ${state.server.pid}`)] };
-      const pid = 4200 + Math.floor(Math.random() * 200);
-      return {
-        lines: [
-          out(`=> Booting Puma`),
-          out(`=> Rails ${RAILS_VERSION} application starting in development`),
-          out(`* Listening on http://127.0.0.1:3000`),
-          sys("これはワークスペース内のサーバー状態です。実ポートは開いていません。"),
-        ],
-        patch: {
-          server: { port: 3000, pid },
-          project,
-          log: [...state.log, `Listening on 127.0.0.1:3000 pid ${pid}`],
-        },
-      };
-    }
-
-    if (rargs[0] === "test") {
-      return {
-        lines: [out("Run options: --seed 4242"), out("3 runs, 3 assertions, 0 failures, 0 errors, 0 skips")],
-        patch: {
-          tests: "passing",
-          testDetail: "3 runs, 0 failures",
-          project,
-          log: [...state.log, "test suite passed"],
-        },
-      };
-    }
-
-    if (rargs[0] === "db:prepare" || (rargs[0] === "db:migrate" && !rargs.includes("VERSION=0"))) {
-      return {
-        lines: [out("== CreateHome: migrated =="), sys("SQLite をプロジェクト単位で準備しました。認証情報はファイルに書いていません。")],
-        patch: {
-          db: "ready",
-          project,
-          log: [...state.log, "db:prepare ok (sqlite)"],
-        },
-      };
-    }
-
-    if (rargs[0] === "db:drop" || rargs[0] === "db:reset") {
-      return {
-        lines: [sys("データベースを破棄しました。アプリのプレビューは空になります。")],
-        patch: { db: "missing", project, log: [...state.log, "database dropped"] },
-      };
-    }
-
-    if (rargs[0] === "db:rollback") {
-      return {
-        lines: [sys("直前のマイグレーションを取り消しました。")],
-        patch: { db: "missing", dirty: true, project, log: [...state.log, "db:rollback"] },
-      };
-    }
-
-    if (rargs[0] === "console") {
-      return { lines: [out(`Loading development environment (Rails ${RAILS_VERSION})`), sys("対話コンソールは次の段階です。コマンドはシェルに残しています。")] };
-    }
-
-    return { lines: [err(`bin/rails ${rargs.join(" ")} はこの段階では未対応です`)] };
-  }
-
   if (cmd.endsWith(".exe")) {
     const direct = joinPath(state.cwd, cmd);
     const path = files[direct] != null ? direct : files[`/home/fox/${baseName(cmd)}`] != null ? `/home/fox/${baseName(cmd)}` : null;
@@ -448,55 +314,12 @@ export function runCommand(raw: string, state: OsState, confirmed = false): Comm
     return runExe(path, files[path]);
   }
 
-  if (cmd === "bundle" && tokens[1] === "install") {
-    const project = requireProject(state);
-    if (!project || !files[`${project}/Gemfile`]) return { lines: [err("Gemfile がありません")] };
-    return {
-      lines: [out(`Bundle complete! rails (${RAILS_VERSION})`), sys("ワークスペース内の解決です。ネットワークへは出ていません。")],
-    };
-  }
-
-  if (cmd === "gem") {
-    const name = tokens[2];
-    if (tokens[1] === "list" || !tokens[1]) {
-      const listed = Object.entries(files)
-        .filter(([path]) => path.endsWith("/Gemfile"))
-        .flatMap(([, body]) => [...body.matchAll(/gem "([^"]+)"(?:, "([^"]+)")?/g)].map((m) => `${m[1]} (${m[2] ?? "unpinned"})`));
-      return { lines: [out(listed.join("\n") || "(none)")] };
-    }
-    if (tokens[1] === "install") {
-      if (!name || !/^[\w.-]+$/.test(name)) return { lines: [err("gem install NAME の形式です")] };
-      const project = requireProject(state);
-      if (!project) return { lines: [err("Rails プロジェクトの中で実行してください（cd sample_app）")] };
-      const known: Record<string, string> = {
-        puma: "6.4.3",
-        sqlite3: "2.1.1",
-        bootsnap: "1.18.4",
-        rack: "3.1.8",
-      };
-      const version = known[name] ?? "0.1.0";
-      const gemfilePath = `${project}/Gemfile`;
-      const current = files[gemfilePath] ?? `source "https://rubygems.org"\n`;
-      if (!current.includes(`gem "${name}"`)) {
-        files[gemfilePath] = `${current.replace(/\s*$/, "\n")}gem "${name}", "${version}"\n`;
-      }
-      return {
-        lines: [
-          out(`Successfully installed ${name}-${version}`),
-          sys("ワークスペースの Gemfile に追記しました。rubygems.org には接続していません。"),
-        ],
-        patch: { files, dirty: true, project, log: [...state.log, `gem install ${name} ${version}`] },
-      };
-    }
-    return { lines: [err("gem: list と install に対応しています")] };
-  }
-
   if (cmd === "copilot") {
     const write = tokens[1] === "--write";
     const prompt = (write ? tokens.slice(2) : tokens.slice(1)).join(" ").trim();
     if (!prompt) return { lines: [err("copilot のあとに、作りたいものを書いてください")] };
     const project = requireProject(state) ?? state.project;
-    if (!project) return { lines: [err("Rails プロジェクトがありません")] };
+    if (!project) return { lines: [err("作業ディレクトリがありません")] };
     const plan = planBuild(prompt, project);
     if (!write) {
       const safe = prompt.replace(/"/g, "'");
@@ -504,7 +327,7 @@ export function runCommand(raw: string, state: OsState, confirmed = false): Comm
         lines: [out(plan.summary), out(plan.note), ...plan.files.map((file) => out(`create ${file.path}`))],
         confirm: {
           command: `copilot --write "${safe}"`,
-          warning: "これらのファイルを Rails プロジェクトに書き込みます。承認するまで書きません。",
+          warning: "これらのファイルをワークスペースに書き込みます。承認するまで書きません。",
         },
       };
     }

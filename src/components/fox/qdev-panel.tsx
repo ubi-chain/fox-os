@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { planBuild, type BuildPlan } from "@/lib/fox/copilot";
-import { RAILS_VERSION, RUBY_VERSION } from "@/lib/fox/model";
 import { serverLabel, useFox } from "@/lib/fox/store";
+import { KanaInput } from "./kana-input";
 
 function folderEntries(files: Record<string, string>, dir: string) {
   const prefix = `${dir}/`;
@@ -33,6 +33,7 @@ export function QdevPanel() {
   const openTerm = useFox((s) => s.openTerm);
   const openPreview = useFox((s) => s.openPreview);
   const files = useFox((s) => s.files);
+  const packages = useFox((s) => s.packages);
   const applyFiles = useFox((s) => s.applyFiles);
   const [folder, setFolder] = useState<string | null>(null);
   const [reading, setReading] = useState<string | null>(null);
@@ -48,17 +49,17 @@ export function QdevPanel() {
   const here = folder ?? root;
   const entries = folderEntries(files, here);
 
-  const askCopilot = async () => {
+  const askCopilot = async (prompt: string) => {
     try {
       const response = await fetch("/api/copilot", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ prompt: idea }),
+        body: JSON.stringify({ prompt }),
       });
       if (!response.ok) throw new Error("status");
       setPlan((await response.json()) as BuildPlan);
     } catch {
-      setPlan(planBuild(idea, root));
+      setPlan(planBuild(prompt, root));
     }
   };
 
@@ -66,16 +67,12 @@ export function QdevPanel() {
     <section className={`fox-panel fox-qdev${pane === "dev" ? " is-active" : ""}${pulse === "dev" ? " is-launch" : ""}`}>
       <header className="fox-panel-h">
         <span>Q-DEV</span>
-        <span>RAILS</span>
+        <span>PKG</span>
       </header>
       <div className="fox-panel-b">
         <div className="fox-kv">
-          <span>Ruby</span>
-          <b>{RUBY_VERSION}</b>
-        </div>
-        <div className="fox-kv">
-          <span>Rails</span>
-          <b>{RAILS_VERSION}</b>
+          <span>Packages</span>
+          <b>{Object.keys(packages ?? {}).length}</b>
         </div>
         <div className="fox-kv">
           <span>Project</span>
@@ -107,17 +104,14 @@ export function QdevPanel() {
           <button type="button" className="fox-btn fox-btn-accent" onClick={() => run("cd sample_app")}>
             プロジェクトへ
           </button>
-          <button type="button" className="fox-btn" onClick={() => run("bin/rails server")}>
-            サーバー起動
+          <button type="button" className="fox-btn" onClick={() => run("apt list")}>
+            パッケージ
           </button>
-          <button type="button" className="fox-btn" onClick={() => run("bin/rails server --stop")}>
-            停止
+          <button type="button" className="fox-btn" onClick={() => run("apt update")}>
+            更新確認
           </button>
-          <button type="button" className="fox-btn" onClick={() => run("bin/rails test")}>
-            テスト
-          </button>
-          <button type="button" className="fox-btn" onClick={() => run("cat log/development.log")}>
-            ログ
+          <button type="button" className="fox-btn" onClick={() => run("cat notes.txt")}>
+            メモ
           </button>
           <button type="button" className="fox-btn fox-btn-accent" onClick={openPreview}>
             アプリを開く
@@ -159,10 +153,13 @@ export function QdevPanel() {
           className="fox-ai-form"
           onSubmit={(event) => {
             event.preventDefault();
-            void askCopilot();
+            const field = event.currentTarget.querySelector("input");
+            const prompt = field?.value ?? idea;
+            setIdea(prompt);
+            void askCopilot(prompt);
           }}
         >
-          <input value={idea} aria-label="構築したいもの" onChange={(event) => setIdea(event.target.value)} />
+          <KanaInput value={idea} aria-label="構築したいもの" onValue={setIdea} />
           <button type="submit" className="fox-btn fox-btn-accent">
             計画
           </button>

@@ -1,0 +1,90 @@
+export type DictEntry = {
+  ja: string;
+  reading: string;
+  en: string;
+  pos: string;
+  example: string;
+};
+
+export const DICT: DictEntry[] = [
+  { ja: "こんにちは", reading: "こんにちは", en: "hello", pos: "挨拶", example: "Hello, how are you?" },
+  { ja: "ありがとう", reading: "ありがとう", en: "thank you", pos: "挨拶", example: "Thank you for your help." },
+  { ja: "さようなら", reading: "さようなら", en: "goodbye", pos: "挨拶", example: "Goodbye, see you tomorrow." },
+  { ja: "はい", reading: "はい", en: "yes", pos: "応答", example: "Yes, I agree." },
+  { ja: "いいえ", reading: "いいえ", en: "no", pos: "応答", example: "No, not today." },
+  { ja: "水", reading: "みず", en: "water", pos: "名詞", example: "Please give me some water." },
+  { ja: "火", reading: "ひ", en: "fire", pos: "名詞", example: "The fire is warm." },
+  { ja: "空", reading: "そら", en: "sky", pos: "名詞", example: "The sky is clear." },
+  { ja: "本", reading: "ほん", en: "book", pos: "名詞", example: "This book is interesting." },
+  { ja: "猫", reading: "ねこ", en: "cat", pos: "名詞", example: "The cat is sleeping." },
+  { ja: "犬", reading: "いぬ", en: "dog", pos: "名詞", example: "The dog runs fast." },
+  { ja: "狐", reading: "きつね", en: "fox", pos: "名詞", example: "A fox lives in the woods." },
+  { ja: "人", reading: "ひと", en: "person", pos: "名詞", example: "That person is kind." },
+  { ja: "友達", reading: "ともだち", en: "friend", pos: "名詞", example: "She is my friend." },
+  { ja: "学校", reading: "がっこう", en: "school", pos: "名詞", example: "School starts at eight." },
+  { ja: "会社", reading: "かいしゃ", en: "company", pos: "名詞", example: "He works at a company." },
+  { ja: "時間", reading: "じかん", en: "time", pos: "名詞", example: "We have enough time." },
+  { ja: "今日", reading: "きょう", en: "today", pos: "名詞", example: "Today is Wednesday." },
+  { ja: "明日", reading: "あした", en: "tomorrow", pos: "名詞", example: "See you tomorrow." },
+  { ja: "昨日", reading: "きのう", en: "yesterday", pos: "名詞", example: "I called yesterday." },
+  { ja: "食べる", reading: "たべる", en: "eat", pos: "動詞", example: "I eat rice every day." },
+  { ja: "飲む", reading: "のむ", en: "drink", pos: "動詞", example: "Do you drink tea?" },
+  { ja: "行く", reading: "いく", en: "go", pos: "動詞", example: "Let's go." },
+  { ja: "来る", reading: "くる", en: "come", pos: "動詞", example: "Please come in." },
+  { ja: "見る", reading: "みる", en: "see / look", pos: "動詞", example: "Look at this." },
+  { ja: "聞く", reading: "きく", en: "hear / ask", pos: "動詞", example: "I hear a song." },
+  { ja: "話す", reading: "はなす", en: "speak", pos: "動詞", example: "She speaks English." },
+  { ja: "読む", reading: "よむ", en: "read", pos: "動詞", example: "I read the news." },
+  { ja: "書く", reading: "かく", en: "write", pos: "動詞", example: "Write your name." },
+  { ja: "買う", reading: "かう", en: "buy", pos: "動詞", example: "I will buy a ticket." },
+  { ja: "作る", reading: "つくる", en: "make", pos: "動詞", example: "They make software." },
+  { ja: "使う", reading: "つかう", en: "use", pos: "動詞", example: "Use this command." },
+  { ja: "知る", reading: "しる", en: "know", pos: "動詞", example: "I know the answer." },
+  { ja: "思う", reading: "おもう", en: "think", pos: "動詞", example: "I think so." },
+  { ja: "大きい", reading: "おおきい", en: "big", pos: "形容詞", example: "This is a big room." },
+  { ja: "小さい", reading: "ちいさい", en: "small", pos: "形容詞", example: "A small fox." },
+  { ja: "新しい", reading: "あたらしい", en: "new", pos: "形容詞", example: "A new idea." },
+  { ja: "古い", reading: "ふるい", en: "old", pos: "形容詞", example: "An old book." },
+  { ja: "良い", reading: "よい", en: "good", pos: "形容詞", example: "That is a good plan." },
+  { ja: "悪い", reading: "わるい", en: "bad", pos: "形容詞", example: "Bad weather today." },
+  { ja: "速い", reading: "はやい", en: "fast", pos: "形容詞", example: "A fast train." },
+  { ja: "遅い", reading: "おそい", en: "slow / late", pos: "形容詞", example: "The bus is late." },
+  { ja: "赤", reading: "あか", en: "red", pos: "名詞", example: "A red mark." },
+  { ja: "青", reading: "あお", en: "blue", pos: "名詞", example: "The blue sky." },
+  { ja: "白", reading: "しろ", en: "white", pos: "名詞", example: "White paper." },
+  { ja: "黒", reading: "くろ", en: "black", pos: "名詞", example: "Black coffee." },
+  { ja: "一", reading: "いち", en: "one", pos: "数", example: "One more time." },
+  { ja: "二", reading: "に", en: "two", pos: "数", example: "Two windows." },
+  { ja: "三", reading: "さん", en: "three", pos: "数", example: "Three files." },
+  { ja: "コンピュータ", reading: "コンピュータ", en: "computer", pos: "名詞", example: "Turn on the computer." },
+  { ja: "画面", reading: "がめん", en: "screen", pos: "名詞", example: "The screen is bright." },
+  { ja: "ファイル", reading: "ファイル", en: "file", pos: "名詞", example: "Save the file." },
+  { ja: "フォルダ", reading: "フォルダ", en: "folder", pos: "名詞", example: "Open the folder." },
+  { ja: "検索", reading: "けんさく", en: "search", pos: "名詞", example: "Search the web." },
+  { ja: "辞書", reading: "じしょ", en: "dictionary", pos: "名詞", example: "Look it up in a dictionary." },
+  { ja: "翻訳", reading: "ほんやく", en: "translation", pos: "名詞", example: "This is a translation." },
+  { ja: "言葉", reading: "ことば", en: "word / language", pos: "名詞", example: "A useful word." },
+  { ja: "意味", reading: "いみ", en: "meaning", pos: "名詞", example: "What is the meaning?" },
+  { ja: "例文", reading: "れいぶん", en: "example sentence", pos: "名詞", example: "Read the example sentence." },
+  { ja: "安全", reading: "あんぜん", en: "safe / safety", pos: "名詞", example: "Stay safe." },
+  { ja: "秘密", reading: "ひみつ", en: "secret", pos: "名詞", example: "Keep it a secret." },
+  { ja: "仕事", reading: "しごと", en: "work", pos: "名詞", example: "Work starts at nine." },
+  { ja: "家", reading: "いえ", en: "house / home", pos: "名詞", example: "I am at home." },
+  { ja: "駅", reading: "えき", en: "station", pos: "名詞", example: "The station is near." },
+  { ja: "電車", reading: "でんしゃ", en: "train", pos: "名詞", example: "Take the train." },
+  { ja: "車", reading: "くるま", en: "car", pos: "名詞", example: "A red car." },
+  { ja: "道", reading: "みち", en: "road / way", pos: "名詞", example: "Which way is it?" },
+  { ja: "街", reading: "まち", en: "town", pos: "名詞", example: "A quiet town." },
+  { ja: "国", reading: "くに", en: "country", pos: "名詞", example: "Which country?" },
+  { ja: "日本", reading: "にほん", en: "Japan", pos: "名詞", example: "I live in Japan." },
+  { ja: "英語", reading: "えいご", en: "English", pos: "名詞", example: "She studies English." },
+  { ja: "日本語", reading: "にほんご", en: "Japanese", pos: "名詞", example: "Japanese is hard." },
+];
+
+export function lookupDict(query: string): DictEntry[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return DICT.slice(0, 12);
+  return DICT.filter((entry) =>
+    [entry.ja, entry.reading, entry.en, entry.pos].some((field) => field.toLowerCase().includes(q)),
+  );
+}

@@ -75,8 +75,8 @@
     gap: 0.5rem 1rem;
     min-height: 3rem;
     padding: 0.4rem 1rem;
-    border-bottom: 1px solid var(--color-line);
-    background: color-mix(in srgb, var(--color-panel) 92%, transparent);
+    border: 0;
+    background: transparent;
   }
 
   .fox-brand {
@@ -87,23 +87,17 @@
     font-size: 0.8rem;
     color: var(--color-fg);
     position: relative;
-    padding: 0.2rem 0.55rem;
+    padding: 0.2rem 0;
     background: transparent;
-    border: 1.5px solid var(--color-accent);
-    border-radius: 1.5px;
-    overflow: hidden;
-    animation: line-in 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    border: 0;
   }
 
-  .fox-brand::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 1.5px;
-    background: var(--color-accent);
-    pointer-events: none;
-    animation: scan-up 0.5s linear both;
+  .fox-brand .fox-mark,
+  .fox-link .fox-mark {
+    width: 2rem;
+    height: 2.2rem;
+    border: 0;
+    background: transparent;
   }
 
   .fox-meta {
@@ -125,9 +119,6 @@
   .fox-brand .fox-mark {
     width: 2rem;
     height: 2.2rem;
-    border: 1.5px solid var(--color-accent);
-    border-radius: 1.5px;
-    background: transparent;
   }
 
   .fox-link {
@@ -139,9 +130,6 @@
   .fox-link .fox-mark {
     width: 1.35rem;
     height: 1.5rem;
-    border: 1.5px solid var(--color-accent);
-    border-radius: 1.5px;
-    background: transparent;
   }
 
   .fox-meta strong {
@@ -197,7 +185,7 @@
   .fox-window .fox-panel-h {
     position: relative;
     margin: 0.25rem;
-    background: transparent;
+    background: color-mix(in srgb, #100608 75%, transparent);
     border: 1.5px solid var(--color-accent);
     border-radius: 1.5px;
     overflow: hidden;
@@ -235,7 +223,7 @@
 
   .fox-window.is-line-out .fox-panel-h::after,
   .fox-window.is-line-out::after {
-    animation: scan-down 0.42s linear both;
+    animation: dissolve-scan 0.42s linear both;
   }
 
   .fox-panel-b {
@@ -338,7 +326,7 @@
 
   .fox-term.is-closing .fox-scan {
     opacity: 1;
-    animation: scan-down 0.7s linear both;
+    animation: dissolve-scan 0.7s linear both;
   }
 
   .fox-term.is-closed {
@@ -393,7 +381,19 @@
     font: inherit;
   }
 
-  .fox-prompt input:focus {
+  .fox-prompt textarea {
+    flex: 1;
+    min-width: 0;
+    min-height: 3.2rem;
+    resize: vertical;
+    background: transparent;
+    border: 0;
+    color: var(--color-fg);
+    font: inherit;
+  }
+
+  .fox-prompt input:focus,
+  .fox-prompt textarea:focus {
     outline: none;
   }
 
@@ -524,11 +524,48 @@
     min-height: 3rem;
     margin: 0 14px 0.35rem;
     padding: 0.28rem 0.45rem;
-    background: transparent;
+    background: color-mix(in srgb, #100608 75%, transparent);
     border: 1.5px solid var(--color-accent);
     border-radius: 1.5px;
     overflow: hidden;
-    animation: line-in 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    backdrop-filter: blur(8px);
+  }
+
+  .fox-power {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+  }
+
+  .fox-power .fox-task-ico {
+    min-width: 4.6rem;
+    font-size: 0.55rem;
+  }
+
+  .fox-power-screen {
+    position: absolute;
+    inset: 0;
+    z-index: 8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    background: color-mix(in srgb, #050203 92%, transparent);
+    color: #f6f3f0;
+    border: 0;
+    letter-spacing: 0.18em;
+  }
+
+  .fox-power-screen span,
+  .fox-power-screen p {
+    color: var(--color-muted);
+    letter-spacing: 0.08em;
+    font-size: 0.8rem;
+  }
+
+  .fox-power-screen.is-off {
+    background: #050203;
   }
 
   .fox-task-apps,
@@ -591,9 +628,54 @@
   }
 
   .fox-task-ico:hover,
-  .fox-task-ico.is-on {
+  .fox-task-ico.is-on,
+  .fox-ime.is-on {
     border-color: #ffd24a;
     background: #100608;
+  }
+
+  .fox-ime.is-on span {
+    color: #ffd24a;
+  }
+
+  .fox-ime-field {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    display: flex;
+  }
+
+  .fox-ime-field input {
+    width: 100%;
+  }
+
+  .fox-ime-picks {
+    position: absolute;
+    z-index: 8;
+    left: 0;
+    top: calc(100% + 4px);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    max-width: min(32rem, 86vw);
+    padding: 0.35rem;
+    background: #1a0c10;
+    border: 1px solid #ffd24a;
+  }
+
+  .fox-ime-picks button {
+    min-height: 1.8rem;
+    padding: 0.15rem 0.45rem;
+    border: 1px solid #7a2a32;
+    background: transparent;
+    color: #f6f3f0;
+    font-size: 0.78rem;
+  }
+
+  .fox-ime-picks button.is-on {
+    border-color: #ffd24a;
+    background: #e31c2b;
+    color: #fff;
   }
 
   .fox-dock strong {
@@ -868,18 +950,43 @@
 
   .fox-desk .fox-apps {
     position: absolute;
-    left: 0.45rem;
-    top: 0.45rem;
-    bottom: 0.45rem;
-    width: 5rem;
+    inset: 0;
+    width: auto;
+    overflow: visible;
+    display: block;
+    pointer-events: none;
+  }
+
+  .fox-desk .fox-app {
+    position: absolute;
+    width: 4.4rem;
+    pointer-events: auto;
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .fox-apps .fox-context {
+    pointer-events: auto;
+  }
+
+  .fox-icon-edit {
+    width: 100%;
+    min-height: 1.2rem;
+    padding: 0;
+    border: 1px solid #ffd24a;
+    background: #100608;
+    color: #f6f3f0;
+    font-size: 0.62rem;
+    text-align: center;
   }
 
   .fox-window {
     position: absolute;
     display: flex;
     flex-direction: column;
-    min-width: 16rem;
-    background: transparent;
+    min-width: 12rem;
+    min-height: 8rem;
+    background: color-mix(in srgb, #1a0c10 95%, transparent);
     border: 1.5px solid var(--color-accent);
     border-radius: 1.5px;
     overflow: hidden;
@@ -898,7 +1005,383 @@
     flex: 1;
     min-height: 0;
     overflow: auto;
-    background: color-mix(in srgb, var(--color-panel) 92%, transparent);
+    background: color-mix(in srgb, var(--color-panel) 95%, transparent);
+  }
+
+  .fox-window .fox-term-body {
+    background: transparent;
+  }
+
+  .fox-resize {
+    display: none;
+  }
+
+  .fox-edge {
+    position: absolute;
+    z-index: 6;
+  }
+
+  .fox-edge-n { top: 0; left: 10px; right: 10px; height: 6px; cursor: ns-resize; }
+  .fox-edge-s { bottom: 0; left: 10px; right: 10px; height: 6px; cursor: ns-resize; }
+  .fox-edge-e { top: 10px; right: 0; bottom: 10px; width: 6px; cursor: ew-resize; }
+  .fox-edge-w { top: 10px; left: 0; bottom: 10px; width: 6px; cursor: ew-resize; }
+  .fox-edge-nw { top: 0; left: 0; width: 12px; height: 12px; cursor: nwse-resize; }
+  .fox-edge-se { right: 0; bottom: 0; width: 12px; height: 12px; cursor: nwse-resize; }
+  .fox-edge-ne { top: 0; right: 0; width: 12px; height: 12px; cursor: nesw-resize; }
+  .fox-edge-sw { left: 0; bottom: 0; width: 12px; height: 12px; cursor: nesw-resize; }
+
+  .fox-win-ctl {
+    display: flex;
+    gap: 0.15rem;
+  }
+
+  .fox-win-ctl button {
+    width: 1.7rem;
+    height: 1.35rem;
+    padding: 0;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #f6f3f0;
+    font-size: 0.85rem;
+    line-height: 1;
+  }
+
+  .fox-win-ctl button:hover {
+    border-color: #ffd24a;
+    background: #100608;
+  }
+
+  .fox-win-ctl .is-close:hover {
+    border-color: #e31c2b;
+    background: #e31c2b;
+    color: #fff;
+  }
+
+  .fox-start,
+  .fox-clock-btn,
+  .fox-show-desk {
+    border: 1px solid transparent;
+    background: transparent;
+    color: #f6f3f0;
+  }
+
+  .fox-start {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 2.2rem;
+    padding: 0 0.45rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+  }
+
+  .fox-start .fox-mark {
+    width: 1.25rem;
+    height: 1.4rem;
+  }
+
+  .fox-start.is-on,
+  .fox-start:hover,
+  .fox-clock-btn:hover {
+    border-color: #ffd24a;
+    background: #100608;
+  }
+
+  .fox-clock-btn {
+    color: #ffd24a;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.35rem;
+  }
+
+  .fox-show-desk {
+    width: 0.45rem;
+    align-self: stretch;
+    border-left: 1px solid #ffd24a;
+  }
+
+  .fox-task-ico.is-min {
+    opacity: 0.45;
+  }
+
+  .fox-task-wins .fox-task-ico {
+    max-width: 7.5rem;
+  }
+
+  .fox-task-wins .fox-task-ico span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 5.5rem;
+  }
+
+  .fox-start-menu,
+  .fox-calendar,
+  .fox-context,
+  .fox-switcher {
+    position: absolute;
+    z-index: 8;
+    background: color-mix(in srgb, #100608 88%, transparent);
+    border: 1.5px solid #ffd24a;
+    color: #f6f3f0;
+    backdrop-filter: blur(8px);
+  }
+
+  .fox-start-menu {
+    left: 14px;
+    bottom: 3.7rem;
+    width: min(22rem, calc(100vw - 2rem));
+    padding: 0.6rem;
+  }
+
+  .fox-start-menu input {
+    width: 100%;
+    min-height: 2.2rem;
+    margin-bottom: 0.45rem;
+    padding: 0 0.55rem;
+    border: 1px solid #7a2a32;
+    background: #1a0c10;
+    color: #f6f3f0;
+  }
+
+  .fox-start-apps {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .fox-start-apps button,
+  .fox-start-power button,
+  .fox-context button,
+  .fox-switcher button {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    width: 100%;
+    min-height: 2.2rem;
+    padding: 0.25rem 0.4rem;
+    border: 0;
+    background: transparent;
+    color: #f6f3f0;
+    text-align: left;
+  }
+
+  .fox-start-apps button:hover,
+  .fox-start-power button:hover,
+  .fox-context button:hover,
+  .fox-switcher button:hover,
+  .fox-switcher button.is-on {
+    background: #e31c2b;
+  }
+
+  .fox-start-apps small {
+    display: block;
+    color: #e7c4bc;
+    font-size: 0.65rem;
+  }
+
+  .fox-start-apps .fox-mark {
+    width: 1.4rem;
+    height: 1.55rem;
+  }
+
+  .fox-start-power {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.3rem;
+    margin-top: 0.55rem;
+    padding-top: 0.45rem;
+    border-top: 1px solid #7a2a32;
+  }
+
+  .fox-start-power button {
+    justify-content: center;
+    border: 1px solid #7a2a32;
+    font-size: 0.68rem;
+  }
+
+  .fox-calendar {
+    right: 1.2rem;
+    bottom: 3.7rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.7rem 0.9rem;
+  }
+
+  .fox-context {
+    position: fixed;
+    min-width: 11rem;
+    padding: 0.25rem;
+  }
+
+  .fox-switcher {
+    left: 50%;
+    top: 38%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    width: min(28rem, calc(100% - 2rem));
+    padding: 0.55rem;
+    transform: translateX(-50%);
+  }
+
+  .fox-switcher button {
+    width: auto;
+    border: 1px solid #7a2a32;
+  }
+
+  .fox-dict {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    height: 100%;
+    padding: 0.6rem;
+  }
+
+  .fox-dict-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    overflow: auto;
+  }
+
+  .fox-dict-list li {
+    display: grid;
+    grid-template-columns: 6rem 5rem 1fr;
+    gap: 0.25rem 0.5rem;
+    padding: 0.35rem 0;
+    border-bottom: 1px solid #3a1820;
+  }
+
+  .fox-dict-list small {
+    grid-column: 1 / -1;
+    color: #e7c4bc;
+  }
+  .fox-exp-row {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .fox-exp-bar input {
+    flex: 1;
+    min-width: 0;
+    min-height: 2rem;
+    background: #100608;
+    color: var(--color-fg);
+    border: 1px solid var(--color-line);
+    padding: 0 0.4rem;
+  }
+
+  .fox-exp-row button:first-child {
+    flex: 1;
+    text-align: left;
+  }
+
+  .fox-run,
+  .fox-tasks,
+  .fox-quick,
+  .fox-notes,
+  .fox-assist {
+    position: absolute;
+    z-index: 8;
+    background: color-mix(in srgb, #100608 90%, transparent);
+    border: 1.5px solid #ffd24a;
+    color: #f6f3f0;
+    backdrop-filter: blur(8px);
+  }
+
+  .fox-run {
+    left: 50%;
+    top: 28%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    width: min(22rem, calc(100% - 2rem));
+    padding: 0.8rem;
+    transform: translateX(-50%);
+  }
+
+  .fox-run label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+  }
+
+  .fox-run input,
+  .fox-tasks button,
+  .fox-quick button,
+  .fox-notes button,
+  .fox-assist button {
+    min-height: 2.1rem;
+    border: 1px solid #7a2a32;
+    background: transparent;
+    color: #f6f3f0;
+    padding: 0.2rem 0.45rem;
+  }
+
+  .fox-tasks,
+  .fox-quick,
+  .fox-notes {
+    right: 1rem;
+    bottom: 3.8rem;
+    width: min(18rem, calc(100% - 2rem));
+    padding: 0.55rem;
+  }
+
+  .fox-tasks header,
+  .fox-task-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.4rem;
+    align-items: center;
+  }
+
+  .fox-assist {
+    left: 50%;
+    top: 18%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    width: min(16rem, calc(100% - 2rem));
+    padding: 0.6rem;
+    transform: translateX(-50%);
+  }
+
+  .fox-assist p,
+  .fox-start-menu .fox-note {
+    margin: 0.35rem 0 0;
+    font-size: 0.68rem;
+  }
+
+  .fox-pass {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-top: 1rem;
+  }
+
+  .fox-pass h2 {
+    margin: 0;
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+    font-weight: 500;
+  }
+
+  .fox-pass label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    color: var(--color-muted);
+    font-size: 0.72rem;
+  }
+
+  .fox-pass input {
+    min-height: 2.2rem;
+    background: color-mix(in srgb, #100608 80%, transparent);
+    color: var(--color-fg);
+    border: 1px solid var(--color-line);
+    padding: 0 0.5rem;
   }
 
   .fox-window .fox-panel,
@@ -955,8 +1438,8 @@
 }
 
 @keyframes line-out {
-  from { clip-path: inset(0 0 0 0); }
-  to { clip-path: inset(100% 0 0 0); }
+  from { clip-path: inset(0 0 0 0); opacity: 1; }
+  to { clip-path: inset(100% 0 0 0); opacity: 0; }
 }
 
 @keyframes term-up {
@@ -965,8 +1448,13 @@
 }
 
 @keyframes term-down {
-  from { clip-path: inset(0 0 0 0); }
-  to { clip-path: inset(100% 0 0 0); }
+  from { clip-path: inset(0 0 0 0); opacity: 1; }
+  to { clip-path: inset(100% 0 0 0); opacity: 0; }
+}
+
+@keyframes dissolve-scan {
+  from { top: 0; opacity: 1; }
+  to { top: 28%; opacity: 0; }
 }
 
 @keyframes scan-up {

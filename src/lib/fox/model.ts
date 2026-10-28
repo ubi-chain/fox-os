@@ -1,7 +1,3 @@
-export const RUBY_VERSION = "3.3.6";
-export const RAILS_VERSION = "7.2.2";
-export const BUNDLER_VERSION = "2.5.16";
-
 export type LineKind = "out" | "err" | "sys" | "cmd";
 
 export type Line = { kind: LineKind; text: string };
@@ -22,6 +18,7 @@ export type OsState = {
   testDetail: string;
   log: string[];
   lang: "en" | "he" | "ja";
+  packages: Record<string, string>;
 };
 
 export type ChatMessage = {
@@ -86,27 +83,24 @@ export function initialOs(): OsState {
     db: "ready",
     tests: "passing",
     testDetail: "3 runs, 0 failures",
-    log: ["FOX OS session start", "sample_app: SQLite ready"],
+    log: ["FOX OS session start"],
     lang: "en",
+    packages: {
+      curl: "8.5.0",
+      git: "2.43.0",
+      "ca-certificates": "20240203",
+      bash: "5.2.21",
+      coreutils: "9.4",
+    },
     files: {
       "/home/fox/README.md": "FOX OS home directory.\nこのワークスペースはブラウザ内です。\nhello.exe と qdev.exe が実行できます。\n",
       "/home/fox/hello.exe": "FOXEXE\nprint hello.exe: FOX OS workspace\n",
       "/home/fox/qdev.exe": "FOXEXE\nopen dev\nprint Q-DEV を前面に出しました\n",
       "/home/fox/sys.exe": "FOXEXE\nopen sys\nprint SYS を前面に出しました\n",
       "/home/fox/ai.exe": "FOXEXE\nopen ai\nprint AI を前面に出しました\n",
-      [`${project}/Gemfile`]: `source "https://rubygems.org"\ngem "rails", "${RAILS_VERSION}"\n`,
-      [`${project}/README.md`]: "Sample Rails app for FOX OS.\n",
-      [`${project}/app/controllers/home_controller.rb`]:
-        "class HomeController < ApplicationController\n  def index\n    render plain: \"FOX OS\"\n  end\nend\n",
-      [`${project}/app/models/.keep`]: "",
-      [`${project}/app/views/home/index.html.erb`]: "<h1>FOX OS</h1>\n",
-      [`${project}/config/routes.rb`]:
-        "Rails.application.routes.draw do\n  root \"home#index\"\nend\n",
-      [`${project}/config/database.yml`]:
-        "development:\n  adapter: sqlite3\n  database: storage/development.sqlite3\n",
-      [`${project}/db/schema.rb`]: "ActiveRecord::Schema[7.2].define(version: 0) do\nend\n",
-      [`${project}/log/development.log`]:
-        "Started GET \"/\" for 127.0.0.1\nCompleted 200 OK in 8ms\n",
+      "/home/fox/dict.exe": "FOXEXE\nopen ai\nprint 辞典を開くには dict.exe を使ってください\n",
+      [`${project}/README.md`]: "FOX OS sample workspace.\n",
+      [`${project}/notes.txt`]: "メモをここに書けます。\n",
     },
   };
 }
@@ -114,7 +108,7 @@ export function initialOs(): OsState {
 export function projectFrom(cwd: string, files: Record<string, string>, explicit: string | null): string | null {
   let cursor = norm(cwd);
   while (true) {
-    if (files[`${cursor}/Gemfile`]) return cursor;
+    if (files[`${cursor}/README.md`] || files[`${cursor}/notes.txt`]) return cursor;
     if (cursor === "/") break;
     cursor = parentPath(cursor);
   }
@@ -124,7 +118,5 @@ export function projectFrom(cwd: string, files: Record<string, string>, explicit
 export function previewBody(state: OsState): string {
   if (!state.server) return "開発サーバーは停止しています。";
   if (!state.project) return "プロジェクトがありません。";
-  const file = state.files[`${state.project}/app/controllers/home_controller.rb`] ?? "";
-  const match = file.match(/render plain:\s*"([^"]*)"/);
-  return match?.[1] ?? "テンプレートの render plain が見つかりません。";
+  return state.files[`${state.project}/notes.txt`] ?? "プレビューする内容がありません。";
 }

@@ -1,3 +1,4 @@
+import { KanaInput } from "./kana-input";
 import { useFox } from "@/lib/fox/store";
 
 export function AiPanel() {
@@ -49,11 +50,11 @@ export function AiPanel() {
           ask();
         }}
       >
-        <input
+        <KanaInput
           value={chatDraft}
+          onValue={setChatDraft}
           aria-label="アシスタントへの質問"
-          placeholder="Rails のコントローラーを説明して"
-          onChange={(event) => setChatDraft(event.target.value)}
+          placeholder="パッケージの入れ方を聞いて"
         />
         <button type="submit" className="fox-btn fox-btn-accent">
           送信

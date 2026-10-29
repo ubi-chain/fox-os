@@ -4,8 +4,10 @@ import { snapFrame, stageSize, type SnapMode } from "@/lib/fox/snap";
 import { useFox, type DeskWindow } from "@/lib/fox/store";
 import { AiPanel } from "./ai-panel";
 import { BrowserWindow } from "./browser-window";
+import { BlocksWindow } from "./blocks-window";
 import { DictWindow } from "./dict-window";
 import { PkgWindow } from "./pkg-window";
+import { GuardSite, SkyWindow } from "./sky-window";
 import { ExplorerWindow } from "./explorer-window";
 import { QdevPanel } from "./qdev-panel";
 import { SlackPanel } from "./slack-panel";
@@ -23,6 +25,9 @@ function body(kind: DeskWindow["kind"]) {
   if (kind === "explorer") return <ExplorerWindow />;
   if (kind === "dict") return <DictWindow />;
   if (kind === "pkg") return <PkgWindow />;
+  if (kind === "blocks") return <BlocksWindow />;
+  if (kind === "sky") return <SkyWindow />;
+  if (kind === "guard") return <GuardSite />;
   return <SlackPanel embedded />;
 }
 

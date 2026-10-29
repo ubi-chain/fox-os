@@ -18,6 +18,8 @@ const ICONS: { kind: WinKind; label: string }[] = [
   { kind: "chat", label: "CHT" },
   { kind: "dict", label: "DICT" },
   { kind: "pkg", label: "PKG" },
+  { kind: "blocks", label: "KIDS" },
+  { kind: "sky", label: "SKY" },
 ];
 
 const NAMES: Record<WinKind, string> = {
@@ -30,6 +32,9 @@ const NAMES: Record<WinKind, string> = {
   chat: "チャット",
   dict: "辞典",
   pkg: "パッケージ",
+  blocks: "ブロック",
+  sky: "FoxSky",
+  guard: "まもり",
 };
 
 export function Desktop() {

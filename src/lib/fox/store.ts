@@ -16,7 +16,7 @@ import type { SnapMode } from "./snap";
 
 type Confirm = { command: string; warning: string };
 
-export type WinKind = "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg";
+export type WinKind = "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg" | "blocks" | "sky" | "guard";
 
 export type DeskWindow = {
   id: string;
@@ -44,6 +44,9 @@ const WIN_TITLE: Record<WinKind, string> = {
   chat: "CHAT",
   dict: "辞典",
   pkg: "パッケージ",
+  blocks: "ブロック",
+  sky: "FoxSky",
+  guard: "まもり",
 };
 
 type FoxStore = OsState & {
@@ -105,6 +108,8 @@ type FoxStore = OsState & {
   emptyTrash: () => void;
   makeEntry: (path: string, body: string) => void;
   icons: DeskIcon[];
+  skyInbox: { id: string; to: string; text: string }[];
+  guardOn: boolean;
   moveIcon: (id: string, col: number, row: number) => void;
   renameIcon: (id: string, label: string) => void;
   arrangeIcons: () => void;
@@ -178,6 +183,20 @@ function applyFx(fx: DeskFx) {
   if (fx.op === "shutdown") {
     stopPackets();
     useFox.setState({ phase: "off", packetIp: "" });
+    return;
+  }
+  if (fx.op === "sms") {
+    const text = `FoxSky: スマホ用のまもりページ fox://guard 。Grok Bot が管理します。番号 ${fx.phone} へは実SMSを送っていません。`;
+    const icons = state.icons.some((icon) => icon.id === "guard")
+      ? state.icons
+      : [...state.icons, { id: "guard", kind: "guard" as const, label: "GUARD", col: 1, row: 4 }];
+    useFox.setState({
+      guardOn: true,
+      skyInbox: [{ id: `${Date.now()}`, to: fx.phone, text }, ...state.skyInbox].slice(0, 20),
+      icons,
+    });
+    state.openWindow("sky", "FoxSky");
+    state.pushNote(`まもりページをトップに置きました（${fx.phone}）`);
     return;
   }
   if (fx.op === "open") {
@@ -279,6 +298,8 @@ export const useFox = create<FoxStore>((set, get) => ({
   notes: [],
   assist: null,
   icons: ICON_SEED,
+  skyInbox: [],
+  guardOn: false,
   explorerBin: false,
   tapIme: () => {
     const { ime, imeTaps } = get();
@@ -501,8 +522,8 @@ export const useFox = create<FoxStore>((set, get) => ({
       x: 92 + (count % 6) * 28,
       y: 16 + (count % 6) * 24,
       z,
-      w: kind === "browser" ? 760 : kind === "dict" || kind === "pkg" || kind === "term" || kind === "dev" ? 640 : 420,
-      h: kind === "browser" || kind === "dict" || kind === "pkg" ? 480 : 420,
+      w: kind === "browser" || kind === "blocks" ? 760 : kind === "sky" || kind === "guard" ? 380 : kind === "dict" || kind === "pkg" || kind === "term" || kind === "dev" ? 640 : 420,
+      h: kind === "sky" || kind === "guard" ? 640 : kind === "browser" || kind === "dict" || kind === "pkg" || kind === "blocks" ? 480 : 420,
       min: false,
       max: false,
       snap: "free",

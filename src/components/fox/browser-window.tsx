@@ -3,6 +3,7 @@ import { previewBody } from "@/lib/fox/model";
 import { useFox } from "@/lib/fox/store";
 import { DictWindow, GrammarBoard } from "./dict-window";
 import { PkgWindow } from "./pkg-window";
+import { GuardSite } from "./sky-window";
 
 type Tab = {
   id: string;
@@ -58,6 +59,7 @@ function titleOf(url: string) {
   if (path === "fox://dict") return "辞典";
   if (path === "fox://grammar") return "文法";
   if (path === "fox://pkg") return "パッケージ";
+  if (path === "fox://guard") return "まもり";
   if (path === "fox://preview") return "プレビュー";
   if (path === "fox://extensions") return "拡張機能";
   if (path === "fox://passwords") return "パスワード";
@@ -92,6 +94,7 @@ function fresh(url = "fox://newtab", priv = false): Tab {
 export function BrowserWindow() {
   const body = useFox((s) => previewBody(s));
   const openWindow = useFox((s) => s.openWindow);
+  const guardOn = useFox((s) => s.guardOn);
   const [tabs, setTabs] = useState<Tab[]>(() => [fresh()]);
   const [active, setActive] = useState(0);
   const [panel, setPanel] = useState<"menu" | "ext" | "me" | "info" | null>(null);
@@ -170,6 +173,12 @@ export function BrowserWindow() {
     setRev((n) => n + 1);
     setPanel(null);
   };
+
+  useEffect(() => {
+    if (!guardOn || session.marks.some((mark) => mark.url === "fox://guard")) return;
+    session.marks.unshift({ title: "まもり", url: "fox://guard" });
+    setRev((n) => n + 1);
+  }, [guardOn]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -394,6 +403,7 @@ export function BrowserWindow() {
               <button type="button" onClick={() => go("fox://dict")}>辞典</button>
               <button type="button" onClick={() => go("fox://grammar")}>文法</button>
               <button type="button" onClick={() => go("fox://pkg")}>パッケージ</button>
+              {guardOn ? <button type="button" onClick={() => go("fox://guard")}>まもり</button> : null}
               <button type="button" onClick={() => go("https://github.com/ubi-chain/fox-os")}>GitHub</button>
             </div>
           </div>
@@ -474,6 +484,10 @@ export function BrowserWindow() {
           <div className="fox-chrome-embed">
             <button type="button" onClick={() => openWindow("dict")}>辞典アプリで開く</button>
             <DictWindow initial={queryOf(tab.url)} />
+          </div>
+        ) : path === "fox://guard" ? (
+          <div className="fox-chrome-embed">
+            <GuardSite />
           </div>
         ) : path === "fox://pkg" ? (
           <div className="fox-chrome-embed">

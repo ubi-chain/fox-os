@@ -1,6 +1,6 @@
 import { joinPath, type Line } from "./model";
 
-export type DeskKind = "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg";
+export type DeskKind = "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg" | "blocks" | "sky" | "guard";
 
 export type DeskWindowRef = { id: string; kind: DeskKind; title: string; z: number };
 
@@ -30,7 +30,8 @@ export type DeskFx =
   | { op: "asm-edit"; app: string; text: string }
   | { op: "enter"; on: boolean }
   | { op: "deploy"; name: string; file: string; host: string; port: string }
-  | { op: "undeploy"; name: string };
+  | { op: "undeploy"; name: string }
+  | { op: "sms"; phone: string };
 
 export type DeskResult = { lines: Line[]; files?: Record<string, string>; fx?: DeskFx };
 
@@ -56,6 +57,12 @@ const KINDS: Record<string, DeskKind> = {
   "pkg.exe": "pkg",
   "apt.exe": "pkg",
   "packages.exe": "pkg",
+  "blocks.exe": "blocks",
+  "kids.exe": "blocks",
+  "scratch.exe": "blocks",
+  "foxsky.exe": "sky",
+  "sky.exe": "sky",
+  "guard.exe": "guard",
 };
 
 const TITLES: Record<DeskKind, string> = {
@@ -68,6 +75,9 @@ const TITLES: Record<DeskKind, string> = {
   chat: "CHAT",
   dict: "辞典",
   pkg: "パッケージ",
+  blocks: "ブロック",
+  sky: "FoxSky",
+  guard: "まもり",
 };
 
 function out(text: string): Line {
@@ -147,6 +157,17 @@ export function deskCommand(input: string, ctx: DeskContext): DeskResult | null 
   if (typed === "/shutdown") return { lines: [sys("シャットダウンします。")], fx: { op: "shutdown" } };
   if (typed === "/true enter") return { lines: [sys("改行入力です。Ctrl+Enter で実行します。")], fx: { op: "enter", on: true } };
   if (typed === "/false enter") return { lines: [sys("改行入力を終了しました。")], fx: { op: "enter", on: false } };
+
+  const sms = typed.match(/^\/sms\s+(\S+)\s+to\s+(\S+)$/i);
+  if (sms) {
+    if (sms[1].toLowerCase() !== "foxsky") return { lines: [err("使い方: /sms foxsky to 電話番号")] };
+    const phone = sms[2];
+    if (!/^\+?[0-9][0-9\-()]{5,18}$/.test(phone)) return { lines: [err("電話番号の形ではありません")] };
+    return {
+      lines: [sys(`FoxSky から ${phone} へ案内を残しました。実SMSは送っていません。まもりページをトップに置き、Grok Bot が見ます。`)],
+      fx: { op: "sms", phone },
+    };
+  }
 
   const open = typed.match(/^\/open\s+(\S+)$/i);
   if (open) {

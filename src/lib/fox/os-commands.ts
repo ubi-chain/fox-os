@@ -164,7 +164,7 @@ export function deskCommand(input: string, ctx: DeskContext): DeskResult | null 
     const phone = sms[2];
     if (!/^\+?[0-9][0-9\-()]{5,18}$/.test(phone)) return { lines: [err("電話番号の形ではありません")] };
     return {
-      lines: [sys(`FoxSky から ${phone} へ案内を残しました。実SMSは送っていません。まもりページをトップに置き、Grok Bot が見ます。`)],
+      lines: [sys(`FoxSky から ${phone} へスキャナーのリンクを送ります。端末の SMS 画面が開きます。送信はそこで確定してください。`)],
       fx: { op: "sms", phone },
     };
   }

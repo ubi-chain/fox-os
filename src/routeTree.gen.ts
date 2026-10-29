@@ -10,43 +10,53 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ApiCopilotRouteImport } from './routes/api/copilot'
+import { Route as GuardRouteImport } from './routes/guard'
+import { Route as ApiBrowseRouteImport } from './routes/api/browse'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiCopilotRoute = ApiCopilotRouteImport.update({
-  id: '/api/copilot',
-  path: '/api/copilot',
+const GuardRoute = GuardRouteImport.update({
+  id: '/guard',
+  path: '/guard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBrowseRoute = ApiBrowseRouteImport.update({
+  id: '/api/browse',
+  path: '/api/browse',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/api/copilot': typeof ApiCopilotRoute
+  '/guard': typeof GuardRoute
+  '/api/browse': typeof ApiBrowseRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/api/copilot': typeof ApiCopilotRoute
+  '/guard': typeof GuardRoute
+  '/api/browse': typeof ApiBrowseRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/api/copilot': typeof ApiCopilotRoute
+  '/guard': typeof GuardRoute
+  '/api/browse': typeof ApiBrowseRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/copilot'
+  fullPaths: '/' | '/guard' | '/api/browse'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/copilot'
-  id: '__root__' | '/' | '/api/copilot'
+  to: '/' | '/guard' | '/api/browse'
+  id: '__root__' | '/' | '/guard' | '/api/browse'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ApiCopilotRoute: typeof ApiCopilotRoute
+  GuardRoute: typeof GuardRoute
+  ApiBrowseRoute: typeof ApiBrowseRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -58,11 +68,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/copilot': {
-      id: '/api/copilot'
-      path: '/api/copilot'
-      fullPath: '/api/copilot'
-      preLoaderRoute: typeof ApiCopilotRouteImport
+    '/guard': {
+      id: '/guard'
+      path: '/guard'
+      fullPath: '/guard'
+      preLoaderRoute: typeof GuardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/browse': {
+      id: '/api/browse'
+      path: '/api/browse'
+      fullPath: '/api/browse'
+      preLoaderRoute: typeof ApiBrowseRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -70,7 +87,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ApiCopilotRoute: ApiCopilotRoute,
+  GuardRoute: GuardRoute,
+  ApiBrowseRoute: ApiBrowseRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

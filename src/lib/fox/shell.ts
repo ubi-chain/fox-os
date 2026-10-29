@@ -40,7 +40,7 @@ const HELP = [
   "/stop deploy サーバー",
   "/download IP.拡張子",
   "/upload to FTP IP PORT USER PASS",
-  "/sms foxsky to 電話番号",
+  "/sms foxsky to 電話番号   スキャナーリンクを実電話のSMSへ",
 ].join("\n");
 
 function out(text: string): Line {

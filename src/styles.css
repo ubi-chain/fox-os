@@ -527,7 +527,7 @@
     background: color-mix(in srgb, #100608 75%, transparent);
     border: 1.5px solid var(--color-accent);
     border-radius: 1.5px;
-    overflow: hidden;
+    overflow-x: auto;
     backdrop-filter: blur(8px);
   }
 
@@ -579,11 +579,13 @@
 
   .fox-task-wins {
     flex: 1;
-    overflow: auto;
+    overflow-x: auto;
+    overflow-y: hidden;
   }
 
   .fox-task-tray {
     margin-left: auto;
+    flex-shrink: 0;
   }
 
   .fox-vol {
@@ -950,9 +952,9 @@
 
   .fox-desk .fox-apps {
     position: absolute;
-    inset: 0;
+    inset: 0 0 0.2rem 0;
     width: auto;
-    overflow: visible;
+    overflow: hidden;
     display: block;
     pointer-events: none;
   }
@@ -1754,6 +1756,21 @@
     background: #1f9d55;
     color: #fff;
     padding: 0.35rem 0.8rem;
+  }
+
+  .fox-tags {
+    width: 100%;
+    min-height: 12rem;
+    margin-top: 0.4rem;
+    border: 0;
+    border-radius: 0.4rem;
+    background: #111;
+    color: #e8eaed;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    line-height: 1.5;
+    padding: 0.45rem;
+    resize: vertical;
   }
 
   .fox-stage {

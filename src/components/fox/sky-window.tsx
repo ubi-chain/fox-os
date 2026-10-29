@@ -3,18 +3,18 @@ import { useFox } from "@/lib/fox/store";
 
 const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#"];
 
-export function GuardSite() {
+export function GuardSite({ publicPage = false }: { publicPage?: boolean }) {
   const [note, setNote] = useState("Grok Bot がこのページを見ています。");
   const [safe, setSafe] = useState(true);
   return (
     <div className="fox-phone">
       <header>
         <b>Fox Guard</b>
-        <span>スマホ用 · この机の中</span>
+        <span>{publicPage ? "スマホ用スキャナー" : "スマホ用 · この机の中"}</span>
       </header>
       <div className="fox-bot">
         <img src="/favicon.svg" alt="" />
-        <p>ぼくは Grok Bot。まもりページの番をしてるよ。実機には入らないよ。</p>
+        <p>ぼくは Grok Bot。まもりページの番をしてるよ。実機のファイルは読まないよ。</p>
       </div>
       <p className={safe ? "fox-ok" : ""}>{safe ? "状態: 安全" : "状態: 確認中"}</p>
       <button
@@ -82,6 +82,15 @@ export function SkyWindow() {
               <p>{item.text}</p>
               <button type="button" onClick={() => openWindow("guard")}>
                 リンクを開く
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const digits = item.to.replace(/[^\d+]/g, "");
+                  window.location.href = `sms:${digits}?body=${encodeURIComponent(item.text)}`;
+                }}
+              >
+                実電話へ送る
               </button>
             </li>
           ))}

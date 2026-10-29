@@ -186,17 +186,23 @@ function applyFx(fx: DeskFx) {
     return;
   }
   if (fx.op === "sms") {
-    const text = `FoxSky: スマホ用のまもりページ fox://guard 。Grok Bot が管理します。番号 ${fx.phone} へは実SMSを送っていません。`;
+    const origin = typeof window === "undefined" ? "" : window.location.origin;
+    const link = `${origin}/guard`;
+    const text = `Fox Guard（ウイルススキャナー）です。Grok Bot が案内します。${link}`;
+    const digits = fx.phone.replace(/[^\d+]/g, "");
     const icons = state.icons.some((icon) => icon.id === "guard")
       ? state.icons
-      : [...state.icons, { id: "guard", kind: "guard" as const, label: "GUARD", col: 1, row: 4 }];
+      : [...state.icons, { id: "guard", kind: "guard" as const, label: "GUARD", col: 2, row: 3 }];
     useFox.setState({
       guardOn: true,
       skyInbox: [{ id: `${Date.now()}`, to: fx.phone, text }, ...state.skyInbox].slice(0, 20),
       icons,
     });
     state.openWindow("sky", "FoxSky");
-    state.pushNote(`まもりページをトップに置きました（${fx.phone}）`);
+    state.pushNote(`スキャナーリンクを ${fx.phone} へ用意しました`);
+    if (typeof window !== "undefined") {
+      window.location.href = `sms:${digits}?body=${encodeURIComponent(text)}`;
+    }
     return;
   }
   if (fx.op === "open") {
@@ -629,8 +635,8 @@ export const useFox = create<FoxStore>((set, get) => ({
     set({
       icons: sorted.map((icon, index) => ({
         ...icon,
-        col: Math.floor(index / 8),
-        row: index % 8,
+        col: Math.floor(index / 5),
+        row: index % 5,
       })),
     });
   },

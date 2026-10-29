@@ -497,7 +497,11 @@ export function BrowserWindow() {
         ) : path === "fox://preview" ? (
           <pre className="fox-chrome-card">{body}</pre>
         ) : (
-          <iframe title={tab.title} src={tab.url} />
+          <iframe
+            title={tab.title}
+            referrerPolicy="no-referrer"
+            src={/^https?:/i.test(tab.url) ? `/api/browse?url=${encodeURIComponent(tab.url)}` : tab.url}
+          />
         )}
       </div>
       {shelf && session.downloads[0] ? (

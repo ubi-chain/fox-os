@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { KanaInput } from "./kana-input";
 import { useFox } from "@/lib/fox/store";
 
 export function TerminalPanel() {
@@ -14,6 +15,8 @@ export function TerminalPanel() {
   const termVisual = useFox((s) => s.termVisual);
   const pane = useFox((s) => s.pane);
   const pulse = useFox((s) => s.pulse);
+  const enterBreak = useFox((s) => s.enterBreak);
+  const history = useFox((s) => s.history);
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -24,6 +27,8 @@ export function TerminalPanel() {
   useEffect(() => {
     if (termVisual === "open" || termVisual === "opening") inputRef.current?.focus();
   }, [termVisual, pane]);
+
+  const hint = [...history].reverse().find((command) => draft.length > 0 && command.startsWith(draft) && command !== draft);
 
   return (
     <section className={`fox-panel fox-term is-${termVisual}${pane === "term" ? " is-active" : ""}${pulse === "term" ? " is-launch" : ""}`}>
@@ -59,28 +64,50 @@ export function TerminalPanel() {
           className="fox-prompt"
           onSubmit={(event) => {
             event.preventDefault();
+            if (enterBreak) return;
             submit();
           }}
         >
           <span>fox:{cwd}$</span>
-          <input
-            ref={inputRef}
-            value={draft}
-            aria-label="コマンド"
-            spellCheck={false}
-            autoCapitalize="off"
-            onChange={(event) => setDraft(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "ArrowUp") {
-                event.preventDefault();
-                historyNav(-1);
-              }
-              if (event.key === "ArrowDown") {
-                event.preventDefault();
-                historyNav(1);
-              }
-            }}
-          />
+          {enterBreak ? (
+            <textarea
+              value={draft}
+              aria-label="コマンド"
+              rows={3}
+              spellCheck={false}
+              onChange={(event) => setDraft(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+                  event.preventDefault();
+                  submit();
+                }
+              }}
+            />
+          ) : (
+            <KanaInput
+              ref={inputRef}
+              value={draft}
+              onValue={setDraft}
+              aria-label="コマンド"
+              spellCheck={false}
+              autoCapitalize="off"
+              onKeyDown={(event) => {
+                if (event.key === "ArrowUp") {
+                  event.preventDefault();
+                  historyNav(-1);
+                }
+                if (event.key === "ArrowDown") {
+                  event.preventDefault();
+                  historyNav(1);
+                }
+                if (event.key === "Tab" && hint) {
+                  event.preventDefault();
+                  setDraft(hint);
+                }
+              }}
+            />
+          )}
+          {hint ? <em className="fox-hint">Tab {hint}</em> : null}
         </form>
       </div>
     </section>

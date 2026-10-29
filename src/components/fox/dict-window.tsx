@@ -35,7 +35,12 @@ export function DictWindow({ initial = "" }: { initial?: string }) {
   const [query, setQuery] = useState(initial);
   const [source, setSource] = useState(initial);
   const [picked, setPicked] = useState<DictEntry | null>(null);
-  const hits = useMemo(() => lookupDict(query, page === "words" ? kind : undefined), [query, kind, page]);
+  const [book, setBook] = useState<string[]>([]);
+  const [bookOnly, setBookOnly] = useState(false);
+  const hits = useMemo(() => {
+    const found = lookupDict(query, page === "words" ? kind : undefined);
+    return bookOnly ? found.filter((entry) => book.includes(entry.ja)) : found;
+  }, [query, kind, page, bookOnly, book]);
   const current = hits.find((entry) => entry.ja === picked?.ja) ?? hits[0];
   const result = useMemo(() => translate(source, kind), [source, kind]);
 
@@ -81,6 +86,9 @@ export function DictWindow({ initial = "" }: { initial?: string }) {
       ) : (
         <>
           <KanaInput value={query} onValue={setQuery} aria-label="辞典の検索" placeholder="単語を検索" />
+          <button type="button" className={bookOnly ? "is-on" : ""} onClick={() => setBookOnly((on) => !on)}>
+            単語帳 {book.length}
+          </button>
           <div className="fox-dict-body">
             <ul>
               {hits.map((entry) => (
@@ -103,6 +111,12 @@ export function DictWindow({ initial = "" }: { initial?: string }) {
                   <span>{current.reading}</span>
                 </p>
                 <blockquote>{current.example}</blockquote>
+                <button
+                  type="button"
+                  onClick={() => setBook((list) => (list.includes(current.ja) ? list.filter((item) => item !== current.ja) : [...list, current.ja]))}
+                >
+                  {book.includes(current.ja) ? "単語帳から外す" : "単語帳に入れる"}
+                </button>
               </article>
             ) : (
               <article>見つかりません</article>

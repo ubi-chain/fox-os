@@ -1695,7 +1695,7 @@
 
   .fox-blocks {
     display: grid;
-    grid-template-columns: 9rem 1fr 10rem;
+    grid-template-columns: 8.5rem minmax(0, 1fr) minmax(12rem, 0.9fr);
     height: 100%;
     min-height: 0;
     background: #202124;
@@ -1704,10 +1704,22 @@
 
   .fox-blocks aside,
   .fox-script,
-  .fox-stage {
+  .fox-kid-stage {
     min-height: 0;
     overflow: auto;
     padding: 0.45rem;
+  }
+
+  .fox-blocks aside > button {
+    display: block;
+    width: 100%;
+    margin: 0 0 0.3rem;
+    border: 0;
+    border-radius: 0.35rem;
+    background: #3c4043;
+    color: #fff;
+    padding: 0.3rem;
+    text-align: left;
   }
 
   .fox-block {
@@ -1773,17 +1785,32 @@
     resize: vertical;
   }
 
-  .fox-stage {
+  .fox-kid-stage {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: flex-end;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0.4rem;
     background: #111;
   }
 
-  .fox-stage img {
-    width: 5rem;
-    height: 5rem;
+  .fox-code {
+    flex: 1;
+    margin: 0;
+    overflow: auto;
+    padding: 0.45rem;
+    background: #0c0c0c;
+    color: #d7e8c8;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    line-height: 1.45;
+    white-space: pre-wrap;
+  }
+
+  .fox-kid-stage img {
+    width: 3.2rem;
+    height: 3.2rem;
+    align-self: center;
   }
 
   .fox-bubble {
@@ -1847,9 +1874,53 @@
     align-items: center;
   }
 
-  .fox-bot img {
-    width: 3rem;
-    height: 3rem;
+  .fox-panes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 0;
+    flex: 1;
+  }
+
+  .fox-pane {
+    min-width: 0;
+    overflow: auto;
+    border-right: 1px solid #3c4043;
+  }
+
+  .fox-exp-row button.is-on {
+    background: #3c4043;
+  }
+
+  .fox-hint {
+    color: #8d939a;
+    font-style: normal;
+    font-size: 0.68rem;
+    white-space: nowrap;
+  }
+
+  .fox-chrome-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 11rem;
+    min-height: 0;
+    flex: 1;
+  }
+
+  .fox-page-note {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 0.4rem;
+    background: #292a2d;
+    color: #e8eaed;
+  }
+
+  .fox-page-note textarea {
+    flex: 1;
+    min-height: 8rem;
+    border: 0;
+    background: #202124;
+    color: inherit;
+    padding: 0.35rem;
   }
 
   @keyframes fox-load {

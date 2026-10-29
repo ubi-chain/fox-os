@@ -25,6 +25,7 @@ const session: {
   closed: Hit[];
   downloads: { name: string; url: string; state: string }[];
   ext: { translate: boolean; block: boolean };
+  notes: Record<string, string>;
 } = {
   marks: [
     { title: "ホーム", url: "fox://newtab" },
@@ -37,6 +38,7 @@ const session: {
   closed: [],
   downloads: [],
   ext: { translate: true, block: false },
+  notes: {},
 };
 
 function pathOf(url: string) {
@@ -105,6 +107,8 @@ export function BrowserWindow() {
   const [loading, setLoading] = useState(false);
   const [shelf, setShelf] = useState(false);
   const [tabMenu, setTabMenu] = useState<{ index: number; x: number; y: number } | null>(null);
+  const [notesOn, setNotesOn] = useState(false);
+  const [pageNote, setPageNote] = useState("");
   const box = useRef<HTMLInputElement>(null);
   const tab = tabs[active] ?? tabs[0];
   const path = pathOf(tab.url);
@@ -179,6 +183,10 @@ export function BrowserWindow() {
     session.marks.unshift({ title: "まもり", url: "fox://guard" });
     setRev((n) => n + 1);
   }, [guardOn]);
+
+  useEffect(() => {
+    setPageNote(session.notes[tab.url] ?? "");
+  }, [tab.url]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -306,6 +314,9 @@ export function BrowserWindow() {
         <button type="button" aria-label="翻訳" onClick={() => go(`fox://dict?q=${encodeURIComponent(tab.title)}`)}>
           文
         </button>
+        <button type="button" aria-label="ページメモ" className={notesOn ? "is-star" : ""} onClick={() => setNotesOn((on) => !on)}>
+          メモ
+        </button>
         <button type="button" aria-label="ブックマーク" className={starred ? "is-star" : ""} onClick={toggleStar}>
           ★
         </button>
@@ -386,6 +397,7 @@ export function BrowserWindow() {
           <button type="button" onClick={() => setFindOn(false)}>閉じる</button>
         </form>
       ) : null}
+      <div className={notesOn ? "fox-chrome-split" : undefined}>
       <div className="fox-chrome-page" style={{ zoom: zoom / 100 }} key={`${tab.id}-${tab.url}-${rev}`}>
         {path === "fox://newtab" ? (
           <div className="fox-ntp">
@@ -503,6 +515,22 @@ export function BrowserWindow() {
             src={/^https?:/i.test(tab.url) ? `/api/browse?url=${encodeURIComponent(tab.url)}` : tab.url}
           />
         )}
+      </div>
+      {notesOn ? (
+        <aside className="fox-page-note">
+          <b>このページのメモ</b>
+          <textarea
+            aria-label="ページメモ"
+            value={pageNote}
+            placeholder="Floorp のように、ページごとのメモです。このブラウザの中だけです。"
+            onChange={(event) => {
+              const text = event.target.value;
+              setPageNote(text);
+              session.notes[tab.url] = text;
+            }}
+          />
+        </aside>
+      ) : null}
       </div>
       {shelf && session.downloads[0] ? (
         <div className="fox-shelf">

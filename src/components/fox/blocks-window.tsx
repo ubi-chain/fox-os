@@ -44,11 +44,11 @@ function blank(op: Step["op"]): Step {
 }
 
 function escape(text: string) {
-  return text.replace(/&/g, "&").replace(/</g, "<").replace(/>/g, ">");
+  return text.replaceAll("&", "\u0026amp;").replaceAll("<", "\u0026lt;").replaceAll(">", "\u0026gt;");
 }
 
 function unescape(text: string) {
-  return text.replace(/</g, "<").replace(/>/g, ">").replace(/&/g, "&");
+  return text.replaceAll("\u0026lt;", "<").replaceAll("\u0026gt;", ">").replaceAll("\u0026amp;", "&");
 }
 
 function serialize(steps: Step[], pad = 0): string {
@@ -115,6 +115,59 @@ function parse(source: string): Step[] {
 
 const sleep = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
+function toPython(steps: Step[], pad = 0): string {
+  const gap = "    ".repeat(pad);
+  if (steps.length === 0) return `${gap}pass`;
+  return steps
+    .map((step) => {
+      if (step.op === "say") return `${gap}print(${JSON.stringify(step.text)})  # はなす`;
+      if (step.op === "wait") return `${gap}time.sleep(${step.n})  # ${step.n}びょうまつ`;
+      if (step.op === "term") return `${gap}run(${JSON.stringify(step.text)})  # コマンド`;
+      if (step.op === "open") return `${gap}open_app(${JSON.stringify(APP_NAME[step.app])})  # ひらく`;
+      return `${gap}for _ in range(${step.n}):  # くりかえす\n${toPython(step.body, pad + 1)}`;
+    })
+    .join("\n");
+}
+
+function program(steps: Step[]) {
+  return [
+    "# つないだブロックから作った Python",
+    "import time",
+    "",
+    "def run(command):",
+    '    print("ターミナル:", command)',
+    "",
+    "def open_app(name):",
+    '    print("ひらく:", name)',
+    "",
+    toPython(steps),
+    "",
+  ].join("\n");
+}
+
+const SAMPLES: { title: string; teach: string; tags: string }[] = [
+  {
+    title: "あいさつ",
+    teach: "print は文字を出す命令です。はなすブロックがこの1行になります。",
+    tags: "<はなす>こんにちは</はなす>",
+  },
+  {
+    title: "くりかえす",
+    teach: "for は中の行を回数ぶん繰り返します。字下げ（先頭の空白）が「中」の印です。",
+    tags: '<くりかえす 回数="3">\n  <はなす>がんばって</はなす>\n</くりかえす>',
+  },
+  {
+    title: "待つ",
+    teach: "time.sleep は秒数だけ止まります。まつブロックの数字が秒です。",
+    tags: "<はなす>用意</はなす>\n<まつ>1</まつ>\n<はなす>スタート</はなす>",
+  },
+  {
+    title: "コマンド",
+    teach: "run はターミナルへ命令を送ります。echo は文字を表示する命令です。",
+    tags: "<コマンド>echo こんにちは</コマンド>",
+  },
+];
+
 export function BlocksWindow() {
   const openWindow = useFox((s) => s.openWindow);
   const submit = useFox((s) => s.submit);
@@ -123,6 +176,7 @@ export function BlocksWindow() {
   const [error, setError] = useState("");
   const [bubble, setBubble] = useState("タグを書いてフラグを押してね");
   const [running, setRunning] = useState(false);
+  const [lesson, setLesson] = useState(SAMPLES[0].teach);
 
   const applySource = (next: string) => {
     setSource(next);
@@ -185,6 +239,19 @@ export function BlocksWindow() {
             <small>{item.hint}</small>
           </button>
         ))}
+        <p>見本</p>
+        {SAMPLES.map((sample) => (
+          <button
+            key={sample.title}
+            type="button"
+            onClick={() => {
+              applySource(sample.tags);
+              setLesson(sample.teach);
+            }}
+          >
+            {sample.title}
+          </button>
+        ))}
       </aside>
       <div className="fox-script">
         <button type="button" className="fox-flag" disabled={running} onClick={() => void run()}>
@@ -210,7 +277,9 @@ export function BlocksWindow() {
           ))}
         </ul>
       </div>
-      <div className="fox-stage">
+      <div className="fox-kid-stage">
+        <p className="fox-note">{lesson}</p>
+        <pre className="fox-code" aria-label="生成されたコード">{error ? "# タグを直すとコードが出ます" : program(script)}</pre>
         <p className="fox-bubble">{bubble}</p>
         <img src="/favicon.svg" alt="" />
       </div>

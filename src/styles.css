@@ -1839,9 +1839,7 @@
     from { width: 8%; }
     to { width: 85%; }
   }
-    from { width: 8%; }
-    to { width: 85%; }
-  }
+
   .fox-exp-row {
     display: flex;
     align-items: center;

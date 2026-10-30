@@ -15,6 +15,15 @@ import { ICON_SEED, settleIcon, type DeskIcon } from "./icons";
 import type { SnapMode } from "./snap";
 import { BRAND } from "./brand";
 
+export type NetworkLogEntry = {
+  id: string;
+  direction: "send" | "receive";
+  host: string;
+  port: string;
+  payload: string;
+  at: string;
+};
+
 type Confirm = { command: string; warning: string };
 
 export type WinKind = "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg" | "blocks" | "sky" | "guard" | "net" | "hako" | "furry" | "inari" | "shogi" | "atlas" | "lab";
@@ -155,6 +164,17 @@ type FoxStore = OsState & {
   trash: { path: string; body: string }[];
   notes: { id: string; text: string }[];
   assist: { id: string; side: "left" | "right" } | null;
+
+  networkEnabled: boolean;
+  networkPeers: { id: string; host: string; port: string; online: boolean }[];
+  networkDraft: string;
+  networkTarget: string;
+  networkPort: string;
+  networkLog: NetworkLogEntry[];
+
+  toggleNetwork: () => void;
+  sendNetworkMessage: (host: string, port: string, payload: string) => void;
+  receiveNetworkMessage: (host: string, port: string, payload?: string) => void;
 };
 
 const intro: Line[] = [
@@ -167,15 +187,20 @@ function append(lines: Line[], next: Line[]): Line[] {
   return [...lines, ...next].slice(-240);
 }
 
+function nowStamp() {
+  return new Date().toLocaleTimeString("ja-JP", { hour12: false });
+}
+
 let packetTimer = 0;
 
 function stopPackets() {
-  window.clearInterval(packetTimer);
+  if (typeof window !== "undefined") window.clearInterval(packetTimer);
   packetTimer = 0;
 }
 
 function startPackets(ip: string) {
   stopPackets();
+  if (typeof window === "undefined") return;
   packetTimer = window.setInterval(() => {
     const port = [53, 80, 443, 3000][Math.floor(Math.random() * 4)];
     const size = 40 + Math.floor(Math.random() * 900);
@@ -186,6 +211,22 @@ function startPackets(ip: string) {
 
 function applyFx(fx: DeskFx) {
   const state = useFox.getState();
+
+  if (fx.op === "network-toggle") {
+    useFox.setState({ networkEnabled: fx.enabled });
+    return;
+  }
+
+  if (fx.op === "network-send") {
+    state.sendNetworkMessage(fx.host, fx.port, fx.payload);
+    return;
+  }
+
+  if (fx.op === "network-receive") {
+    state.receiveNetworkMessage(fx.host, fx.port, fx.payload ?? "echo");
+    return;
+  }
+
   if (fx.op === "lock") {
     useFox.setState({ phase: "login", sessionLocked: true });
     return;
@@ -317,14 +358,59 @@ export const useFox = create<FoxStore>((set, get) => ({
   trash: [],
   notes: [],
   assist: null,
-  icons: ICON_SEED,
-  skyInbox: [],
-  guardOn: false,
-  promptName: BRAND.prompt,
-  creature: BRAND.creature,
-  emblemOn: BRAND.emblem,
-  plugins: [],
-  explorerBin: false,
+  networkEnabled: true,
+  networkPeers: [
+    { id: "free-cafe", host: "192.168.0.10", port: "53", online: true },
+    { id: "hotel-lobby", host: "192.168.0.11", port: "80", online: true },
+    { id: "station-free", host: "192.168.0.12", port: "443", online: true },
+  ],
+  networkDraft: "",
+  networkTarget: "192.168.0.10",
+  networkPort: "80",
+  networkLog: [],
+
+  toggleNetwork: () =>
+    set((state) => ({
+      networkEnabled: !state.networkEnabled,
+      notice: state.networkEnabled ? "回線を切断しました" : "回線を接続しました",
+    })),
+
+  sendNetworkMessage: (host, port, payload) => {
+    const message = payload.trim() || "ping";
+    const entry: NetworkLogEntry = {
+      id: `${Date.now()}`,
+      direction: "send",
+      host,
+      port,
+      payload: message,
+      at: nowStamp(),
+    };
+
+    set((state) => ({
+      networkLog: [entry, ...state.networkLog].slice(0, 50),
+      networkPeers: state.networkPeers.some((peer) => peer.host === host && peer.port === port)
+        ? state.networkPeers
+        : [...state.networkPeers, { id: `${host}:${port}`, host, port, online: true }],
+      notice: `${host}:${port} へ送信しました`,
+    }));
+  },
+
+  receiveNetworkMessage: (host, port, payload = "echo") => {
+    const entry: NetworkLogEntry = {
+      id: `${Date.now()}`,
+      direction: "receive",
+      host,
+      port,
+      payload: payload.trim() || "echo",
+      at: nowStamp(),
+    };
+
+    set((state) => ({
+      networkLog: [entry, ...state.networkLog].slice(0, 50),
+      notice: `${host}:${port} から受信しました`,
+    }));
+  },
+
   tapIme: () => {
     const { ime, imeTaps } = get();
     if (ime === "hira") {
@@ -378,25 +464,31 @@ export const useFox = create<FoxStore>((set, get) => ({
     const visual = get().termVisual;
     const openTerm = pane === "term" && (visual === "closed" || visual === "closing");
     set({ pane, pulse: null, termVisual: openTerm ? "opening" : visual });
-    window.requestAnimationFrame(() => set({ pulse: pane }));
+    if (typeof window !== "undefined") window.requestAnimationFrame(() => set({ pulse: pane }));
     if (openTerm) {
+      if (typeof window !== "undefined") {
+        window.setTimeout(() => {
+          if (get().termVisual === "opening") set({ termVisual: "open" });
+        }, 700);
+      }
+    }
+  },
+  openTerm: () => {
+    set({ termVisual: "opening", pane: "term" });
+    if (typeof window !== "undefined") {
       window.setTimeout(() => {
         if (get().termVisual === "opening") set({ termVisual: "open" });
       }, 700);
     }
   },
-  openTerm: () => {
-    set({ termVisual: "opening", pane: "term" });
-    window.setTimeout(() => {
-      if (get().termVisual === "opening") set({ termVisual: "open" });
-    }, 700);
-  },
   closeTerm: () => {
     if (get().termVisual === "closed") return;
     set({ termVisual: "closing" });
-    window.setTimeout(() => {
-      if (get().termVisual === "closing") set({ termVisual: "closed" });
-    }, 700);
+    if (typeof window !== "undefined") {
+      window.setTimeout(() => {
+        if (get().termVisual === "closing") set({ termVisual: "closed" });
+      }, 700);
+    }
   },
   setDraft: (draft) => set({ draft }),
   setChatDraft: (chatDraft) => set({ chatDraft }),
@@ -451,7 +543,7 @@ export const useFox = create<FoxStore>((set, get) => ({
       confirm: null,
       lines: result.clear ? [] : append(state.lines, [echo, ...result.lines]),
     });
-    if (result.open) window.requestAnimationFrame(() => set({ pulse: result.open ?? null }));
+    if (result.open && typeof window !== "undefined") window.requestAnimationFrame(() => set({ pulse: result.open ?? null }));
   },
 
   confirmRun: () => {
@@ -548,7 +640,7 @@ export const useFox = create<FoxStore>((set, get) => ({
       x: 92 + (count % 6) * 28,
       y: 16 + (count % 6) * 24,
       z,
-      w: kind === "browser" || kind === "blocks" || kind === "shogi" || kind === "atlas" || kind === "hako" ? 760 : kind === "sky" || kind === "guard" ? 380 : kind === "dict" || kind === "pkg" || kind === "term" || kind === "dev" ? 640 : 460,
+      w: kind === "browser" || kind === "blocks" || kind === "shogi" || kind === "atlas" || kind === "hako" ? 760 : kind === "sky" || kind === "guard" ? 380 : kind === "dict" || kind === "pkg" || kind === "blocks" ? 560 : 560,
       h: kind === "sky" || kind === "guard" ? 640 : kind === "browser" || kind === "dict" || kind === "pkg" || kind === "blocks" || kind === "shogi" || kind === "atlas" ? 520 : 440,
       min: false,
       max: false,

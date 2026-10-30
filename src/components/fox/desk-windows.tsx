@@ -13,6 +13,7 @@ import { QdevPanel } from "./qdev-panel";
 import { SlackPanel } from "./slack-panel";
 import { SysPanel } from "./sys-panel";
 import { TerminalPanel } from "./terminal-panel";
+import { AtlasWindow, FurryWindow, HakoWindow, InariWindow, LabWindow, NetWindow, ShogiWindow } from "./extra-windows";
 
 const EDGES = ["n", "s", "e", "w", "nw", "ne", "sw", "se"] as const;
 
@@ -28,6 +29,13 @@ function body(kind: DeskWindow["kind"]) {
   if (kind === "blocks") return <BlocksWindow />;
   if (kind === "sky") return <SkyWindow />;
   if (kind === "guard") return <GuardSite />;
+  if (kind === "net") return <NetWindow />;
+  if (kind === "hako") return <HakoWindow />;
+  if (kind === "furry") return <FurryWindow />;
+  if (kind === "inari") return <InariWindow />;
+  if (kind === "shogi") return <ShogiWindow />;
+  if (kind === "atlas") return <AtlasWindow />;
+  if (kind === "lab") return <LabWindow />;
   return <SlackPanel embedded />;
 }
 

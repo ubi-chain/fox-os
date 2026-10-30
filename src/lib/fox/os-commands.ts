@@ -1,6 +1,6 @@
 import { joinPath, type Line } from "./model";
 
-export type DeskKind = "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg" | "blocks" | "sky" | "guard";
+export type DeskKind = "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg" | "blocks" | "sky" | "guard" | "net" | "hako" | "furry" | "inari" | "shogi" | "atlas" | "lab";
 
 export type DeskWindowRef = { id: string; kind: DeskKind; title: string; z: number };
 
@@ -63,6 +63,16 @@ const KINDS: Record<string, DeskKind> = {
   "foxsky.exe": "sky",
   "sky.exe": "sky",
   "guard.exe": "guard",
+  "net.exe": "net",
+  "wifi.exe": "net",
+  "hako.exe": "hako",
+  "furry.exe": "furry",
+  "furrysys.exe": "furry",
+  "inari.exe": "inari",
+  "shogi.exe": "shogi",
+  "map.exe": "atlas",
+  "atlas.exe": "atlas",
+  "lab.exe": "lab",
 };
 
 const TITLES: Record<DeskKind, string> = {
@@ -78,6 +88,13 @@ const TITLES: Record<DeskKind, string> = {
   blocks: "ブロック",
   sky: "FoxSky",
   guard: "まもり",
+  net: "回線",
+  hako: "奉納",
+  furry: "Furrysys",
+  inari: "Inari",
+  shogi: "将棋",
+  atlas: "地図",
+  lab: "砂場",
 };
 
 function out(text: string): Line {

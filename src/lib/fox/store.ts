@@ -13,10 +13,11 @@ import { runCommand } from "./shell";
 import { deskCommand, type DeskFx } from "./os-commands";
 import { ICON_SEED, settleIcon, type DeskIcon } from "./icons";
 import type { SnapMode } from "./snap";
+import { BRAND } from "./brand";
 
 type Confirm = { command: string; warning: string };
 
-export type WinKind = "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg" | "blocks" | "sky" | "guard";
+export type WinKind = "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg" | "blocks" | "sky" | "guard" | "net" | "hako" | "furry" | "inari" | "shogi" | "atlas" | "lab";
 
 export type DeskWindow = {
   id: string;
@@ -47,6 +48,13 @@ const WIN_TITLE: Record<WinKind, string> = {
   blocks: "ブロック",
   sky: "FoxSky",
   guard: "まもり",
+  net: "回線",
+  hako: "奉納",
+  furry: "Furrysys",
+  inari: "Inari",
+  shogi: "将棋",
+  atlas: "地図",
+  lab: "砂場",
 };
 
 type FoxStore = OsState & {
@@ -110,6 +118,12 @@ type FoxStore = OsState & {
   icons: DeskIcon[];
   skyInbox: { id: string; to: string; text: string }[];
   guardOn: boolean;
+  promptName: string;
+  creature: string;
+  emblemOn: boolean;
+  plugins: { name: string; note: string }[];
+  setLook: (patch: Partial<{ promptName: string; creature: string; emblemOn: boolean }>) => void;
+  addPlugin: (name: string, note: string) => void;
   moveIcon: (id: string, col: number, row: number) => void;
   renameIcon: (id: string, label: string) => void;
   arrangeIcons: () => void;
@@ -306,6 +320,10 @@ export const useFox = create<FoxStore>((set, get) => ({
   icons: ICON_SEED,
   skyInbox: [],
   guardOn: false,
+  promptName: BRAND.prompt,
+  creature: BRAND.creature,
+  emblemOn: BRAND.emblem,
+  plugins: [],
   explorerBin: false,
   tapIme: () => {
     const { ime, imeTaps } = get();
@@ -341,6 +359,8 @@ export const useFox = create<FoxStore>((set, get) => ({
     set({ password: next });
     return true;
   },
+  setLook: (patch) => set(patch),
+  addPlugin: (name, note) => set({ plugins: [...get().plugins.filter((item) => item.name !== name), { name, note }].slice(-12) }),
   lock: () => set({ phase: "login", sessionLocked: true }),
   sleep: () => set({ phase: "sleep" }),
   shutdown: () => {
@@ -385,7 +405,7 @@ export const useFox = create<FoxStore>((set, get) => ({
     const input = (raw ?? get().draft).trim();
     if (!input) return;
     const state = get();
-    const echo: Line = { kind: "cmd", text: `fox:${state.cwd}$ ${input}` };
+    const echo: Line = { kind: "cmd", text: `${get().promptName}:${state.cwd}$ ${input}` };
     const desk = deskCommand(input, {
       cwd: state.cwd,
       files: state.files,
@@ -528,8 +548,8 @@ export const useFox = create<FoxStore>((set, get) => ({
       x: 92 + (count % 6) * 28,
       y: 16 + (count % 6) * 24,
       z,
-      w: kind === "browser" || kind === "blocks" ? 760 : kind === "sky" || kind === "guard" ? 380 : kind === "dict" || kind === "pkg" || kind === "term" || kind === "dev" ? 640 : 420,
-      h: kind === "sky" || kind === "guard" ? 640 : kind === "browser" || kind === "dict" || kind === "pkg" || kind === "blocks" ? 480 : 420,
+      w: kind === "browser" || kind === "blocks" || kind === "shogi" || kind === "atlas" || kind === "hako" ? 760 : kind === "sky" || kind === "guard" ? 380 : kind === "dict" || kind === "pkg" || kind === "term" || kind === "dev" ? 640 : 460,
+      h: kind === "sky" || kind === "guard" ? 640 : kind === "browser" || kind === "dict" || kind === "pkg" || kind === "blocks" || kind === "shogi" || kind === "atlas" ? 520 : 440,
       min: false,
       max: false,
       snap: "free",

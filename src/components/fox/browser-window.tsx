@@ -32,7 +32,8 @@ const session: {
     { title: "GitHub", url: "https://github.com/ubi-chain/fox-os" },
     { title: "辞典", url: "fox://dict" },
     { title: "文法", url: "fox://grammar" },
-    { title: "パッケージ", url: "fox://pkg" },
+    { title: "アメーバピグ", url: "https://pigg.ameba.jp/" },
+    { title: "PayPal", url: "https://www.paypal.com/" },
   ],
   history: [],
   closed: [],
@@ -80,7 +81,7 @@ function resolve(raw: string) {
   return `https://duckduckgo.com/?q=${encodeURIComponent(text)}`;
 }
 
-function fresh(url = "fox://newtab", priv = false): Tab {
+function fresh(url = "https://pigg.ameba.jp/", priv = false): Tab {
   return {
     id: `${Date.now()}-${Math.random()}`,
     title: titleOf(url),
@@ -416,7 +417,8 @@ export function BrowserWindow() {
               <button type="button" onClick={() => go("fox://grammar")}>文法</button>
               <button type="button" onClick={() => go("fox://pkg")}>パッケージ</button>
               {guardOn ? <button type="button" onClick={() => go("fox://guard")}>まもり</button> : null}
-              <button type="button" onClick={() => go("https://github.com/ubi-chain/fox-os")}>GitHub</button>
+              <button type="button" onClick={() => go("https://pigg.ameba.jp/")}>アメーバピグ</button>
+              <button type="button" onClick={() => go("https://www.paypal.com/")}>PayPal</button>
             </div>
           </div>
         ) : path === "fox://history" ? (

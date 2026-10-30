@@ -50,7 +50,7 @@ export function PkgWindow() {
     const result = runCommand(cmd, state, true);
     useFox.setState({
       ...(result.patch ?? {}),
-      lines: [...state.lines, { kind: "cmd" as const, text: `fox:${state.cwd}$ ${cmd}` }, ...result.lines].slice(-240),
+      lines: [...state.lines, { kind: "cmd" as const, text: `${state.promptName}:${state.cwd}$ ${cmd}` }, ...result.lines].slice(-240),
     });
     setLog(result.lines.map((line) => line.text).join("\n") || cmd);
   };

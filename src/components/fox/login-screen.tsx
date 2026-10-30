@@ -4,6 +4,7 @@ import { FoxMark } from "./fox-mark";
 
 export function LoginScreen() {
   const signIn = useFox((s) => s.signIn);
+  const sessionLocked = useFox((s) => s.sessionLocked);
   const passRef = useRef<HTMLInputElement>(null);
   const [id, setId] = useState("");
   const [pass, setPass] = useState("");
@@ -21,6 +22,7 @@ export function LoginScreen() {
     >
       <FoxMark />
       <h1>FOX OS</h1>
+      {sessionLocked ? <p>ロック中です。パスワードで戻ります。</p> : null}
       <label>
         ID
         <input

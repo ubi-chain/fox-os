@@ -1,34 +1,21 @@
-export type SnapMode = "left" | "right" | "max" | "free" | "tl" | "tr" | "bl" | "br";
+export type SnapMode = "free" | "left" | "right" | "max" | "tl" | "tr" | "bl" | "br";
 
-export function stageSize(): { width: number; height: number } {
-  if (typeof window === "undefined") return { width: 1280, height: 720 };
-  return { width: window.innerWidth, height: window.innerHeight - 48 };
+export function stageSize() {
+  const stage = document.querySelector(".fox-stage");
+  return { width: stage?.clientWidth ?? 960, height: stage?.clientHeight ?? 640 };
 }
 
-export function snapFrame(
-  width: number,
-  height: number,
-  mode: SnapMode,
-): { x: number; y: number; w: number; h: number } {
-  const halfW = Math.floor(width / 2);
-  const halfH = Math.floor(height / 2);
-  switch (mode) {
-    case "left":
-      return { x: 0, y: 0, w: halfW, h: height };
-    case "right":
-      return { x: halfW, y: 0, w: width - halfW, h: height };
-    case "max":
-      return { x: 0, y: 0, w: width, h: height };
-    case "tl":
-      return { x: 0, y: 0, w: halfW, h: halfH };
-    case "tr":
-      return { x: halfW, y: 0, w: width - halfW, h: halfH };
-    case "bl":
-      return { x: 0, y: halfH, w: halfW, h: height - halfH };
-    case "br":
-      return { x: halfW, y: halfH, w: width - halfW, h: height - halfH };
-    case "free":
-    default:
-      return { x: 80, y: 60, w: 640, h: 420 };
-  }
+export function snapFrame(width: number, height: number, mode: Exclude<SnapMode, "free">) {
+  const pad = 8;
+  const halfW = Math.round(width / 2) - 14;
+  const halfH = Math.round(height / 2) - 14;
+  const fullW = width - 16;
+  const fullH = height - 16;
+  if (mode === "left") return { x: pad, y: pad, w: halfW, h: fullH };
+  if (mode === "right") return { x: Math.round(width / 2) + 4, y: pad, w: halfW, h: fullH };
+  if (mode === "tl") return { x: pad, y: pad, w: halfW, h: halfH };
+  if (mode === "tr") return { x: Math.round(width / 2) + 4, y: pad, w: halfW, h: halfH };
+  if (mode === "bl") return { x: pad, y: Math.round(height / 2) + 4, w: halfW, h: halfH };
+  if (mode === "br") return { x: Math.round(width / 2) + 4, y: Math.round(height / 2) + 4, w: halfW, h: halfH };
+  return { x: pad, y: pad, w: fullW, h: fullH };
 }

@@ -1,9 +1,11 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
+import { BRAND } from "@/lib/fox/brand";
+
 import appCss from "../styles.css?url";
 
-const APP_NAME = "FOX OS";
+const APP_NAME = BRAND.title;
 
 export const Route = createRootRoute({
   head: () => ({

@@ -1,3 +1,4 @@
+import { KanaInput } from "./kana-input";
 import { useFox } from "@/lib/fox/store";
 
 export function SlackPanel({ embedded = false }: { embedded?: boolean }) {
@@ -46,12 +47,7 @@ export function SlackPanel({ embedded = false }: { embedded?: boolean }) {
             send();
           }}
         >
-          <input
-            value={draft}
-            aria-label="メッセージ"
-            placeholder="メッセージ"
-            onChange={(event) => setDraft(event.target.value)}
-          />
+          <KanaInput value={draft} onValue={setDraft} aria-label="メッセージ" placeholder="メッセージ" />
           <button type="submit" className="fox-btn fox-btn-accent">
             送信
           </button>

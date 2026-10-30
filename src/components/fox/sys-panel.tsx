@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useFox } from "@/lib/fox/store";
+import { LookPanel } from "./extra-windows";
 
 type Telemetry = {
   cores: number;
@@ -11,6 +12,11 @@ type Telemetry = {
 export function SysPanel() {
   const pane = useFox((s) => s.pane);
   const pulse = useFox((s) => s.pulse);
+  const setPassword = useFox((s) => s.setPassword);
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
+  const [again, setAgain] = useState("");
+  const [note, setNote] = useState("");
   const [telemetry, setTelemetry] = useState<Telemetry>({
     cores: 0,
     online: true,
@@ -71,6 +77,42 @@ export function SysPanel() {
           <b>{telemetry.frame}</b>
         </div>
         <p className="fox-note">CPU 使用率としては表示していません。数字はこのブラウザの実測です。</p>
+        <form
+          className="fox-pass"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (next !== again) {
+              setNote("確認用パスワードが違います");
+              return;
+            }
+            const ok = setPassword(current, next);
+            setNote(ok ? "パスワードを変更しました" : "今のパスワードが違うか、新しいパスワードが4文字未満です");
+            if (ok) {
+              setCurrent("");
+              setNext("");
+              setAgain("");
+            }
+          }}
+        >
+          <h2>パスワード</h2>
+          <label>
+            現在
+            <input type="password" value={current} autoComplete="current-password" onChange={(event) => setCurrent(event.target.value)} />
+          </label>
+          <label>
+            新しい
+            <input type="password" value={next} autoComplete="new-password" onChange={(event) => setNext(event.target.value)} />
+          </label>
+          <label>
+            確認
+            <input type="password" value={again} autoComplete="new-password" onChange={(event) => setAgain(event.target.value)} />
+          </label>
+          <button type="submit" className="fox-btn">
+            変更
+          </button>
+          {note ? <p className="fox-note">{note}</p> : null}
+        </form>
+        <LookPanel />
       </div>
     </section>
   );

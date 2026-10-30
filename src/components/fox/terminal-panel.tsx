@@ -17,6 +17,7 @@ export function TerminalPanel() {
   const pulse = useFox((s) => s.pulse);
   const enterBreak = useFox((s) => s.enterBreak);
   const history = useFox((s) => s.history);
+  const promptName = useFox((s) => s.promptName);
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -68,7 +69,7 @@ export function TerminalPanel() {
             submit();
           }}
         >
-          <span>fox:{cwd}$</span>
+          <span>{promptName}:{cwd}$</span>
           {enterBreak ? (
             <textarea
               value={draft}

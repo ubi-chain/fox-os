@@ -7,6 +7,7 @@ import { DeskIcons } from "./desk-icons";
 import { DeskWindows } from "./desk-windows";
 import { FoxMark } from "./fox-mark";
 import { LoginScreen } from "./login-screen";
+import { BRAND } from "@/lib/fox/brand";
 
 const ICONS: { kind: WinKind; label: string }[] = [
   { kind: "browser", label: "WEB" },
@@ -20,6 +21,13 @@ const ICONS: { kind: WinKind; label: string }[] = [
   { kind: "pkg", label: "PKG" },
   { kind: "blocks", label: "KIDS" },
   { kind: "sky", label: "SKY" },
+  { kind: "net", label: "NET" },
+  { kind: "hako", label: "HAKO" },
+  { kind: "furry", label: "FURRY" },
+  { kind: "inari", label: "IRC" },
+  { kind: "shogi", label: "将棋" },
+  { kind: "atlas", label: "MAP" },
+  { kind: "lab", label: "LAB" },
 ];
 
 const NAMES: Record<WinKind, string> = {
@@ -35,6 +43,13 @@ const NAMES: Record<WinKind, string> = {
   blocks: "ブロック",
   sky: "FoxSky",
   guard: "まもり",
+  net: "回線",
+  hako: "奉納",
+  furry: "Furrysys",
+  inari: "Inari",
+  shogi: "将棋",
+  atlas: "地図",
+  lab: "砂場",
 };
 
 export function Desktop() {
@@ -225,7 +240,7 @@ export function Desktop() {
       <header className="fox-top">
         <div className="fox-brand">
           <FoxMark />
-          FOX OS
+          {BRAND.title}
         </div>
         <div className="fox-meta">
           <span className="fox-link">

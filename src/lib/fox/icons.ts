@@ -1,6 +1,6 @@
 export type DeskIcon = {
   id: string;
-  kind: "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg" | "blocks" | "sky" | "guard" | "exe" | "bin";
+  kind: "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg" | "blocks" | "sky" | "guard" | "net" | "hako" | "furry" | "inari" | "shogi" | "atlas" | "lab" | "exe" | "bin";
   label: string;
   col: number;
   row: number;
@@ -20,6 +20,13 @@ export const ICON_SEED: DeskIcon[] = [
   { id: "sky", kind: "sky", label: "SKY", col: 2, row: 0 },
   { id: "exe", kind: "exe", label: "EXE", col: 2, row: 1 },
   { id: "bin", kind: "bin", label: "BIN", col: 2, row: 2 },
+  { id: "net", kind: "net", label: "NET", col: 3, row: 0 },
+  { id: "hako", kind: "hako", label: "HAKO", col: 3, row: 1 },
+  { id: "furry", kind: "furry", label: "FURRY", col: 3, row: 2 },
+  { id: "inari", kind: "inari", label: "IRC", col: 3, row: 3 },
+  { id: "shogi", kind: "shogi", label: "将棋", col: 3, row: 4 },
+  { id: "atlas", kind: "atlas", label: "MAP", col: 4, row: 0 },
+  { id: "lab", kind: "lab", label: "LAB", col: 4, row: 1 },
 ];
 
 function free(icons: DeskIcon[], col: number, row: number, except: string) {

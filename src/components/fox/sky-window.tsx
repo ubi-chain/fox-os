@@ -13,7 +13,7 @@ export function GuardSite({ publicPage = false }: { publicPage?: boolean }) {
         <span>{publicPage ? "スマホ用スキャナー" : "スマホ用 · この机の中"}</span>
       </header>
       <div className="fox-bot">
-        <img src="/favicon.svg" alt="" />
+        <img src="/emblem.png" alt="" />
         <p>ぼくは Grok Bot。まもりページの番をしてるよ。実機のファイルは読まないよ。</p>
       </div>
       <p className={safe ? "fox-ok" : ""}>{safe ? "状態: 安全" : "状態: 確認中"}</p>

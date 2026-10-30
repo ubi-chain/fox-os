@@ -281,7 +281,7 @@ export function BlocksWindow() {
         <p className="fox-note">{lesson}</p>
         <pre className="fox-code" aria-label="生成されたコード">{error ? "# タグを直すとコードが出ます" : program(script)}</pre>
         <p className="fox-bubble">{bubble}</p>
-        <img src="/favicon.svg" alt="" />
+        <img src="/emblem.png" alt="" />
       </div>
     </div>
   );

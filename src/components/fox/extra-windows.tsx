@@ -13,7 +13,7 @@ const CREATURES = [
 ];
 
 export function emblemSrc(creature: string) {
-  if (creature === "fox") return "/favicon.svg";
+  if (creature === "fox") return "/emblem.png";
   if (creature === "none") return "";
   const glyph = CREATURES.find((item) => item.id === creature)?.label ?? "F";
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#14080c"/><text x="16" y="22" text-anchor="middle" font-size="16" fill="#f6f1ea" font-family="sans-serif">${glyph}</text></svg>`;

@@ -145,96 +145,130 @@ export function NetWindow() {
   );
 }
 
-const SERVICES = ["GitHub", "Copilot", "Vercel", "Grok"];
+type Gift = { id: string; name: string; yen: number; purpose: string };
+
+function asYen(value: string) {
+  const n = Math.floor(Number(value.replace(/,/g, "")));
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+function splitEven(total: number, people: string[]) {
+  if (!people.length || total <= 0) return people.map((name) => ({ name, yen: 0 }));
+  const base = Math.floor(total / people.length);
+  let rest = total - base * people.length;
+  return people.map((name) => {
+    const extra = rest > 0 ? 1 : 0;
+    rest -= extra;
+    return { name, yen: base + extra };
+  });
+}
 
 export function HakoWindow() {
   const [who, setWho] = useState("");
-  const [amount, setAmount] = useState("100");
-  const [card, setCard] = useState("");
-  const [mail, setMail] = useState("");
-  const [note, setNote] = useState("カード番号は保存しません。ここは点数の箱です。");
-  const [given, setGiven] = useState<string[]>([]);
-  const [ledger, setLedger] = useState<Record<string, number>>({ 中央: 0, 換金: 0, 分配: 0 });
-  const [keyText, setKeyText] = useState("");
+  const [amount, setAmount] = useState("");
+  const [purpose, setPurpose] = useState("");
+  const [gifts, setGifts] = useState<Gift[]>([]);
+  const [note, setNote] = useState("寄付は円で台帳に残します。カード番号は預かりません。");
+  const [holder, setHolder] = useState("");
+  const [people, setPeople] = useState<string[]>([]);
+  const [market, setMarket] = useState("150.00");
+  const [paypal, setPaypal] = useState("152.25");
 
-  const offer = () => {
-    if (/\d(?:[ -]?\d){12,18}/.test(card)) {
-      setNote("カード番号の形は受け取りません。入力を消してください。");
-      setCard("");
+  const raised = gifts.reduce((sum, gift) => sum + gift.yen, 0);
+  const marketRate = Number(market);
+  const paypalRate = Number(paypal);
+  const foreign = marketRate > 0 ? raised / marketRate : 0;
+  const returned = Number.isFinite(paypalRate) ? Math.round(foreign * paypalRate) : 0;
+  const gain = Math.max(0, returned - raised);
+  const shares = splitEven(gain, people);
+
+  const record = () => {
+    const yen = asYen(amount);
+    if (!who.trim() || yen <= 0) {
+      setNote("寄付者名と、1円以上の金額を入力してください。");
       return;
     }
-    const points = Math.max(0, Math.floor(Number(amount) || 0));
-    if (!who.trim() || points <= 0) {
-      setNote("名前と点数を入れてください。");
+    if (/\d(?:[ -]?\d){12,18}/.test(who) || /\d(?:[ -]?\d){12,18}/.test(purpose)) {
+      setNote("カード番号は受け付けません。金額だけを記録してください。");
       return;
     }
-    const share = Math.floor(points / SERVICES.length);
-    setNote(`${mail || "メール未設定"} の名前で、${SERVICES.join("・")} に ${share} 点ずつ（机の中）。実在の請求はしていません。`);
-    if (!given.includes(who.trim())) {
-      setGiven((list) => [...list, who.trim()]);
-      setKeyText(`DEMO-${who.trim().slice(0, 8)}-${points}`);
-    } else setKeyText("この名前の品はもう一つ渡してあります。");
-    setLedger((box) => ({ 中央: box.中央 + points, 換金: box.換金, 分配: box.分配 }));
+    setGifts((list) => [{ id: `${Date.now()}`, name: who.trim(), yen, purpose: purpose.trim() || "使途の指定なし" }, ...list]);
+    setWho("");
+    setAmount("");
+    setPurpose("");
+    setNote("台帳に記録しました。PayPal への送金は、この画面では行いません。");
   };
 
   return (
     <div className="fox-extra">
       <h2>奉納箱</h2>
-      <p>余った点は一人ひとつ。ゲームキーは実店舗では使えません。</p>
+      <p>寄付を受け、円で残す台帳です。ゲームの景品やキーの発行はしません。</p>
       <label>
-        名前
-        <input value={who} aria-label="名前" onChange={(event) => setWho(event.target.value)} />
+        寄付者名
+        <input value={who} aria-label="寄付者名" onChange={(event) => setWho(event.target.value)} />
       </label>
       <label>
-        点数
-        <input value={amount} aria-label="寄付の点数" onChange={(event) => setAmount(event.target.value)} />
+        金額（円）
+        <input value={amount} inputMode="numeric" aria-label="寄付金額" onChange={(event) => setAmount(event.target.value)} />
       </label>
       <label>
-        連絡用のメール（送りません）
-        <input value={mail} aria-label="メール" onChange={(event) => setMail(event.target.value)} />
+        使途
+        <input value={purpose} aria-label="使途" onChange={(event) => setPurpose(event.target.value)} />
       </label>
-      <label>
-        カード欄
-        <input value={card} aria-label="カード" placeholder="番号は入れないでください" onChange={(event) => setCard(event.target.value)} />
-      </label>
-      <button type="button" className="fox-btn" onClick={offer}>
-        分ける
+      <button type="button" className="fox-btn" onClick={record}>
+        台帳に記録する
       </button>
       <p>{note}</p>
-      {keyText ? <p>キー {keyText}</p> : null}
-      <h2>UBI カード（見本）</h2>
-      <div className="fox-card">
-        <b>UBI DESK</b>
-        <span>実在のカード会社ではありません</span>
-        <strong>{ledger.中央}</strong>
-      </div>
-      <h2>経済ボット</h2>
-      <p>中央・換金・分配の三点は机の中の数字です。PayPal の送金はしません。</p>
-      <p>中央 {ledger.中央} / 換金 {ledger.換金} / 分配 {ledger.分配}</p>
+      <p>寄付合計 {raised.toLocaleString("ja-JP")} 円 / {gifts.length} 件</p>
+      <ul>
+        {gifts.map((gift) => (
+          <li key={gift.id}>
+            {gift.name} · {gift.yen.toLocaleString("ja-JP")} 円 · {gift.purpose}
+          </li>
+        ))}
+      </ul>
+      <h2>財布</h2>
+      <p>
+        寄付合計を基準レートで外貨にし、PayPal のレートで円に戻した差額を為替差益とします。差益は受取人へ等分します。1円未満の端数は、名簿の順に1円ずつ配ります。
+      </p>
+      <label>
+        基準レート（円 / 1USD）
+        <input value={market} aria-label="基準レート" onChange={(event) => setMarket(event.target.value)} />
+      </label>
+      <label>
+        PayPal レート（円 / 1USD）
+        <input value={paypal} aria-label="PayPalレート" onChange={(event) => setPaypal(event.target.value)} />
+      </label>
+      <p>
+        外貨数量 {foreign.toFixed(2)} USD。円に戻した額 {returned.toLocaleString("ja-JP")} 円。為替差益 {gain.toLocaleString("ja-JP")} 円。
+      </p>
+      <label>
+        受取人
+        <input value={holder} aria-label="受取人" onChange={(event) => setHolder(event.target.value)} />
+      </label>
       <button
         type="button"
         className="fox-btn"
-        onClick={() =>
-          setLedger((box) => {
-            const move = Math.floor(box.中央 / 2);
-            return { 中央: box.中央 - move, 換金: box.換金 + move, 分配: box.分配 };
-          })
-        }
+        onClick={() => {
+          const name = holder.trim();
+          if (!name || people.includes(name)) return;
+          setPeople((list) => [...list, name]);
+          setHolder("");
+        }}
       >
-        中央から換金へ（模擬）
+        受取人を加える
       </button>
-      <button
-        type="button"
-        className="fox-btn"
-        onClick={() =>
-          setLedger((box) => {
-            const move = box.換金;
-            return { 中央: box.中央, 換金: 0, 分配: box.分配 + move };
-          })
-        }
-      >
-        個人枠へ分配（模擬）
-      </button>
+      <ul>
+        {shares.map((share) => (
+          <li key={share.name}>
+            {share.name} · {share.yen.toLocaleString("ja-JP")} 円
+            <button type="button" onClick={() => setPeople((list) => list.filter((item) => item !== share.name))}>
+              外す
+            </button>
+          </li>
+        ))}
+      </ul>
+      <p>{people.length ? `一人あたりの基準は ${people.length} 人で等分です。` : "受取人がいないため、差益はまだ分配していません。"}</p>
     </div>
   );
 }

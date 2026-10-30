@@ -408,39 +408,76 @@ function LookDress() {
 
 type Point = { x: number; y: number };
 
+const TUBE = [
+  { name: "北", d: "M8,78 C22,62 28,48 42,38 C56,28 68,22 88,18" },
+  { name: "中央", d: "M12,52 C28,58 38,46 52,44 C66,42 74,56 90,62" },
+  { name: "南", d: "M10,22 C24,36 36,58 50,68 C64,78 78,74 92,58" },
+];
+
 export function AtlasWindow() {
-  const [place, setPlace] = useState("駅");
+  const [place, setPlace] = useState("Granborough");
   const [points, setPoints] = useState<Point[]>([
-    { x: 15, y: 70 },
-    { x: 40, y: 40 },
-    { x: 70, y: 55 },
+    { x: 18, y: 72 },
+    { x: 42, y: 40 },
+    { x: 68, y: 54 },
   ]);
-  const [key, setKey] = useState("skyfall");
-  const [locked, setLocked] = useState(false);
-  const view = locked ? encrypt(points, key) : points;
-  const d = view.map((point, index) => `${index === 0 ? "M" : "L"}${point.x},${point.y}`).join(" ");
+  const [key, setKey] = useState("granborough");
+  const [open, setOpen] = useState(false);
+  const [status, setStatus] = useState("LEVEL II · 難読化");
+  const view = open ? encrypt(points, key) : points;
+  const route = view.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
+
+  const applyKey = () => {
+    const hit = key.trim().toLowerCase() === "granborough" || key.trim().toLowerCase() === "skyfall";
+    setOpen(true);
+    setStatus(hit ? "システム侵害 · 地下網が開きました" : "鍵不一致 · 線はくねったままです");
+  };
+
   return (
     <div className="fox-extra">
-      <h2>経路の線</h2>
-      <p>{place} の模式図です。地図会社の地図は使っていません。線は合言葉でくねらせ、同じ合言葉で戻します。</p>
-      <input value={place} aria-label="場所" onChange={(event) => setPlace(event.target.value)} />
-      <input value={key} aria-label="合言葉" onChange={(event) => setKey(event.target.value)} />
-      <svg viewBox="0 0 100 100" className="fox-map" onClick={(event) => {
+      <h2>地下網</h2>
+      <p>
+        {place} の模式図です。鍵を入れると線が粒子になって地下の経路を描きます。地図会社の地図は使っていません。
+      </p>
+      <label>
+        場所
+        <input value={place} aria-label="場所" onChange={(event) => setPlace(event.target.value)} />
+      </label>
+      <label>
+        鍵（駅名）
+        <input value={key} aria-label="鍵" onChange={(event) => setKey(event.target.value)} />
+      </label>
+      <p className={open ? "fox-warn" : ""}>{status}</p>
+      <svg viewBox="0 0 100 100" className={`fox-map${open ? " is-open" : ""}`} onClick={(event) => {
         const rect = event.currentTarget.getBoundingClientRect();
         const x = ((event.clientX - rect.left) / rect.width) * 100;
         const y = ((event.clientY - rect.top) / rect.height) * 100;
         setPoints((list) => [...list, { x, y }]);
-        setLocked(false);
+        setOpen(false);
+        setStatus("経路を追加しました。鍵で開いてください。");
       }}>
-        <path d={d} />
-        {view.map((point, index) => (
-          <circle key={`${point.x}-${point.y}-${index}`} cx={point.x} cy={point.y} r="2.2" />
+        {TUBE.map((line) => (
+          <path key={line.name} d={line.d} className="fox-tube" />
         ))}
+        <path d={route} className="fox-route" />
+        {view.map((point, index) => (
+          <circle key={`${point.x}-${point.y}-${index}`} cx={point.x} cy={point.y} r={open ? 1.6 : 2.2} className="fox-node" />
+        ))}
+        {open
+          ? view.map((point, index) => (
+              <circle key={`p-${index}`} cx={point.x} cy={point.y} r="0.7" className="fox-particle">
+                <animate attributeName="r" values="0.4;1.4;0.4" dur={`${1.2 + index * 0.15}s`} repeatCount="indefinite" />
+              </circle>
+            ))
+          : null}
       </svg>
-      <button type="button" className="fox-btn" onClick={() => setLocked((on) => !on)}>
-        {locked ? "解読する" : "線をくねらせる"}
+      <button type="button" className="fox-btn" onClick={applyKey}>
+        鍵を使う
       </button>
-      <button type="button" className="fox-btn" onClick={() => { setPoints([]); setLocked(false); }}>
+      <button type="button" className="fox-btn" onClick={() => { setOpen(false); setStatus("閉じました。"); }}>
+        閉じる
+      </button>
+      <button type="button" className="fox-btn" onClick={() => { setPoints([]); setOpen(false); setStatus("経路を消しました。"); }}>
         消す
       </button>
     </div>

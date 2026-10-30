@@ -31,7 +31,10 @@ export type DeskFx =
   | { op: "enter"; on: boolean }
   | { op: "deploy"; name: string; file: string; host: string; port: string }
   | { op: "undeploy"; name: string }
-  | { op: "sms"; phone: string };
+  | { op: "sms"; phone: string }
+  | { op: "network-toggle"; enabled: boolean }
+  | { op: "network-send"; host: string; port: string; payload: string }
+  | { op: "network-receive"; host: string; port: string; payload?: string };
 
 export type DeskResult = { lines: Line[]; files?: Record<string, string>; fx?: DeskFx };
 
@@ -145,19 +148,6 @@ function matchWindow(raw: string, ctx: DeskContext): DeskWindowRef | null {
   return hits.sort((a, b) => b.z - a.z)[0] ?? null;
 }
 
-function asmFor(app: string): string {
-  return [
-    `; FOX OS 模擬アセンブラ  ${app}`,
-    "; ブラウザ内の見本です。実バイナリではありません。",
-    "push ebp",
-    "mov ebp, esp",
-    "mov eax, 1",
-    `call fox_${app.replace(/\W/g, "_")}`,
-    "pop ebp",
-    "ret",
-  ].join("\n");
-}
-
 function splitHost(token: string): { host: string; port: string } | null {
   const slash = token.lastIndexOf("/");
   if (slash <= 0) return null;
@@ -174,6 +164,57 @@ export function deskCommand(input: string, ctx: DeskContext): DeskResult | null 
   if (typed === "/shutdown") return { lines: [sys("シャットダウンします。")], fx: { op: "shutdown" } };
   if (typed === "/true enter") return { lines: [sys("改行入力です。Ctrl+Enter で実行します。")], fx: { op: "enter", on: true } };
   if (typed === "/false enter") return { lines: [sys("改行入力を終了しました。")], fx: { op: "enter", on: false } };
+
+  const netToggle = typed.match(/^\/net\s+(on|off)$/i);
+  if (netToggle) {
+    const isOn = netToggle[1].toLowerCase() === "on";
+    return {
+      lines: [sys(`回線を ${isOn ? "ON" : "OFF"} にしました。`)],
+      fx: { op: "network-toggle", enabled: isOn },
+    };
+  }
+
+  const socket = typed.match(/^\/change packet to (.+?) to (.+?) name as (\S+)$/i);
+  if (socket) {
+    return {
+      lines: [sys(`ソケット ${socket[3]} を作りました。${socket[1]} → ${socket[2]}。送信は模擬です。`)],
+      fx: { op: "socket", name: socket[3], from: socket[1], to: socket[2] },
+    };
+  }
+
+  const sendSocket = typed.match(/^\/send socket\s+(\S+)\s+to\s+(\S+)(?:\s*\/\s*(\d+))?$/i);
+  if (sendSocket) {
+    const hostport = sendSocket[3] ? { host: sendSocket[2], port: sendSocket[3] } : splitHost(sendSocket[2]);
+    if (!hostport) return { lines: [err("/send socket 名前 to IP/ポート の形式です")] };
+    if (!ctx.sockets.some((item) => item.name === sendSocket[1])) return { lines: [err(`ソケット ${sendSocket[1]} はありません`)] };
+    return {
+      lines: [sys(`${sendSocket[1]} を ${hostport.host}:${hostport.port} へ模擬送信しました。実ソケットは開いていません。`)],
+      fx: { op: "send", name: sendSocket[1], ip: hostport.host, port: hostport.port },
+    };
+  }
+
+  const send = typed.match(/^\/send\s+(\S+)(?:\s+to\s+(\S+))?(?:\s*\/\s*(\d+))?\s+(.+)$/i);
+  if (send && !typed.startsWith("/send socket")) {
+    const host = send[1];
+    const target = send[2] ?? host;
+    const port = send[3] ?? "80";
+    const payload = send[4].trim();
+    return {
+      lines: [sys(`${target}:${port} にメッセージを送信しました。`)],
+      fx: { op: "network-send", host: target, port, payload },
+    };
+  }
+
+  const recv = typed.match(/^\/recv\s+from\s+(\S+)(?:\s*\/\s*(\d+))?(?:\s+(.+))?$/i);
+  if (recv) {
+    const host = recv[1];
+    const port = recv[2] ?? "80";
+    const payload = recv[3]?.trim() || "echo";
+    return {
+      lines: [sys(`${host}:${port} からメッセージを受信しました。`)],
+      fx: { op: "network-receive", host, port, payload },
+    };
+  }
 
   const sms = typed.match(/^\/sms\s+(\S+)\s+to\s+(\S+)$/i);
   if (sms) {
@@ -223,29 +264,19 @@ export function deskCommand(input: string, ctx: DeskContext): DeskResult | null 
     return { lines: [sys("パケットログを停止しました。")], fx: { op: "stop-catch" } };
   }
 
-  const socket = typed.match(/^\/change packet to (.+?) to (.+?) name as (\S+)$/i);
-  if (socket) {
-    return {
-      lines: [sys(`ソケット ${socket[3]} を作りました。${socket[1]} → ${socket[2]}。送信は模擬です。`)],
-      fx: { op: "socket", name: socket[3], from: socket[1], to: socket[2] },
-    };
-  }
-
-  const send = typed.match(/^\/send socket\s+(\S+)\s+to\s+(\S+)(?:\s*\/\s*(\d+))?$/i);
-  if (send) {
-    const hostport = send[3] ? { host: send[2], port: send[3] } : splitHost(send[2]);
-    if (!hostport) return { lines: [err("/send socket 名前 to IP/ポート の形式です")] };
-    if (!ctx.sockets.some((item) => item.name === send[1])) return { lines: [err(`ソケット ${send[1]} はありません`)] };
-    return {
-      lines: [sys(`${send[1]} を ${hostport.host}:${hostport.port} へ模擬送信しました。実ソケットは開いていません。`)],
-      fx: { op: "send", name: send[1], ip: hostport.host, port: hostport.port },
-    };
-  }
-
   const asm = typed.match(/^\/catch asembla by\s+(.+)$/i);
   if (asm) {
     const app = asm[1].trim();
-    const text = ctx.asm[app] ?? asmFor(app);
+    const text = ctx.asm[app] ?? [
+      "; FOX OS 模擬アセンブラ",
+      "; ブラウザ内の見本です。実バイナリではありません。",
+      "push ebp",
+      "mov ebp, esp",
+      "mov eax, 1",
+      `call fox_${app.replace(/\W/g, "_")}`,
+      "pop ebp",
+      "ret",
+    ].join("\n");
     return { lines: [out(text), sys("模擬アセンブラです。実プロセスは読んでいません。")], fx: { op: "asm", app, text } };
   }
 
@@ -253,7 +284,16 @@ export function deskCommand(input: string, ctx: DeskContext): DeskResult | null 
   if (asmEdit) {
     const app = ctx.asmApp;
     if (!app) return { lines: [err("先に /catch asembla by ソフト名 を実行してください")] };
-    const current = ctx.asm[app] ?? asmFor(app);
+    const current = ctx.asm[app] ?? [
+      "; FOX OS 模擬アセンブラ",
+      "; ブラウザ内の見本です。実バイナリではありません。",
+      "push ebp",
+      "mov ebp, esp",
+      "mov eax, 1",
+      `call fox_${app.replace(/\W/g, "_")}`,
+      "pop ebp",
+      "ret",
+    ].join("\n");
     if (!current.includes(asmEdit[1])) return { lines: [err(`「${asmEdit[1]}」はアセンブラにありません`)] };
     const text = current.replace(asmEdit[1], asmEdit[2]);
     return { lines: [out(text), sys("模擬アセンブラを書き換えました。")], fx: { op: "asm-edit", app, text } };

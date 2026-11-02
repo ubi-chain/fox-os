@@ -174,8 +174,17 @@ export function HakoWindow() {
   const [note, setNote] = useState("寄付は円で台帳に残します。カード番号は預かりません。");
   const [holder, setHolder] = useState("");
   const [people, setPeople] = useState<string[]>([]);
-  const [market, setMarket] = useState("150.00");
-  const [paypal, setPaypal] = useState("152.25");
+  const [market, setMarket] = useState(150);
+  const [paypal, setPaypal] = useState(152.25);
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      const next = 149.4 + Math.random() * 1.4;
+      setMarket(next);
+      setPaypal(Number((next + 2.15).toFixed(2)));
+    }, 4000);
+    return () => window.clearInterval(id);
+  }, []);
 
   const botYen = fxInbox.reduce((sum, row) => sum + row.yen, 0);
   const raised = gifts.reduce((sum, gift) => sum + gift.yen, 0) + botYen;
@@ -240,16 +249,8 @@ export function HakoWindow() {
           </li>
         ))}
       </ul>
-      <label>
-        基準レート（円 / 1USD）
-        <input value={market} aria-label="基準レート" onChange={(event) => setMarket(event.target.value)} />
-      </label>
-      <label>
-        PayPal レート（円 / 1USD）
-        <input value={paypal} aria-label="PayPalレート" onChange={(event) => setPaypal(event.target.value)} />
-      </label>
       <p>
-        外貨数量 {foreign.toFixed(2)} USD。円に戻した額 {returned.toLocaleString("ja-JP")} 円。為替差益 {gain.toLocaleString("ja-JP")} 円。
+        基準 {market.toFixed(2)} 円。適用 {paypal.toFixed(2)} 円。外貨 {foreign.toFixed(2)} USD。戻した額 {returned.toLocaleString("ja-JP")} 円。差益 {gain.toLocaleString("ja-JP")} 円。
       </p>
       <label>
         受取人

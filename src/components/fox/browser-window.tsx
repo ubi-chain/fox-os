@@ -5,6 +5,8 @@ import { DictWindow, GrammarBoard } from "./dict-window";
 import { PkgWindow } from "./pkg-window";
 import { GuardSite } from "./sky-window";
 
+const SAFE_PIG_URL = "https://s.pigg.ameba.jp/";
+
 type Tab = {
   id: string;
   title: string;
@@ -32,7 +34,7 @@ const session: {
     { title: "GitHub", url: "https://github.com/ubi-chain/fox-os" },
     { title: "辞典", url: "fox://dict" },
     { title: "文法", url: "fox://grammar" },
-    { title: "アメーバピグ", url: "https://pigg.ameba.jp/" },
+    { title: "アメーバピグ", url: SAFE_PIG_URL },
     { title: "PayPal", url: "https://www.paypal.com/" },
   ],
   history: [],
@@ -81,7 +83,7 @@ function resolve(raw: string) {
   return `https://duckduckgo.com/?q=${encodeURIComponent(text)}`;
 }
 
-function fresh(url = "https://pigg.ameba.jp/", priv = false): Tab {
+function fresh(url = SAFE_PIG_URL, priv = false): Tab {
   return {
     id: `${Date.now()}-${Math.random()}`,
     title: titleOf(url),
@@ -334,7 +336,7 @@ export function BrowserWindow() {
           <div className="fox-chrome-menu" role="dialog">
             <p>{tab.url.startsWith("https://") ? "接続は保護されています（表示）" : "FOX の内部ページです"}</p>
             <p>Cookie とサイトデータはこの机の中だけです。</p>
-            <p>カメラ・マイクは使っていません。</p>
+            <p>カメラ・マイクは使っていませ��。</p>
           </div>
         ) : null}
         {panel === "ext" ? (
@@ -417,7 +419,7 @@ export function BrowserWindow() {
               <button type="button" onClick={() => go("fox://grammar")}>文法</button>
               <button type="button" onClick={() => go("fox://pkg")}>パッケージ</button>
               {guardOn ? <button type="button" onClick={() => go("fox://guard")}>まもり</button> : null}
-              <button type="button" onClick={() => go("https://pigg.ameba.jp/")}>アメーバピグ</button>
+              <button type="button" onClick={() => go(SAFE_PIG_URL)}>アメーバピグ</button>
               <button type="button" onClick={() => go("https://www.paypal.com/")}>PayPal</button>
             </div>
           </div>

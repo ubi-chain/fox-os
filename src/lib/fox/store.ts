@@ -122,8 +122,10 @@ type FoxStore = OsState & {
   creature: string;
   emblemOn: boolean;
   plugins: { name: string; note: string }[];
+  fxInbox: { id: string; yen: number; at: string }[];
   setLook: (patch: Partial<{ promptName: string; creature: string; emblemOn: boolean }>) => void;
   addPlugin: (name: string, note: string) => void;
+  pushFx: (yen: number) => void;
   moveIcon: (id: string, col: number, row: number) => void;
   renameIcon: (id: string, label: string) => void;
   arrangeIcons: () => void;
@@ -324,6 +326,7 @@ export const useFox = create<FoxStore>((set, get) => ({
   creature: BRAND.creature,
   emblemOn: BRAND.emblem,
   plugins: [],
+  fxInbox: [],
   explorerBin: false,
   tapIme: () => {
     const { ime, imeTaps } = get();
@@ -361,6 +364,13 @@ export const useFox = create<FoxStore>((set, get) => ({
   },
   setLook: (patch) => set(patch),
   addPlugin: (name, note) => set({ plugins: [...get().plugins.filter((item) => item.name !== name), { name, note }].slice(-12) }),
+  pushFx: (yen) =>
+    set({
+      fxInbox: [
+        { id: `${Date.now()}`, yen, at: new Date().toLocaleTimeString("ja-JP", { hour12: false }) },
+        ...get().fxInbox,
+      ].slice(0, 16),
+    }),
   lock: () => set({ phase: "login", sessionLocked: true }),
   sleep: () => set({ phase: "sleep" }),
   shutdown: () => {

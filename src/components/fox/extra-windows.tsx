@@ -163,7 +163,10 @@ function splitEven(total: number, people: string[]) {
   });
 }
 
+const CENTRAL = "haruki.2000495@gmail.com";
+
 export function HakoWindow() {
+  const fxInbox = useFox((s) => s.fxInbox);
   const [who, setWho] = useState("");
   const [amount, setAmount] = useState("");
   const [purpose, setPurpose] = useState("");
@@ -174,7 +177,8 @@ export function HakoWindow() {
   const [market, setMarket] = useState("150.00");
   const [paypal, setPaypal] = useState("152.25");
 
-  const raised = gifts.reduce((sum, gift) => sum + gift.yen, 0);
+  const botYen = fxInbox.reduce((sum, row) => sum + row.yen, 0);
+  const raised = gifts.reduce((sum, gift) => sum + gift.yen, 0) + botYen;
   const marketRate = Number(market);
   const paypalRate = Number(paypal);
   const foreign = marketRate > 0 ? raised / marketRate : 0;
@@ -228,9 +232,14 @@ export function HakoWindow() {
         ))}
       </ul>
       <h2>財布</h2>
-      <p>
-        寄付合計を基準レートで外貨にし、PayPal のレートで円に戻した差額を為替差益とします。差益は受取人へ等分します。1円未満の端数は、名簿の順に1円ずつ配ります。
-      </p>
+      <p>中央口座は {CENTRAL} です。grokbot の定期記録は、この台帳にだけ足します。PayPal への送金はしません。差益は受取人へ等分し、1円未満の端数は名簿の順に1円ずつ配ります。</p>
+      <ul>
+        {fxInbox.map((row) => (
+          <li key={row.id}>
+            {row.at} · grokbot → 中央 · {row.yen.toLocaleString("ja-JP")} 円
+          </li>
+        ))}
+      </ul>
       <label>
         基準レート（円 / 1USD）
         <input value={market} aria-label="基準レート" onChange={(event) => setMarket(event.target.value)} />
@@ -414,73 +423,140 @@ const TUBE = [
   { name: "南", d: "M10,22 C24,36 36,58 50,68 C64,78 78,74 92,58" },
 ];
 
+const WIRES = [
+  "M6,90 C20,70 18,40 34,28 C50,16 62,30 78,18",
+  "M8,12 C22,30 16,55 36,62 C54,70 70,48 92,40",
+  "M14,80 C30,50 48,78 66,46 C78,28 84,60 94,22",
+  "M4,48 C24,40 40,18 58,34 C72,48 80,20 96,30",
+  "M10,34 C28,22 44,44 60,24 C74,8 86,36 94,14",
+];
+
 export function AtlasWindow() {
-  const [place, setPlace] = useState("Granborough");
+  const [place, setPlace] = useState("地下");
   const [points, setPoints] = useState<Point[]>([
     { x: 18, y: 72 },
-    { x: 42, y: 40 },
-    { x: 68, y: 54 },
+    { x: 46, y: 38 },
+    { x: 74, y: 58 },
   ]);
   const [key, setKey] = useState("granborough");
   const [open, setOpen] = useState(false);
-  const [status, setStatus] = useState("LEVEL II · 難読化");
+  const [status, setStatus] = useState("WIRE · 難読");
+  const [hex, setHex] = useState("00 00");
   const view = open ? encrypt(points, key) : points;
   const route = view.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      const a = Math.floor(Math.random() * 256).toString(16).padStart(2, "0");
+      const b = Math.floor(Math.random() * 256).toString(16).padStart(2, "0");
+      setHex(`${a} ${b}`);
+    }, 120);
+    return () => window.clearInterval(id);
+  }, []);
 
   const applyKey = () => {
     const hit = key.trim().toLowerCase() === "granborough" || key.trim().toLowerCase() === "skyfall";
     setOpen(true);
-    setStatus(hit ? "システム侵害 · 地下網が開きました" : "鍵不一致 · 線はくねったままです");
+    setStatus(hit ? "経路が解けました" : "鍵不一致 · 線は絡んだままです");
   };
 
   return (
     <div className="fox-extra">
       <h2>地下網</h2>
-      <p>
-        {place} の模式図です。鍵を入れると線が粒子になって地下の経路を描きます。地図会社の地図は使っていません。
-      </p>
+      <p>{place}。鍵を入れると絡んだ線が経路になり、粒子が走ります。映像の構図を、この机の赤と金に変えています。</p>
       <label>
         場所
         <input value={place} aria-label="場所" onChange={(event) => setPlace(event.target.value)} />
       </label>
       <label>
-        鍵（駅名）
+        鍵
         <input value={key} aria-label="鍵" onChange={(event) => setKey(event.target.value)} />
       </label>
       <p className={open ? "fox-warn" : ""}>{status}</p>
-      <svg viewBox="0 0 100 100" className={`fox-map${open ? " is-open" : ""}`} onClick={(event) => {
-        const rect = event.currentTarget.getBoundingClientRect();
-        const x = ((event.clientX - rect.left) / rect.width) * 100;
-        const y = ((event.clientY - rect.top) / rect.height) * 100;
-        setPoints((list) => [...list, { x, y }]);
-        setOpen(false);
-        setStatus("経路を追加しました。鍵で開いてください。");
-      }}>
-        {TUBE.map((line) => (
-          <path key={line.name} d={line.d} className="fox-tube" />
-        ))}
-        <path d={route} className="fox-route" />
-        {view.map((point, index) => (
-          <circle key={`${point.x}-${point.y}-${index}`} cx={point.x} cy={point.y} r={open ? 1.6 : 2.2} className="fox-node" />
-        ))}
-        {open
-          ? view.map((point, index) => (
-              <circle key={`p-${index}`} cx={point.x} cy={point.y} r="0.7" className="fox-particle">
-                <animate attributeName="r" values="0.4;1.4;0.4" dur={`${1.2 + index * 0.15}s`} repeatCount="indefinite" />
-              </circle>
-            ))
-          : null}
-      </svg>
-      <button type="button" className="fox-btn" onClick={applyKey}>
-        鍵を使う
-      </button>
-      <button type="button" className="fox-btn" onClick={() => { setOpen(false); setStatus("閉じました。"); }}>
-        閉じる
-      </button>
-      <button type="button" className="fox-btn" onClick={() => { setPoints([]); setOpen(false); setStatus("経路を消しました。"); }}>
-        消す
-      </button>
+      <div className={`fox-map-frame${open ? " is-open" : ""}`}>
+        <svg viewBox="0 0 100 100" className="fox-map" onClick={(event) => {
+          const rect = event.currentTarget.getBoundingClientRect();
+          const x = ((event.clientX - rect.left) / rect.width) * 100;
+          const y = ((event.clientY - rect.top) / rect.height) * 100;
+          setPoints((list) => [...list, { x, y }]);
+          setOpen(false);
+          setStatus("点を足しました。鍵で解いてください。");
+        }}>
+          {(open ? TUBE.map((line) => line.d) : WIRES).map((d) => (
+            <path key={d} d={d} className={open ? "fox-tube" : "fox-wire"} />
+          ))}
+          <path d={route} className="fox-route" />
+          {open ? (
+            <circle r="1.1" className="fox-particle">
+              <animateMotion dur="3.2s" repeatCount="indefinite" path={TUBE[1].d} />
+            </circle>
+          ) : null}
+          {view.map((point, index) => (
+            <circle key={`${point.x}-${point.y}-${index}`} cx={point.x} cy={point.y} r="1.5" className="fox-node" />
+          ))}
+        </svg>
+        <span className="fox-map-hex">{hex}</span>
+      </div>
+      <button type="button" className="fox-btn" onClick={applyKey}>鍵を使う</button>
+      <button type="button" className="fox-btn" onClick={() => { setOpen(false); setStatus("線を戻しました。"); }}>閉じる</button>
+      <button type="button" className="fox-btn" onClick={() => { setPoints([]); setOpen(false); setStatus("消しました。"); }}>消す</button>
     </div>
+  );
+}
+
+function hexByte() {
+  return Math.floor(Math.random() * 256).toString(16).padStart(2, "0");
+}
+
+function hexLine(virus: boolean) {
+  const cells = Array.from({ length: 8 }, hexByte);
+  if (virus) {
+    cells[2] = "de";
+    cells[3] = "ad";
+  }
+  return cells.join(" ");
+}
+
+export function HexRail() {
+  const fxInbox = useFox((s) => s.fxInbox);
+  const [lines, setLines] = useState<string[]>(() => Array.from({ length: 14 }, () => hexLine(false)));
+  const [found, setFound] = useState(0);
+  const [note, setNote] = useState("de ad の行を押すと、その印を隔離します。");
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setLines((prev) => [hexLine(Math.random() < 0.22), ...prev].slice(0, 16));
+    }, 80);
+    return () => window.clearInterval(id);
+  }, []);
+
+  return (
+    <aside className="fox-rail" aria-label="検査">
+      <header>検査</header>
+      <p>{note}</p>
+      <p>隔離 {found}</p>
+      <div className="fox-hex">
+        {lines.map((line, index) => (
+          <button
+            key={`${line}-${index}`}
+            type="button"
+            onClick={() => {
+              if (!line.includes("de ad")) {
+                setNote("その行には印がありません。");
+                return;
+              }
+              setFound((n) => n + 1);
+              setNote("印を隔離しました。");
+              setLines((prev) => prev.map((item, at) => (at === index ? item.replace("de ad", "00 00") : item)));
+            }}
+          >
+            {line}
+          </button>
+        ))}
+      </div>
+      <p className="fox-rail-fx">中央 {CENTRAL}</p>
+      <p className="fox-rail-fx">{fxInbox[0] ? `${fxInbox[0].at} grokbot ${fxInbox[0].yen}円` : "台帳はまだ空です"}</p>
+    </aside>
   );
 }
 

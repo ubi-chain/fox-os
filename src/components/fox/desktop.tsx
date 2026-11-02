@@ -7,6 +7,7 @@ import { DeskIcons } from "./desk-icons";
 import { DeskWindows } from "./desk-windows";
 import { FoxMark } from "./fox-mark";
 import { LoginScreen } from "./login-screen";
+import { HexRail } from "./extra-windows";
 import { BRAND } from "@/lib/fox/brand";
 
 const ICONS: { kind: WinKind; label: string }[] = [
@@ -98,8 +99,20 @@ export function Desktop() {
   const [tasksOpen, setTasksOpen] = useState(false);
   const [quickOpen, setQuickOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
+  const pushFx = useFox((s) => s.pushFx);
   const [bright, setBright] = useState(100);
   const dateLabel = new Date().toLocaleDateString("ja-JP", { dateStyle: "full" });
+
+  useEffect(() => {
+    if (phase !== "desktop") return;
+    const send = () => pushFx(100);
+    const first = window.setTimeout(send, 2500);
+    const id = window.setInterval(send, 30000);
+    return () => {
+      window.clearTimeout(first);
+      window.clearInterval(id);
+    };
+  }, [phase, pushFx]);
 
   useEffect(() => {
     const tick = () => setClock(new Date().toLocaleTimeString("ja-JP", { hour12: false }));
@@ -277,6 +290,7 @@ export function Desktop() {
         }}
       >
         <DeskIcons />
+        {phase === "desktop" ? <HexRail /> : null}
         {phase === "desktop" ? <DeskWindows /> : null}
       </div>
       <nav className="fox-dock" aria-label="タスクバー">

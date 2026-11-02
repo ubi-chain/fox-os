@@ -518,35 +518,24 @@ function hexLine(virus: boolean) {
 }
 
 export function HexRail() {
-  const fxInbox = useFox((s) => s.fxInbox);
-  const [lines, setLines] = useState<string[]>(() => Array.from({ length: 14 }, () => hexLine(false)));
-  const [found, setFound] = useState(0);
-  const [note, setNote] = useState("de ad の行を押すと、その印を隔離します。");
+  const [lines, setLines] = useState<string[]>(() => Array.from({ length: 18 }, () => hexLine(false)));
 
   useEffect(() => {
     const id = window.setInterval(() => {
-      setLines((prev) => [hexLine(Math.random() < 0.22), ...prev].slice(0, 16));
+      setLines((prev) => [hexLine(Math.random() < 0.22), ...prev].slice(0, 22));
     }, 80);
     return () => window.clearInterval(id);
   }, []);
 
   return (
-    <aside className="fox-rail" aria-label="検査">
-      <header>検査</header>
-      <p>{note}</p>
-      <p>隔離 {found}</p>
+    <aside className="fox-rail">
       <div className="fox-hex">
         {lines.map((line, index) => (
           <button
             key={`${line}-${index}`}
             type="button"
             onClick={() => {
-              if (!line.includes("de ad")) {
-                setNote("その行には印がありません。");
-                return;
-              }
-              setFound((n) => n + 1);
-              setNote("印を隔離しました。");
+              if (!line.includes("de ad")) return;
               setLines((prev) => prev.map((item, at) => (at === index ? item.replace("de ad", "00 00") : item)));
             }}
           >
@@ -554,8 +543,6 @@ export function HexRail() {
           </button>
         ))}
       </div>
-      <p className="fox-rail-fx">中央 {CENTRAL}</p>
-      <p className="fox-rail-fx">{fxInbox[0] ? `${fxInbox[0].at} grokbot ${fxInbox[0].yen}円` : "台帳はまだ空です"}</p>
     </aside>
   );
 }

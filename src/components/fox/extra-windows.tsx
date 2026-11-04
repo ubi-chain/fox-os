@@ -241,11 +241,12 @@ export function HakoWindow() {
         ))}
       </ul>
       <h2>財布</h2>
-      <p>中央口座は {CENTRAL} です。grokbot の定期記録は、この台帳にだけ足します。PayPal への送金はしません。差益は受取人へ等分し、1円未満の端数は名簿の順に1円ずつ配ります。</p>
+      <p>為替の控えは人工衛星の単体です。地上の共有サーバーとは繋がっていません。担当は UBICHAIN 経済担当です。中央の名前は {CENTRAL}。送金はせず、差益だけを受取人へ等分します。</p>
+      <p>GMO のお名前.com デスクトップクラウド事件は、2026年8月に不正アクセスがあったと公表されています。攻撃元の番地は公開されていません。経済担当は、出ていない番地を辿りません。</p>
       <ul>
         {fxInbox.map((row) => (
           <li key={row.id}>
-            {row.at} · grokbot → 中央 · {row.yen.toLocaleString("ja-JP")} 円
+            {row.at} · 経済担当 · {row.yen.toLocaleString("ja-JP")} 円
           </li>
         ))}
       </ul>

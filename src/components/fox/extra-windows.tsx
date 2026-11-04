@@ -253,6 +253,9 @@ export function HakoWindow() {
       <p>
         基準 {market.toFixed(2)} 円。適用 {paypal.toFixed(2)} 円。外貨 {foreign.toFixed(2)} USD。戻した額 {returned.toLocaleString("ja-JP")} 円。差益 {gain.toLocaleString("ja-JP")} 円。
       </p>
+      <button type="button" className="fox-btn" onClick={() => useFox.getState().writeAugustFx()}>
+        2026年8月を fxlog.exe にする
+      </button>
       <label>
         受取人
         <input value={holder} aria-label="受取人" onChange={(event) => setHolder(event.target.value)} />

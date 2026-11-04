@@ -122,10 +122,11 @@ type FoxStore = OsState & {
   creature: string;
   emblemOn: boolean;
   plugins: { name: string; note: string }[];
-  fxInbox: { id: string; yen: number; at: string }[];
+  fxInbox: { id: string; yen: number; at: string; day: string }[];
   setLook: (patch: Partial<{ promptName: string; creature: string; emblemOn: boolean }>) => void;
   addPlugin: (name: string, note: string) => void;
   pushFx: (yen: number) => void;
+  writeAugustFx: () => string;
   moveIcon: (id: string, col: number, row: number) => void;
   renameIcon: (id: string, label: string) => void;
   arrangeIcons: () => void;
@@ -364,13 +365,32 @@ export const useFox = create<FoxStore>((set, get) => ({
   },
   setLook: (patch) => set(patch),
   addPlugin: (name, note) => set({ plugins: [...get().plugins.filter((item) => item.name !== name), { name, note }].slice(-12) }),
-  pushFx: (yen) =>
+  pushFx: (yen) => {
+    const now = new Date();
+    const day = now.toLocaleDateString("sv-SE", { timeZone: "Asia/Tokyo" });
     set({
       fxInbox: [
-        { id: `${Date.now()}`, yen, at: new Date().toLocaleTimeString("ja-JP", { hour12: false }) },
+        { id: `${Date.now()}`, yen, day, at: now.toLocaleTimeString("ja-JP", { hour12: false, timeZone: "Asia/Tokyo" }) },
         ...get().fxInbox,
       ].slice(0, 16),
-    }),
+    });
+  },
+  writeAugustFx: () => {
+    const rows = get().fxInbox.filter((row) => row.day.startsWith("2026-08"));
+    const path = "/home/fox/fxlog.exe";
+    const body = [
+      "fxlog",
+      "range: 2026-08",
+      "source: local satellite book",
+      `count: ${rows.length}`,
+      "",
+      ...(rows.length
+        ? rows.map((row) => `${row.day} ${row.at} ${row.yen}`)
+        : ["2026年8月の記録はありません。外部の為替サーバーからは集めていません。"]),
+    ].join("\n");
+    set({ files: { ...get().files, [path]: body } });
+    return path;
+  },
   lock: () => set({ phase: "login", sessionLocked: true }),
   sleep: () => set({ phase: "sleep" }),
   shutdown: () => {
@@ -414,6 +434,17 @@ export const useFox = create<FoxStore>((set, get) => ({
   submit: (raw) => {
     const input = (raw ?? get().draft).trim();
     if (!input) return;
+    if (input === "/fxlog" || input === "fxlog.exe") {
+      const path = get().writeAugustFx();
+      const echo: Line = { kind: "cmd", text: `${get().promptName}:${get().cwd}$ ${input}` };
+      set({
+        draft: "",
+        history: [...get().history, input],
+        histIndex: -1,
+        lines: append(get().lines, [echo, { kind: "sys", text: `${path} に 2026年8月の記録だけを書きました` }]),
+      });
+      return;
+    }
     const state = get();
     const echo: Line = { kind: "cmd", text: `${get().promptName}:${state.cwd}$ ${input}` };
     const desk = deskCommand(input, {

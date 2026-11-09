@@ -18,7 +18,7 @@ import { BRAND } from "./brand";
 
 type Confirm = { command: string; warning: string };
 
-export type WinKind = "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg" | "blocks" | "sky" | "guard" | "net" | "hako" | "furry" | "inari" | "shogi" | "atlas" | "lab" | "crypt" | "qan" | "ime";
+export type WinKind = "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg" | "sky" | "guard" | "net" | "furry" | "inari" | "atlas" | "crypt" | "qan" | "ime";
 
 export type DeskWindow = {
   id: string;
@@ -46,16 +46,12 @@ const WIN_TITLE: Record<WinKind, string> = {
   chat: "CHAT",
   dict: "辞典",
   pkg: "パッケージ",
-  blocks: "ブロック",
   sky: "FoxSky",
   guard: "まもり",
   net: "回線",
-  hako: "奉納",
   furry: "Furrysys",
   inari: "Inari",
-  shogi: "将棋",
   atlas: "地図",
-  lab: "砂場",
   crypt: "Foxcrypt",
   qan: "Qan",
   ime: "IME",
@@ -612,8 +608,8 @@ export const useFox = create<FoxStore>((set, get) => ({
       x: 92 + (count % 6) * 28,
       y: 16 + (count % 6) * 24,
       z,
-      w: kind === "browser" || kind === "blocks" || kind === "shogi" || kind === "atlas" || kind === "hako" || kind === "crypt" || kind === "qan" ? 760 : kind === "sky" || kind === "guard" ? 380 : kind === "dict" || kind === "pkg" || kind === "term" || kind === "dev" ? 640 : 460,
-      h: kind === "sky" || kind === "guard" ? 640 : kind === "browser" || kind === "dict" || kind === "pkg" || kind === "blocks" || kind === "shogi" || kind === "atlas" || kind === "crypt" || kind === "qan" ? 520 : 440,
+      w: kind === "browser" || kind === "atlas" || kind === "crypt" || kind === "qan" ? 760 : kind === "sky" || kind === "guard" ? 380 : kind === "dict" || kind === "pkg" || kind === "term" || kind === "dev" ? 640 : 460,
+      h: kind === "sky" || kind === "guard" ? 640 : kind === "browser" || kind === "dict" || kind === "pkg" || kind === "atlas" || kind === "crypt" || kind === "qan" ? 520 : 440,
       min: false,
       max: false,
       snap: "free",

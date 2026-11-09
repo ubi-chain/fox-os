@@ -1,6 +1,6 @@
 export type DeskIcon = {
   id: string;
-  kind: "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg" | "blocks" | "sky" | "guard" | "net" | "hako" | "furry" | "inari" | "shogi" | "atlas" | "lab" | "crypt" | "qan" | "ime" | "exe" | "bin";
+  kind: "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg" | "sky" | "guard" | "net" | "furry" | "inari" | "atlas" | "crypt" | "qan" | "ime" | "exe" | "bin";
   label: string;
   col: number;
   row: number;
@@ -16,17 +16,13 @@ export const ICON_SEED: DeskIcon[] = [
   { id: "cht", kind: "chat", label: "CHT", col: 1, row: 1 },
   { id: "dict", kind: "dict", label: "DICT", col: 1, row: 2 },
   { id: "pkg", kind: "pkg", label: "PKG", col: 1, row: 3 },
-  { id: "kids", kind: "blocks", label: "KIDS", col: 1, row: 4 },
   { id: "sky", kind: "sky", label: "SKY", col: 2, row: 0 },
   { id: "exe", kind: "exe", label: "EXE", col: 2, row: 1 },
   { id: "bin", kind: "bin", label: "BIN", col: 2, row: 2 },
   { id: "net", kind: "net", label: "NET", col: 3, row: 0 },
-  { id: "hako", kind: "hako", label: "HAKO", col: 3, row: 1 },
   { id: "furry", kind: "furry", label: "FURRY", col: 3, row: 2 },
   { id: "inari", kind: "inari", label: "IRC", col: 3, row: 3 },
-  { id: "shogi", kind: "shogi", label: "将棋", col: 3, row: 4 },
   { id: "atlas", kind: "atlas", label: "MAP", col: 4, row: 0 },
-  { id: "lab", kind: "lab", label: "LAB", col: 4, row: 1 },
   { id: "crypt", kind: "crypt", label: "CRYPT", col: 4, row: 2 },
   { id: "qan", kind: "qan", label: "QAN", col: 4, row: 3 },
   { id: "ime", kind: "ime", label: "IME", col: 4, row: 4 },

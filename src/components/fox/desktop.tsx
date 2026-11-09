@@ -20,15 +20,11 @@ const ICONS: { kind: WinKind; label: string }[] = [
   { kind: "chat", label: "CHT" },
   { kind: "dict", label: "DICT" },
   { kind: "pkg", label: "PKG" },
-  { kind: "blocks", label: "KIDS" },
   { kind: "sky", label: "SKY" },
   { kind: "net", label: "NET" },
-  { kind: "hako", label: "HAKO" },
   { kind: "furry", label: "FURRY" },
   { kind: "inari", label: "IRC" },
-  { kind: "shogi", label: "将棋" },
   { kind: "atlas", label: "MAP" },
-  { kind: "lab", label: "LAB" },
   { kind: "crypt", label: "CRYPT" },
   { kind: "qan", label: "QAN" },
   { kind: "ime", label: "IME" },
@@ -44,16 +40,12 @@ const NAMES: Record<WinKind, string> = {
   chat: "チャット",
   dict: "辞典",
   pkg: "パッケージ",
-  blocks: "ブロック",
   sky: "FoxSky",
   guard: "まもり",
   net: "回線",
-  hako: "奉納",
   furry: "Furrysys",
   inari: "Inari",
-  shogi: "将棋",
   atlas: "地図",
-  lab: "砂場",
   crypt: "Foxcrypt",
   qan: "Qan",
   ime: "IME",
@@ -106,7 +98,6 @@ export function Desktop() {
   const [quickOpen, setQuickOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const noteType = useFox((s) => s.noteType);
-  const pushFx = useFox((s) => s.pushFx);
   const [bright, setBright] = useState(100);
   const dateLabel = new Date().toLocaleDateString("ja-JP", { dateStyle: "full" });
 
@@ -124,17 +115,6 @@ export function Desktop() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [phase, noteType]);
-
-  useEffect(() => {
-    if (phase !== "desktop") return;
-    const send = () => pushFx(100);
-    const first = window.setTimeout(send, 2500);
-    const id = window.setInterval(send, 30000);
-    return () => {
-      window.clearTimeout(first);
-      window.clearInterval(id);
-    };
-  }, [phase, pushFx]);
 
   useEffect(() => {
     const tick = () => setClock(new Date().toLocaleTimeString("ja-JP", { hour12: false }));

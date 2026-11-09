@@ -1,6 +1,6 @@
 import { joinPath, type Line } from "./model";
 
-export type DeskKind = "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg" | "blocks" | "sky" | "guard" | "net" | "hako" | "furry" | "inari" | "shogi" | "atlas" | "lab" | "crypt" | "qan" | "ime";
+export type DeskKind = "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg" | "sky" | "guard" | "net" | "furry" | "inari" | "atlas" | "crypt" | "qan" | "ime";
 
 export type DeskWindowRef = { id: string; kind: DeskKind; title: string; z: number };
 
@@ -57,22 +57,16 @@ const KINDS: Record<string, DeskKind> = {
   "pkg.exe": "pkg",
   "apt.exe": "pkg",
   "packages.exe": "pkg",
-  "blocks.exe": "blocks",
-  "kids.exe": "blocks",
-  "scratch.exe": "blocks",
   "foxsky.exe": "sky",
   "sky.exe": "sky",
   "guard.exe": "guard",
   "net.exe": "net",
   "wifi.exe": "net",
-  "hako.exe": "hako",
   "furry.exe": "furry",
   "furrysys.exe": "furry",
   "inari.exe": "inari",
-  "shogi.exe": "shogi",
   "map.exe": "atlas",
   "atlas.exe": "atlas",
-  "lab.exe": "lab",
   "crypt.exe": "crypt",
   "foxcrypt.exe": "crypt",
   "eclipse.exe": "crypt",
@@ -90,16 +84,12 @@ const TITLES: Record<DeskKind, string> = {
   chat: "CHAT",
   dict: "辞典",
   pkg: "パッケージ",
-  blocks: "ブロック",
   sky: "FoxSky",
   guard: "まもり",
   net: "回線",
-  hako: "奉納",
   furry: "Furrysys",
   inari: "Inari",
-  shogi: "将棋",
   atlas: "地図",
-  lab: "砂場",
   crypt: "Foxcrypt",
   qan: "Qan",
   ime: "IME",

@@ -29,6 +29,9 @@ const ICONS: { kind: WinKind; label: string }[] = [
   { kind: "shogi", label: "将棋" },
   { kind: "atlas", label: "MAP" },
   { kind: "lab", label: "LAB" },
+  { kind: "crypt", label: "CRYPT" },
+  { kind: "qan", label: "QAN" },
+  { kind: "ime", label: "IME" },
 ];
 
 const NAMES: Record<WinKind, string> = {
@@ -51,6 +54,9 @@ const NAMES: Record<WinKind, string> = {
   shogi: "将棋",
   atlas: "地図",
   lab: "砂場",
+  crypt: "Foxcrypt",
+  qan: "Qan",
+  ime: "IME",
 };
 
 export function Desktop() {
@@ -99,9 +105,25 @@ export function Desktop() {
   const [tasksOpen, setTasksOpen] = useState(false);
   const [quickOpen, setQuickOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
+  const noteType = useFox((s) => s.noteType);
   const pushFx = useFox((s) => s.pushFx);
   const [bright, setBright] = useState(100);
   const dateLabel = new Date().toLocaleDateString("ja-JP", { dateStyle: "full" });
+
+  useEffect(() => {
+    if (phase !== "desktop") return;
+    const onKey = (event: KeyboardEvent) => {
+      const el = event.target;
+      if (el instanceof HTMLInputElement && el.type === "password") return;
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      if (event.key !== "Backspace" && event.key.length !== 1) return;
+      const field = el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement ? el.value : null;
+      const live = field === null ? null : event.key === "Backspace" ? field.slice(0, -1) : field + event.key;
+      noteType(event.key, live);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [phase, noteType]);
 
   useEffect(() => {
     if (phase !== "desktop") return;

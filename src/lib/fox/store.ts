@@ -13,11 +13,12 @@ import { runCommand } from "./shell";
 import { deskCommand, type DeskFx } from "./os-commands";
 import { ICON_SEED, settleIcon, type DeskIcon } from "./icons";
 import type { SnapMode } from "./snap";
+import { predict } from "./predict";
 import { BRAND } from "./brand";
 
 type Confirm = { command: string; warning: string };
 
-export type WinKind = "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg" | "blocks" | "sky" | "guard" | "net" | "hako" | "furry" | "inari" | "shogi" | "atlas" | "lab";
+export type WinKind = "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg" | "blocks" | "sky" | "guard" | "net" | "hako" | "furry" | "inari" | "shogi" | "atlas" | "lab" | "crypt" | "qan" | "ime";
 
 export type DeskWindow = {
   id: string;
@@ -55,6 +56,9 @@ const WIN_TITLE: Record<WinKind, string> = {
   shogi: "将棋",
   atlas: "地図",
   lab: "砂場",
+  crypt: "Foxcrypt",
+  qan: "Qan",
+  ime: "IME",
 };
 
 type FoxStore = OsState & {
@@ -145,6 +149,10 @@ type FoxStore = OsState & {
   ime: "direct" | "hira" | "kata" | "kanji";
   imeTaps: number;
   tapIme: () => void;
+  typeMark: { wpm: number; typed: string; next: string; lang: string; program: string; grammar: string; color: string; on: boolean };
+  typeTimes: number[];
+  noteType: (key: string, field: string | null) => void;
+  setTypeOn: (on: boolean) => void;
   historyNav: (dir: -1 | 1) => void;
   password: string;
   sessionLocked: boolean;
@@ -308,6 +316,8 @@ export const useFox = create<FoxStore>((set, get) => ({
   nextZ: 1,
   ime: "direct",
   imeTaps: 0,
+  typeMark: { wpm: 0, typed: "", next: "", lang: "", program: "", grammar: "", color: "#ffd24a", on: true },
+  typeTimes: [] as number[],
   password: "admin",
   sessionLocked: false,
   enterBreak: false,
@@ -347,6 +357,19 @@ export const useFox = create<FoxStore>((set, get) => ({
     if (taps >= 3) set({ ime: "hira", imeTaps: 0 });
     else set({ imeTaps: taps });
   },
+  noteType: (key, field) => {
+    const mark = get().typeMark;
+    if (!mark.on) return;
+    if (key !== "Backspace" && key.length !== 1) return;
+    const now = Date.now();
+    const typeTimes = [...get().typeTimes, now].filter((time) => now - time < 8000);
+    const typed = (field !== null ? field : key === "Backspace" ? mark.typed.slice(0, -1) : mark.typed + key).slice(-80);
+    const front = get().windows.filter((win) => !win.min).sort((a, b) => b.z - a.z)[0];
+    const hint = predict(typed, front?.kind ?? "term");
+    const wpm = Math.round((typeTimes.length * 60) / 8 / 5);
+    set({ typeTimes, typeMark: { ...hint, typed, wpm, on: true } });
+  },
+  setTypeOn: (on) => set({ typeMark: { ...get().typeMark, on } }),
 
   finishBoot: () => set({ phase: "login" }),
   replayBoot: () => set({ phase: "boot", previewOpen: false, windows: [] }),
@@ -589,8 +612,8 @@ export const useFox = create<FoxStore>((set, get) => ({
       x: 92 + (count % 6) * 28,
       y: 16 + (count % 6) * 24,
       z,
-      w: kind === "browser" || kind === "blocks" || kind === "shogi" || kind === "atlas" || kind === "hako" ? 760 : kind === "sky" || kind === "guard" ? 380 : kind === "dict" || kind === "pkg" || kind === "term" || kind === "dev" ? 640 : 460,
-      h: kind === "sky" || kind === "guard" ? 640 : kind === "browser" || kind === "dict" || kind === "pkg" || kind === "blocks" || kind === "shogi" || kind === "atlas" ? 520 : 440,
+      w: kind === "browser" || kind === "blocks" || kind === "shogi" || kind === "atlas" || kind === "hako" || kind === "crypt" || kind === "qan" ? 760 : kind === "sky" || kind === "guard" ? 380 : kind === "dict" || kind === "pkg" || kind === "term" || kind === "dev" ? 640 : 460,
+      h: kind === "sky" || kind === "guard" ? 640 : kind === "browser" || kind === "dict" || kind === "pkg" || kind === "blocks" || kind === "shogi" || kind === "atlas" || kind === "crypt" || kind === "qan" ? 520 : 440,
       min: false,
       max: false,
       snap: "free",

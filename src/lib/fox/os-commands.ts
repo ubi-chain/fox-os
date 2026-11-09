@@ -1,6 +1,6 @@
 import { joinPath, type Line } from "./model";
 
-export type DeskKind = "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg" | "blocks" | "sky" | "guard" | "net" | "hako" | "furry" | "inari" | "shogi" | "atlas" | "lab";
+export type DeskKind = "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg" | "blocks" | "sky" | "guard" | "net" | "hako" | "furry" | "inari" | "shogi" | "atlas" | "lab" | "crypt" | "qan" | "ime";
 
 export type DeskWindowRef = { id: string; kind: DeskKind; title: string; z: number };
 
@@ -73,6 +73,11 @@ const KINDS: Record<string, DeskKind> = {
   "map.exe": "atlas",
   "atlas.exe": "atlas",
   "lab.exe": "lab",
+  "crypt.exe": "crypt",
+  "foxcrypt.exe": "crypt",
+  "eclipse.exe": "crypt",
+  "qan.exe": "qan",
+  "ime.exe": "ime",
 };
 
 const TITLES: Record<DeskKind, string> = {
@@ -95,6 +100,9 @@ const TITLES: Record<DeskKind, string> = {
   shogi: "将棋",
   atlas: "地図",
   lab: "砂場",
+  crypt: "Foxcrypt",
+  qan: "Qan",
+  ime: "IME",
 };
 
 function out(text: string): Line {

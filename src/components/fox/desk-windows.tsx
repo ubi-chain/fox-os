@@ -14,6 +14,7 @@ import { SlackPanel } from "./slack-panel";
 import { SysPanel } from "./sys-panel";
 import { TerminalPanel } from "./terminal-panel";
 import { AtlasWindow, FurryWindow, HakoWindow, InariWindow, LabWindow, NetWindow, ShogiWindow } from "./extra-windows";
+import { CryptWindow, ImeWindow, QanWindow, TypeGhost } from "./predict-windows";
 
 const EDGES = ["n", "s", "e", "w", "nw", "ne", "sw", "se"] as const;
 
@@ -36,6 +37,9 @@ function body(kind: DeskWindow["kind"]) {
   if (kind === "shogi") return <ShogiWindow />;
   if (kind === "atlas") return <AtlasWindow />;
   if (kind === "lab") return <LabWindow />;
+  if (kind === "crypt") return <CryptWindow />;
+  if (kind === "qan") return <QanWindow />;
+  if (kind === "ime") return <ImeWindow />;
   return <SlackPanel embedded />;
 }
 
@@ -204,6 +208,7 @@ export function DeskWindows() {
           </section>
         ),
       )}
+      <TypeGhost />
     </>
   );
 }

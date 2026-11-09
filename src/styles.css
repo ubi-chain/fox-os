@@ -1952,6 +1952,73 @@
     color: #f6f3f0;
   }
 
+  .fox-ide {
+    display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr);
+    height: 100%;
+    min-height: 0;
+    background: #100608;
+    color: #f6f3f0;
+  }
+
+  .fox-ide aside {
+    padding: 0.5rem;
+    border-right: 1px solid #7a2a32;
+    font-size: 0.72rem;
+  }
+
+  .fox-ide-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .fox-ide textarea {
+    flex: 1;
+    min-height: 8rem;
+    border: 0;
+    resize: none;
+    background: transparent;
+    color: #f6f3f0;
+    padding: 0.6rem;
+    font: inherit;
+  }
+
+  .fox-ide-line,
+  .fox-ghost-meta {
+    margin: 0;
+    padding: 0 0.6rem 0.45rem;
+    font-size: 0.75rem;
+  }
+
+  .fox-ghost,
+  .fox-type-ghost {
+    opacity: 0.38;
+  }
+
+  .fox-type-ghost {
+    position: absolute;
+    z-index: 6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 12rem;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    text-align: center;
+  }
+
+  .fox-type-ghost strong {
+    font-size: 1.4rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+  }
+
+  .fox-type-ghost span {
+    font-size: 0.68rem;
+  }
+
   .fox-extra h2 {
     margin: 0.3rem 0 0;
     font-size: 0.85rem;

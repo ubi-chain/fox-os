@@ -12,7 +12,7 @@ import { QdevPanel } from "./qdev-panel";
 import { SlackPanel } from "./slack-panel";
 import { SysPanel } from "./sys-panel";
 import { TerminalPanel } from "./terminal-panel";
-import { AtlasWindow, FurryWindow, InariWindow, NetWindow } from "./extra-windows";
+import { AtlasWindow, FurryWindow, InariWindow, NetWindow, SatWindow } from "./extra-windows";
 import { CryptWindow, ImeWindow, QanWindow, TypeGhost } from "./predict-windows";
 
 const EDGES = ["n", "s", "e", "w", "nw", "ne", "sw", "se"] as const;
@@ -32,6 +32,7 @@ function body(kind: DeskWindow["kind"]) {
   if (kind === "furry") return <FurryWindow />;
   if (kind === "inari") return <InariWindow />;
   if (kind === "atlas") return <AtlasWindow />;
+  if (kind === "sat") return <SatWindow />;
   if (kind === "crypt") return <CryptWindow />;
   if (kind === "qan") return <QanWindow />;
   if (kind === "ime") return <ImeWindow />;

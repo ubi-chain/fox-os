@@ -34,6 +34,40 @@ function hiveCells(): Cell[] {
 
 const CELLS = hiveCells();
 
+/** Seven-branch menorah (decorative), red / white / gold */
+function MenorahMark() {
+  return (
+    <svg className="fox-menorah" viewBox="0 0 120 90" aria-hidden="true">
+      <defs>
+        <linearGradient id="menorah-gold" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#ffe08a" />
+          <stop offset="55%" stopColor="#d4a017" />
+          <stop offset="100%" stopColor="#a8740a" />
+        </linearGradient>
+      </defs>
+      <rect x="48" y="78" width="24" height="6" rx="1" fill="url(#menorah-gold)" />
+      <rect x="54" y="58" width="12" height="22" fill="url(#menorah-gold)" />
+      {[18, 34, 50, 66, 82, 98, 60].map((x, i) => (
+        <g key={i}>
+          <path
+            d={i === 6 ? `M60 58 V28` : `M60 58 Q${x} 52 ${x} 28`}
+            fill="none"
+            stroke="url(#menorah-gold)"
+            strokeWidth="3.2"
+            strokeLinecap="round"
+          />
+          <circle cx={i === 6 ? 60 : x} cy="22" r="4.2" fill="#e31c2b" stroke="#f6f3f0" strokeWidth="1.4" />
+          <path
+            d={`M${i === 6 ? 60 : x} 18 q2 -8 0 -12 q-2 4 0 12`}
+            fill="#f6f3f0"
+            opacity="0.9"
+          />
+        </g>
+      ))}
+    </svg>
+  );
+}
+
 export function BootOverlay() {
   const finishBoot = useFox((s) => s.finishBoot);
   const [leaving, setLeaving] = useState(false);
@@ -46,13 +80,6 @@ export function BootOverlay() {
     sound.current = voice;
     ticket.current = holdBootSound(voice);
     setAudible(true);
-  };
-
-  const start = () => {
-    if (done.current || audible) return;
-    const voice = playBootSound();
-    adopt(voice);
-    void voice.resume();
   };
 
   useEffect(() => {
@@ -102,7 +129,10 @@ export function BootOverlay() {
         ))}
       </svg>
       <div className="fox-boot-center">
-        <FoxMark />
+        <div className="fox-boot-stack">
+          <MenorahMark />
+          <FoxMark />
+        </div>
         <h1>FOX OS</h1>
         <button
           type="button"

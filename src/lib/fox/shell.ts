@@ -1,314 +1,372 @@
-import { joinPath, type Line } from "./model";
+import { useEffect, useMemo, useState } from "react";
+import { BRAND } from "@/lib/fox/brand";
+import { useFox } from "@/lib/fox/store";
 
-export type DeskKind = "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg" | "sky" | "guard" | "net" | "furry" | "inari" | "atlas" | "crypt" | "qan" | "ime";
+const CREATURES = [
+  { id: "fox", label: "狐" },
+  { id: "hare", label: "兎" },
+  { id: "crow", label: "烏" },
+  { id: "koi", label: "鯉" },
+  { id: "beetle", label: "虫" },
+  { id: "fern", label: "羊歯" },
+  { id: "none", label: "なし" },
+];
 
-export type DeskWindowRef = { id: string; kind: DeskKind; title: string; z: number };
-
-export type DeskContext = {
-  cwd: string;
-  files: Record<string, string>;
-  windows: DeskWindowRef[];
-  aliases: Record<string, { kind: DeskKind; title: string }>;
-  sockets: { name: string; from: string; to: string }[];
-  deploys: { name: string; file: string; host: string; port: string }[];
-  asm: Record<string, string>;
-  asmApp: string;
-};
-
-export type DeskFx =
-  | { op: "lock" }
-  | { op: "sleep" }
-  | { op: "shutdown" }
-  | { op: "open"; kind: DeskKind; title: string }
-  | { op: "close"; id: string }
-  | { op: "rename"; id: string; title: string }
-  | { op: "catch"; ip: string }
-  | { op: "stop-catch" }
-  | { op: "socket"; name: string; from: string; to: string }
-  | { op: "send"; name: string; ip: string; port: string }
-  | { op: "asm"; app: string; text: string }
-  | { op: "asm-edit"; app: string; text: string }
-  | { op: "enter"; on: boolean }
-  | { op: "deploy"; name: string; file: string; host: string; port: string }
-  | { op: "undeploy"; name: string }
-  | { op: "sms"; phone: string };
-
-export type DeskResult = { lines: Line[]; files?: Record<string, string>; fx?: DeskFx };
-
-const KINDS: Record<string, DeskKind> = {
-  "hello.exe": "term",
-  "term.exe": "term",
-  "terminal.exe": "term",
-  "trm.exe": "term",
-  "qdev.exe": "dev",
-  "dev.exe": "dev",
-  "sys.exe": "sys",
-  "ai.exe": "ai",
-  "web.exe": "browser",
-  "browser.exe": "browser",
-  "exp.exe": "explorer",
-  "explorer.exe": "explorer",
-  "chat.exe": "chat",
-  "cht.exe": "chat",
-  "slack.exe": "chat",
-  "dict.exe": "dict",
-  "dictionary.exe": "dict",
-  "jisho.exe": "dict",
-  "pkg.exe": "pkg",
-  "apt.exe": "pkg",
-  "packages.exe": "pkg",
-  "foxsky.exe": "sky",
-  "sky.exe": "sky",
-  "guard.exe": "guard",
-  "net.exe": "net",
-  "wifi.exe": "net",
-  "furry.exe": "furry",
-  "furrysys.exe": "furry",
-  "inari.exe": "inari",
-  "map.exe": "atlas",
-  "atlas.exe": "atlas",
-  "crypt.exe": "crypt",
-  "foxcrypt.exe": "crypt",
-  "eclipse.exe": "crypt",
-  "qan.exe": "qan",
-  "ime.exe": "ime",
-};
-
-const TITLES: Record<DeskKind, string> = {
-  term: "ターミナル",
-  dev: "Q-DEV",
-  ai: "AI",
-  sys: "SYS",
-  browser: "ブラウザ",
-  explorer: "エクスプローラ",
-  chat: "CHAT",
-  dict: "辞典",
-  pkg: "パッケージ",
-  sky: "FoxSky",
-  guard: "まもり",
-  net: "回線",
-  furry: "Furrysys",
-  inari: "Inari",
-  atlas: "衛星図",
-  crypt: "Foxcrypt",
-  qan: "Qan",
-  ime: "IME",
-};
-
-function out(text: string): Line {
-  return { kind: "out", text };
-}
-function err(text: string): Line {
-  return { kind: "err", text };
-}
-function sys(text: string): Line {
-  return { kind: "sys", text };
+export function emblemSrc(creature: string) {
+  if (creature === "fox") return "/emblem.png";
+  if (creature === "none") return "";
+  const glyph = CREATURES.find((item) => item.id === creature)?.label ?? "F";
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#14080c"/><text x="16" y="22" text-anchor="middle" font-size="16" fill="#f6f1ea" font-family="sans-serif">${glyph}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
-function exeKey(raw: string): string {
-  const name = raw.trim().replace(/^\/+/, "");
-  return name.toLowerCase().endsWith(".exe") ? name : `${name}.exe`;
+export function MorphText({ text }: { text: string }) {
+  const [out, setOut] = useState("");
+  useEffect(() => {
+    let step = 0;
+    const id = window.setInterval(() => {
+      step += 1;
+      const locked = Math.floor(step / 3);
+      const head = text.slice(0, locked);
+      const flicker = locked < text.length ? "ｱｲｳ#*01"[step % 7] : "";
+      setOut(head + flicker);
+      if (locked >= text.length) window.clearInterval(id);
+    }, 42);
+    return () => window.clearInterval(id);
+  }, [text]);
+  return <span>{out}</span>;
 }
 
-function stem(raw: string): string {
-  return raw.trim().replace(/\.exe$/i, "");
+export function LookPanel() {
+  const creature = useFox((s) => s.creature);
+  const emblemOn = useFox((s) => s.emblemOn);
+  const promptName = useFox((s) => s.promptName);
+  const plugins = useFox((s) => s.plugins);
+  const setLook = useFox((s) => s.setLook);
+  const addPlugin = useFox((s) => s.addPlugin);
+  const [name, setName] = useState(promptName);
+  const [idea, setIdea] = useState("");
+  const kinds = ["txt", "md", "py", "js", "ts", "json", "png", "svg", "mp3", "iso", "pdf", "zip"];
+
+  return (
+    <div className="fox-extra">
+      <h2>見た目</h2>
+      <MorphText text="名前もエンブレムも、机の中だけで変わります。人の情報は外へ送りません。" />
+      <label>
+        プロンプト名
+        <input value={name} aria-label="プロンプト名" onChange={(event) => setName(event.target.value)} />
+      </label>
+      <button type="button" className="fox-btn" onClick={() => setLook({ promptName: name.trim() || BRAND.prompt })}>
+        ターミナル名を変える
+      </button>
+      <div className="fox-kinds">
+        {CREATURES.map((item) => (
+          <button key={item.id} type="button" className={creature === item.id ? "is-on" : ""} onClick={() => setLook({ creature: item.id, emblemOn: item.id !== "none" })}>
+            {item.label}
+          </button>
+        ))}
+        <button type="button" className={!emblemOn ? "is-on" : ""} onClick={() => setLook({ emblemOn: !emblemOn })}>
+          {emblemOn ? "エンブレムを消す" : "エンブレムを戻す"}
+        </button>
+      </div>
+      <h2>ルール</h2>
+      <p>傷つけない。意見の勝ち負けは追わない。合否より、一緒にいることを先にする。これがこの机のアサーティブなジンテーゼです。</p>
+      <h2>プラグイン</h2>
+      <p>少ない意見も、ここに残します。自動では公開しません。</p>
+      <input value={idea} aria-label="アイデア" placeholder="入れたいソフト" onChange={(event) => setIdea(event.target.value)} />
+      <button
+        type="button"
+        className="fox-btn"
+        onClick={() => {
+          if (!idea.trim()) return;
+          addPlugin(idea.trim(), "Grok Bot の更新候補（この机だけ）");
+          setIdea("");
+        }}
+      >
+        更新候補にする
+      </button>
+      <ul>
+        {plugins.map((item) => (
+          <li key={item.name}>
+            {item.name} · {item.note}
+          </li>
+        ))}
+      </ul>
+      <h2>拡張子</h2>
+      <p>{kinds.join("  ")} はエクスプローラのテキストとして開けます。実在の専用ソフトの全部は、このブラウザには入っていません。</p>
+    </div>
+  );
 }
 
-function resolveKind(raw: string, ctx: DeskContext): { kind: DeskKind; title: string } | null {
-  const key = exeKey(raw).toLowerCase();
-  const alias = ctx.aliases[key] ?? ctx.aliases[exeKey(raw)];
-  if (alias) return alias;
-  const kind = KINDS[key];
-  if (!kind) return null;
-  return { kind, title: TITLES[kind] };
+const HOTSPOTS = [
+  { name: "FREE-CAFE", km: 0.04, open: true, wire: false },
+  { name: "HOTEL-LOBBY", km: 0.11, open: true, wire: true },
+  { name: "STATION-FREE", km: 0.28, open: true, wire: false },
+];
+
+export function NetWindow() {
+  const nearest = useMemo(() => HOTSPOTS.filter((item) => item.open).sort((a, b) => a.km - b.km)[0], []);
+  const [link, setLink] = useState(nearest.name);
+  const [note, setNote] = useState("一番近い開放ポイントへ机の中で接続しました。実在の電波は掴んでいません。");
+  const [frame, setFrame] = useState(0);
+  useEffect(() => {
+    const id = window.setInterval(() => setFrame((n) => (n + 8) % 280), 80);
+    return () => window.clearInterval(id);
+  }, []);
+  return (
+    <div className="fox-extra">
+      <h2>回線</h2>
+      <p>{note}</p>
+      <ul>
+        {HOTSPOTS.map((item) => (
+          <li key={item.name}>
+            <button type="button" className={link === item.name ? "is-on" : ""} onClick={() => setLink(item.name)}>
+              {item.name} · {item.km} km {item.wire ? "有線" : "wifi"}
+            </button>
+          </li>
+        ))}
+      </ul>
+      <button
+        type="button"
+        className="fox-btn"
+        onClick={() => setNote("ホテルの有線を机の中でセットアップしました。壁の差込口は操作していません。")}
+      >
+        ホテルの有線
+      </button>
+      <h2>USB / Bluetooth</h2>
+      <p>机の中の端子です。実機の USB や Bluetooth は切り替えていません。</p>
+      <p>見えている端子: desk-key · speaker · gamepad</p>
+      <h2>遠隔プレイ（模擬）</h2>
+      <p>グラボがない机でも、この枠の中だけ絵を動かします。Steam にはつながっていません。</p>
+      <div className="fox-stream" aria-hidden>
+        <i style={{ transform: `translateX(${frame}px)` }} />
+      </div>
+    </div>
+  );
 }
 
-function front(ctx: DeskContext): DeskWindowRef | null {
-  return ctx.windows.reduce<DeskWindowRef | null>((best, win) => (!best || win.z > best.z ? win : best), null);
+export function FurryWindow() {
+  const [seed, setSeed] = useState("雨の駅");
+  const [out, setOut] = useState("ここに生成結果が出ます。外部のクレジットは使いません。");
+  const make = (kind: string) => {
+    if (kind === "文") setOut(`${seed}。机の上の狐狸が、無限に見える回数だけこの文を書き直せる。回数の上限は、このウィンドウを閉じるまでです。`);
+    if (kind === "音") {
+      setOut("読み上げます。");
+      window.speechSynthesis?.speak(new SpeechSynthesisUtterance(seed));
+    }
+    if (kind === "絵") setOut(`絵の種: ${seed}。学習データは��っていません。`);
+  };
+  return (
+    <div className="fox-extra">
+      <h2>Furrysys</h2>
+      <p>名前は Furrysys。無制限に見えるのは机の中だけです。共産主義的、というのはここでは「席がある人は同じ生成机を使える」という意味です。</p>
+      <input value={seed} aria-label="種" onChange={(event) => setSeed(event.target.value)} />
+      <div className="fox-kinds">
+        <button type="button" onClick={() => make("文")}>文</button>
+        <button type="button" onClick={() => make("音")}>音</button>
+        <button type="button" onClick={() => make("絵")}>絵</button>
+      </div>
+      <pre>{out}</pre>
+    </div>
+  );
 }
 
-function matchWindow(raw: string, ctx: DeskContext): DeskWindowRef | null {
-  const key = exeKey(raw).toLowerCase();
-  const plain = stem(raw);
-  const hits = ctx.windows.filter((win) => {
-    const titleKey = exeKey(win.title).toLowerCase();
-    return (
-      win.title === raw ||
-      win.title === plain ||
-      titleKey === key ||
-      exeKey(TITLES[win.kind]).toLowerCase() === key ||
-      `${win.kind}.exe` === key
-    );
-  });
-  return hits.sort((a, b) => b.z - a.z)[0] ?? null;
+export function InariWindow() {
+  const makeEntry = useFox((s) => s.makeEntry);
+  const [name, setName] = useState("");
+  const [joined, setJoined] = useState("");
+  const [text, setText] = useState("");
+  const [log, setLog] = useState<{ who: string; text: string }[]>([]);
+  const leave = () => {
+    const body = log.map((item) => `${item.who}: ${item.text}`).join("\n");
+    makeEntry("/home/fox/inari-log.txt", body || `${joined} は無言で出ました`);
+    setJoined("");
+    setLog([]);
+  };
+  return (
+    <div className="fox-extra">
+      <h2>Inari</h2>
+      <p>表示上の番地は 127.0.0.1:80 です。このブラウザはポート80を占有しません。部屋はメモリの中です。ISO は GitHub に上げません。ログは机のファイルに残します。</p>
+      {joined ? (
+        <>
+          <p>{joined} が入室しています</p>
+          <ul>
+            {log.map((item, index) => (
+              <li key={`${item.who}-${index}`}>
+                {item.who}: {item.text}
+              </li>
+            ))}
+          </ul>
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (!text.trim()) return;
+              setLog((list) => [...list, { who: joined, text: text.trim() }]);
+              setText("");
+            }}
+          >
+            <input value={text} aria-label="発言" onChange={(event) => setText(event.target.value)} />
+            <button type="submit" className="fox-btn">送る</button>
+          </form>
+          <button type="button" className="fox-btn" onClick={leave}>
+            退室してログを保存
+          </button>
+        </>
+      ) : (
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (!name.trim()) return;
+            setJoined(name.trim());
+          }}
+        >
+          <input value={name} aria-label="名前" placeholder="名前だけ" onChange={(event) => setName(event.target.value)} />
+          <button type="submit" className="fox-btn">入室</button>
+        </form>
+      )}
+    </div>
+  );
 }
 
-function asmFor(app: string): string {
-  return [
-    `; FOX OS 模擬アセンブラ  ${app}`,
-    "; ブラウザ内の見本です。実バイナリではありません。",
-    "push ebp",
-    "mov ebp, esp",
-    "mov eax, 1",
-    `call fox_${app.replace(/\W/g, "_")}`,
-    "pop ebp",
-    "ret",
-  ].join("\n");
+type Point = { x: number; y: number };
+
+const TUBE = [
+  { name: "北", d: "M8,78 C22,62 28,48 42,38 C56,28 68,22 88,18" },
+  { name: "中央", d: "M12,52 C28,58 38,46 52,44 C66,42 74,56 90,62" },
+  { name: "南", d: "M10,22 C24,36 36,58 50,68 C64,78 78,74 92,58" },
+];
+
+const WIRES = [
+  "M6,90 C20,70 18,40 34,28 C50,16 62,30 78,18",
+  "M8,12 C22,30 16,55 36,62 C54,70 70,48 92,40",
+  "M14,80 C30,50 48,78 66,46 C78,28 84,60 94,22",
+  "M4,48 C24,40 40,18 58,34 C72,48 80,20 96,30",
+  "M10,34 C28,22 44,44 60,24 C74,8 86,36 94,14",
+];
+
+export function AtlasWindow() {
+  const [place, setPlace] = useState("地下");
+  const [points, setPoints] = useState<Point[]>([
+    { x: 18, y: 72 },
+    { x: 46, y: 38 },
+    { x: 74, y: 58 },
+  ]);
+  const [key, setKey] = useState("granborough");
+  const [open, setOpen] = useState(false);
+  const [status, setStatus] = useState("WIRE · 難読");
+  const [hex, setHex] = useState("00 00");
+  const view = open ? encrypt(points, key) : points;
+  const route = view.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      const a = Math.floor(Math.random() * 256).toString(16).padStart(2, "0");
+      const b = Math.floor(Math.random() * 256).toString(16).padStart(2, "0");
+      setHex(`${a} ${b}`);
+    }, 120);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const applyKey = () => {
+    const hit = key.trim().toLowerCase() === "granborough" || key.trim().toLowerCase() === "skyfall";
+    setOpen(true);
+    setStatus(hit ? "経路が解けました" : "鍵不一致 · 線は絡んだままです");
+  };
+
+  return (
+    <div className="fox-extra">
+      <h2>地下網</h2>
+      <p>{place}。鍵を入れると絡んだ線が経路になり、粒子が走ります。映像の構図を、この机の赤と金に変えています。</p>
+      <label>
+        場所
+        <input value={place} aria-label="場所" onChange={(event) => setPlace(event.target.value)} />
+      </label>
+      <label>
+        鍵
+        <input value={key} aria-label="鍵" onChange={(event) => setKey(event.target.value)} />
+      </label>
+      <p className={open ? "fox-warn" : ""}>{status}</p>
+      <div className={`fox-map-frame${open ? " is-open" : ""}`}>
+        <svg viewBox="0 0 100 100" className="fox-map" onClick={(event) => {
+          const rect = event.currentTarget.getBoundingClientRect();
+          const x = ((event.clientX - rect.left) / rect.width) * 100;
+          const y = ((event.clientY - rect.top) / rect.height) * 100;
+          setPoints((list) => [...list, { x, y }]);
+          setOpen(false);
+          setStatus("点を足しました。鍵で解いてください。");
+        }}>
+          {(open ? TUBE.map((line) => line.d) : WIRES).map((d) => (
+            <path key={d} d={d} className={open ? "fox-tube" : "fox-wire"} />
+          ))}
+          <path d={route} className="fox-route" />
+          {open ? (
+            <circle r="1.1" className="fox-particle">
+              <animateMotion dur="3.2s" repeatCount="indefinite" path={TUBE[1].d} />
+            </circle>
+          ) : null}
+          {view.map((point, index) => (
+            <circle key={`${point.x}-${point.y}-${index}`} cx={point.x} cy={point.y} r="1.5" className="fox-node" />
+          ))}
+        </svg>
+        <span className="fox-map-hex">{hex}</span>
+      </div>
+      <button type="button" className="fox-btn" onClick={applyKey}>鍵を使う</button>
+      <button type="button" className="fox-btn" onClick={() => { setOpen(false); setStatus("線を戻しました。"); }}>閉じる</button>
+      <button type="button" className="fox-btn" onClick={() => { setPoints([]); setOpen(false); setStatus("消しました。"); }}>消す</button>
+    </div>
+  );
 }
 
-function splitHost(token: string): { host: string; port: string } | null {
-  const slash = token.lastIndexOf("/");
-  if (slash <= 0) return null;
-  const host = token.slice(0, slash);
-  const port = token.slice(slash + 1);
-  if (!/^\d+$/.test(port)) return null;
-  return { host, port };
+function hexByte() {
+  return Math.floor(Math.random() * 256).toString(16).padStart(2, "0");
 }
 
-export function deskCommand(input: string, ctx: DeskContext): DeskResult | null {
-  const typed = input.trim();
-  if (typed === "/lock") return { lines: [sys("画面をロックしました。")], fx: { op: "lock" } };
-  if (typed === "/sleep") return { lines: [sys("スリープに入ります。")], fx: { op: "sleep" } };
-  if (typed === "/shutdown") return { lines: [sys("シャットダウンします。")], fx: { op: "shutdown" } };
-  if (typed === "/true enter") return { lines: [sys("改行入力です。Ctrl+Enter で実行します。")], fx: { op: "enter", on: true } };
-  if (typed === "/false enter") return { lines: [sys("改行入力を終了しました。")], fx: { op: "enter", on: false } };
-
-  const sateliteMap = typed.match(/^\/catch\s+(?:satelite|satellite)-map$/i);
-  if (sateliteMap) {
-    return {
-      lines: [sys("衛星図を開きました。位置共有は本人の明示同意時のみです。")],
-      fx: { op: "open", kind: "atlas", title: "衛星図" },
-    };
+function hexLine(virus: boolean) {
+  const cells = Array.from({ length: 8 }, hexByte);
+  if (virus) {
+    cells[2] = "de";
+    cells[3] = "ad";
   }
-
-  const sms = typed.match(/^\/sms\s+(\S+)\s+to\s+(\S+)$/i);
-  if (sms) {
-    if (sms[1].toLowerCase() !== "foxsky") return { lines: [err("使い方: /sms foxsky to 電話番号")] };
-    const phone = sms[2];
-    if (!/^\+?[0-9][0-9\-()]{5,18}$/.test(phone)) return { lines: [err("電話番号の形ではありません")] };
-    return {
-      lines: [sys(`FoxSky から ${phone} へスキャナーのリンクを送ります。端末の SMS 画面が開きます。送信はそこで確定してください。`)],
-      fx: { op: "sms", phone },
-    };
-  }
-
-  const open = typed.match(/^\/open\s+(\S+)$/i);
-  if (open) {
-    const found = resolveKind(open[1], ctx);
-    if (!found) return { lines: [err(`/open ${open[1]}: ソフトがありません`)] };
-    return { lines: [sys(`${found.title} を開きます`)], fx: { op: "open", kind: found.kind, title: found.title } };
-  }
-
-  const close = typed.match(/^\/close\s+(\S+)$/i);
-  if (close) {
-    const win = matchWindow(close[1], ctx);
-    if (!win) return { lines: [err(`/close ${close[1]}: 開いているソフトがありません`)] };
-    return { lines: [sys(`${win.title} を閉じます`)], fx: { op: "close", id: win.id } };
-  }
-
-  const named = typed.match(/^\/name(?:\s+(\S+))?\s+to\s+(.+)$/i);
-  if (named) {
-    const title = named[2].trim();
-    if (!title) return { lines: [err("/name to タイトル の形式です")] };
-    const win = named[1] ? matchWindow(named[1], ctx) : front(ctx);
-    if (!win) return { lines: [err("名前を付けるウィンドウがありません")] };
-    return {
-      lines: [sys(`${win.title} を ${title} に変更しました。/close ${title}.exe で閉じられます`)],
-      fx: { op: "rename", id: win.id, title },
-    };
-  }
-
-  const catchPacket = typed.match(/^\/catch packet of\s+(\S+)$/i);
-  if (catchPacket) {
-    return {
-      lines: [sys(`${catchPacket[1]} のパケットログを開始しました。模擬です。実通信はしていません。`)],
-      fx: { op: "catch", ip: catchPacket[1] },
-    };
-  }
-  if (/^\/stop catch packet$/i.test(typed)) {
-    return { lines: [sys("パケットログを停止しました。")], fx: { op: "stop-catch" } };
-  }
-
-  const socket = typed.match(/^\/change packet to (.+?) to (.+?) name as (\S+)$/i);
-  if (socket) {
-    return {
-      lines: [sys(`ソケット ${socket[3]} を作りました。${socket[1]} → ${socket[2]}。送信は模擬です。`)],
-      fx: { op: "socket", name: socket[3], from: socket[1], to: socket[2] },
-    };
-  }
-
-  const send = typed.match(/^\/send socket\s+(\S+)\s+to\s+(\S+)(?:\s*\/\s*(\d+))?$/i);
-  if (send) {
-    const hostport = send[3] ? { host: send[2], port: send[3] } : splitHost(send[2]);
-    if (!hostport) return { lines: [err("/send socket 名前 to IP/ポート の形式です")] };
-    if (!ctx.sockets.some((item) => item.name === send[1])) return { lines: [err(`ソケット ${send[1]} はありません`)] };
-    return {
-      lines: [sys(`${send[1]} を ${hostport.host}:${hostport.port} へ模擬送信しました。実ソケットは開いていません。`)],
-      fx: { op: "send", name: send[1], ip: hostport.host, port: hostport.port },
-    };
-  }
-
-  const asm = typed.match(/^\/catch asembla by\s+(.+)$/i);
-  if (asm) {
-    const app = asm[1].trim();
-    const text = ctx.asm[app] ?? asmFor(app);
-    return { lines: [out(text), sys("模擬アセンブラです。実プロセスは読んでいません。")], fx: { op: "asm", app, text } };
-  }
-
-  const asmEdit = typed.match(/^\/change asembla to (.+?) to (.+)$/i);
-  if (asmEdit) {
-    const app = ctx.asmApp;
-    if (!app) return { lines: [err("先に /catch asembla by ソフト名 を実行してください")] };
-    const current = ctx.asm[app] ?? asmFor(app);
-    if (!current.includes(asmEdit[1])) return { lines: [err(`「${asmEdit[1]}」はアセンブラにありません`)] };
-    const text = current.replace(asmEdit[1], asmEdit[2]);
-    return { lines: [out(text), sys("模擬アセンブラを書き換えました。")], fx: { op: "asm-edit", app, text } };
-  }
-
-  const deploy = typed.match(/^\/deploy\s+(\S+)\s+to\s+(\S+)\s+name to\s+(.+)$/i);
-  if (deploy) {
-    const hostport = splitHost(deploy[2]);
-    if (!hostport) return { lines: [err("/deploy FILE to IP/PORT name to サーバー名 の形式です")] };
-    const path = deploy[1].startsWith("/") ? deploy[1] : joinPath(ctx.cwd, deploy[1]);
-    if (ctx.files[path] == null) return { lines: [err(`${deploy[1]} がありません`)] };
-    const name = deploy[3].trim();
-    return {
-      lines: [sys(`${name} を ${hostport.host}:${hostport.port} で模擬起動しました。実ポートは開いていません。`)],
-      fx: { op: "deploy", name, file: path, host: hostport.host, port: hostport.port },
-    };
-  }
-
-  const stopDeploy = typed.match(/^\/stop deploy\s+(.+)$/i);
-  if (stopDeploy) {
-    const name = stopDeploy[1].trim();
-    if (!ctx.deploys.some((item) => item.name === name)) return { lines: [err(`${name} は起動していません`)] };
-    return { lines: [sys(`${name} を停止しました。`)], fx: { op: "undeploy", name } };
-  }
-
-  const download = typed.match(/^\/download\s+(\d{1,3}(?:\.\d{1,3}){3})\.([A-Za-z0-9]+)$/);
-  if (download) {
-    const file = `/home/fox/downloads/${download[1]}.${download[2]}`;
-    return {
-      lines: [sys(`${file} をワークスペースに作りました。実通信はしていません。`)],
-      files: { ...ctx.files, [file]: `模擬ダウンロード ${download[1]}.${download[2]}\n実ネットワークからは取得していません。\n` },
-    };
-  }
-
-  const upload = typed.match(/^\/upload to FTP\s+(\S+)\s+(\d+)\s+(\S+)\s+(\S+)$/i);
-  if (upload) {
-    return { lines: [sys(`FTP ${upload[3]}@${upload[1]}:${upload[2]} への模擬アップロードを記録しました。資格情報は送っていません。`)] };
-  }
-
-  const save = typed.match(/^(.*?)name to (\S+) save$/i);
-  if (save && !typed.startsWith("/")) {
-    const path = joinPath(ctx.cwd, save[2]);
-    const body = save[1].trim();
-    return {
-      lines: [sys(`${path} に保存しました。`)],
-      files: { ...ctx.files, [path]: body ? `${body}\n` : `saved ${new Date().toISOString()}\n` },
-    };
-  }
-
-  return null;
+  return cells.join(" ");
 }
+
+export function HexRail() {
+  const [lines, setLines] = useState<string[]>(() => Array.from({ length: 18 }, () => hexLine(false)));
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setLines((prev) => [hexLine(Math.random() < 0.22), ...prev].slice(0, 22));
+    }, 80);
+    return () => window.clearInterval(id);
+  }, []);
+
+  return (
+    <aside className="fox-rail">
+      <div className="fox-hex">
+        {lines.map((line, index) => (
+          <button
+            key={`${line}-${index}`}
+            type="button"
+            onClick={() => {
+              if (!line.includes("de ad")) return;
+              setLines((prev) => prev.map((item, at) => (at === index ? item.replace("de ad", "00 00") : item)));
+            }}
+          >
+            {line}
+          </button>
+        ))}
+      </div>
+    </aside>
+  );
+}
+
+function encrypt(points: Point[], word: string): Point[] {
+  const salt = [...word].reduce((sum, char) => sum + char.charCodeAt(0), 3);
+  return points.map((point, index) => ({
+    x: (point.x + (salt * (index + 1)) % 37) % 100,
+    y: (point.y + (salt * (index + 2)) % 29) % 100,
+  }));
+}
+
+
 

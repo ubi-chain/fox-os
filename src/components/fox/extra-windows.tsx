@@ -1,3 +1,15 @@
+import { planBuild } from "./copilot";
+import { runPackage } from "./packages";
+import {
+  baseName,
+  joinPath,
+  projectFrom,
+  type CommandResult,
+  type Line,
+  type OsState,
+  type Pane,
+} from "./model";
+
 const HELP = [
   "FOX OS ワークスペース（ブラウザ内。Ubuntu 実機ではない）",
   "ls  cd  pwd  cat  rm   ファイル操作",
@@ -20,7 +32,6 @@ const HELP = [
   "/open NAME.exe   /close NAME.exe   /name to タイトル",
   "/true enter      改行入力    /false enter で終了",
   "name to FILE save",
-  "/catch packet of IP    /stop catch packet",
   "/catch satelite-map   位置共有同意の衛星図を開く",
   "/change packet to A to B name as ソケット",
   "/send socket 名前 to IP/PORT",
@@ -31,3 +42,303 @@ const HELP = [
   "/upload to FTP IP PORT USER PASS",
   "/sms foxsky to 電話番号   スキャナーリンクを実電話のSMSへ",
 ].join("\n");
+
+function out(text: string): Line {
+  return { kind: "out", text };
+}
+function err(text: string): Line {
+  return { kind: "err", text };
+}
+function sys(text: string): Line {
+  return { kind: "sys", text };
+}
+
+function tokenize(input: string): string[] {
+  const tokens: string[] = [];
+  const re = /"([^"]*)"|'([^']*)'|\S+/g;
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(input))) tokens.push(match[1] ?? match[2] ?? match[0]);
+  return tokens;
+}
+
+const TO_HEBREW: Record<string, string> = {
+  help: "עזרה",
+  clear: "נקה",
+  pwd: "נתיב",
+  whoami: "מיאני",
+  date: "תאריך",
+  echo: "הדפס",
+  ls: "רשימה",
+  cd: "עבור",
+  cat: "קרא",
+  rm: "מחק",
+  git: "גיט",
+  kill: "עצור",
+  apt: "התקן",
+  new: "חדש",
+  server: "שרת",
+  test: "בדיקה",
+  status: "מצב",
+  branch: "ענף",
+  install: "התקן",
+  console: "מסוף",
+  stop: "הפסק",
+};
+
+const FROM_HEBREW: Record<string, string> = Object.fromEntries(
+  Object.entries(TO_HEBREW).map(([en, he]) => [he, en]),
+);
+
+const TO_JAPANESE: Record<string, string> = {
+  help: "ヘルプ",
+  clear: "消去",
+  pwd: "場所",
+  whoami: "誰",
+  date: "日付",
+  echo: "表示",
+  ls: "一覧",
+  cd: "移動",
+  cat: "読む",
+  rm: "削除",
+  git: "ギット",
+  kill: "終了",
+  apt: "導入",
+  new: "新規",
+  server: "サーバ",
+  test: "テスト",
+  status: "状態",
+  branch: "ブランチ",
+  install: "導入",
+  console: "コンソール",
+  stop: "停止",
+};
+
+const FROM_JAPANESE: Record<string, string> = Object.fromEntries(
+  Object.entries(TO_JAPANESE).map(([en, ja]) => [ja, en]),
+);
+
+const TO_LANG = { he: TO_HEBREW, ja: TO_JAPANESE };
+const FROM_LANG = { he: FROM_HEBREW, ja: FROM_JAPANESE };
+
+function mapWords(input: string, table: Record<string, string>): string {
+  return tokenize(input)
+    .map((word) => table[word] ?? word)
+    .join(" ");
+}
+
+const SHOWN = ["help", "ls", "cd", "pwd", "cat", "apt", "git", "clear", "rm"];
+
+function languageResult(lang: "he" | "ja", sample: string, note: string): CommandResult {
+  const table = TO_LANG[lang];
+  const lines: Line[] = [
+    sys(note),
+    out(SHOWN.map((en) => `${en}  →  ${table[en]}`).join("\n")),
+  ];
+  if (sample) lines.push(out(`${sample}  →  ${mapWords(sample, table)}`));
+  return { lines, patch: { lang } };
+}
+
+function restOf(rest: string, words: string[]): string {
+  for (const word of words) {
+    if (rest === word) return "";
+    if (rest.startsWith(`${word} `)) return rest.slice(word.length).trim();
+  }
+  return rest;
+}
+
+function changeLanguage(input: string): CommandResult | null {
+  if (!input.startsWith("/change")) return null;
+  const rest = input.slice("/change".length).trim().replace(/^to\s+/i, "");
+  if (rest === "hebrew" || rest.startsWith("hebrew ") || rest === "עברית" || rest.startsWith("עברית ")) {
+    return languageResult("he", restOf(rest, ["hebrew", "עברית"]), "ヘブライ語のコマンドを受け付けます。英語のままでも動きます。");
+  }
+  if (rest === "japanese" || rest.startsWith("japanese ") || rest === "日本語" || rest.startsWith("日本語 ")) {
+    return languageResult("ja", restOf(rest, ["japanese", "日本語"]), "日本語のコマンドを受け付けます。英語のままでも動きます。");
+  }
+  if (rest === "english" || rest === "en" || rest === "英語") {
+    return { lines: [sys("コマンドを英語に戻しました。")], patch: { lang: "en" } };
+  }
+  return { lines: [err("/change to japanese [コマンド]  /change to hebrew  /change to english")] };
+}
+
+function destructive(command: string): string | null {
+  if (/\brm\b/.test(command)) return "ファイルを削除します。元に戻せません。";
+  if (/git\s+reset\s+--hard/.test(command)) return "未コミットの変更を破棄します。";
+  if (/\b(apt|apt-get|yum|dnf)\s+(remove|purge|erase)\b/.test(command)) return "パッケージを外します。";
+  if (/\brpm\s+-e\b/.test(command) || /\bdpkg\s+-r\b/.test(command)) return "パッケージを外します。";
+  return null;
+}
+
+function listDir(cwd: string, files: Record<string, string>): { name: string; kind: "file" | "dir" }[] {
+  const names = new Map<string, "file" | "dir">();
+  const prefix = cwd === "/" ? "/" : `${cwd}/`;
+  for (const path of Object.keys(files)) {
+    if (cwd !== "/" && !path.startsWith(prefix)) continue;
+    if (cwd === "/" && !path.startsWith("/")) continue;
+    const rest = cwd === "/" ? path.slice(1) : path.slice(prefix.length);
+    if (!rest) continue;
+    const [head, ...more] = rest.split("/");
+    if (!head) continue;
+    const prev = names.get(head);
+    names.set(head, more.length > 0 || prev === "dir" ? "dir" : "file");
+  }
+  return [...names.entries()]
+    .map(([name, kind]) => ({ name, kind }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function requireProject(state: OsState): string | null {
+  return projectFrom(state.cwd, state.files, state.project);
+}
+
+function runExe(path: string, content: string): CommandResult {
+  if (content.startsWith("MZ")) {
+    return { lines: [err("Windows の実行ファイルです。この机はブラウザ内なので、その形式は起動できません。")] };
+  }
+  if (!content.startsWith("FOXEXE\n")) {
+    const prints = [...content.matchAll(/puts\s+["']([^"']*)["']/g)].map((m) => m[1]);
+    return { lines: prints.length ? prints.map(out) : [sys(`${baseName(path)} を実行しました`)] };
+  }
+  const lines: Line[] = [];
+  let open: Pane | undefined;
+  for (const row of content.split("\n").slice(1)) {
+    if (row.startsWith("print ")) lines.push(out(row.slice(6)));
+    if (row.startsWith("open ")) {
+      const pane = row.slice(5).trim();
+      if (pane === "term" || pane === "dev" || pane === "ai" || pane === "sys") open = pane;
+    }
+  }
+  if (lines.length === 0) lines.push(sys(`${baseName(path)} を起動しました`));
+  return { lines, open };
+}
+
+export function runCommand(raw: string, state: OsState, confirmed = false): CommandResult {
+  const typed = raw.trim();
+  if (!typed) return { lines: [] };
+  const changed = changeLanguage(typed);
+  if (changed) return changed;
+  const input = state.lang === "en" ? typed : mapWords(typed, FROM_LANG[state.lang]);
+  const warning = destructive(input);
+  if (warning && !confirmed) return { lines: [], confirm: { command: input, warning } };
+
+  const tokens = tokenize(input);
+  const cmd = tokens[0];
+  const files = { ...state.files };
+
+  if (cmd === "help") return { lines: [out(HELP)] };
+  if (cmd === "clear") return { lines: [], clear: true };
+  if (cmd === "pwd") return { lines: [out(state.cwd)] };
+  if (cmd === "whoami") return { lines: [out("fox")] };
+  if (cmd === "date") return { lines: [out(new Date().toString())] };
+  if (cmd === "uname") return { lines: [sys("FOX OS workspace / browser — not a Linux kernel")] };
+
+  if (cmd === "echo") return { lines: [out(tokens.slice(1).join(" "))] };
+
+  if (cmd === "ls") {
+    const target = tokens[1] ? joinPath(state.cwd, tokens[1]) : state.cwd;
+    const entries = listDir(target, files);
+    if (entries.length === 0 && !Object.keys(files).some((p) => p === target || p.startsWith(`${target}/`))) {
+      return { lines: [err(`ls: ${tokens[1] ?? target}: ありません`)] };
+    }
+    return { lines: [out(entries.map((e) => (e.kind === "dir" ? `${e.name}/` : e.name)).join("  ") || "(empty)")] };
+  }
+
+  if (cmd === "cd") {
+    const next = tokens[1] ? joinPath(state.cwd, tokens[1]) : "/home/fox";
+    const exists =
+      next === "/" ||
+      next === "/home" ||
+      next === "/home/fox" ||
+      Object.keys(files).some((p) => p === next || p.startsWith(`${next}/`));
+    if (!exists) return { lines: [err(`cd: ${tokens[1]}: ありません`)] };
+    return { lines: [], patch: { cwd: next } };
+  }
+
+  if (cmd === "cat") {
+    if (!tokens[1]) return { lines: [err("cat: ファイル名が必要です")] };
+    const path = joinPath(state.cwd, tokens[1]);
+    const content = files[path];
+    if (content == null) return { lines: [err(`cat: ${tokens[1]}: ありません`)] };
+    return { lines: [out(content.replace(/\n$/, ""))] };
+  }
+
+  if (cmd === "rm") {
+    const path = joinPath(state.cwd, tokens[1] ?? "");
+    if (!tokens[1] || files[path] == null) return { lines: [err("rm: 対象がありません")] };
+    delete files[path];
+    return {
+      lines: [sys(`${path} を削除しました`)],
+      patch: { files, dirty: true, log: [...state.log, `removed ${path}`] },
+    };
+  }
+
+  if (cmd === "sudo") {
+    return runCommand(tokens.slice(1).join(" "), state, confirmed);
+  }
+
+  const packaged = runPackage(tokens, state.packages ?? {});
+  if (packaged) {
+    return {
+      lines: packaged.lines,
+      patch: packaged.packages ? { packages: packaged.packages, log: [...state.log, tokens.join(" ")] } : undefined,
+    };
+  }
+
+  if (cmd === "git") {
+    const project = requireProject(state);
+    if (tokens[1] === "status") {
+      return {
+        lines: [
+          out(`On branch ${state.branch}`),
+          out(state.dirty ? "Changes not staged for commit" : "nothing to commit, working tree clean"),
+          sys(project ? `project ${project}` : "Git リポジトリの外です"),
+        ],
+      };
+    }
+    if (tokens[1] === "branch") return { lines: [out(`* ${state.branch}`)] };
+    return { lines: [err("git: status と branch に対応しています")] };
+  }
+
+  if (cmd === "kill") {
+    const pid = Number(tokens[1]);
+    if (!state.server || state.server.pid !== pid) return { lines: [err("kill: そのプロセスはありません")] };
+    return {
+      lines: [sys(`開発サーバー pid ${pid} を停止しました`)],
+      patch: { server: null, log: [...state.log, "server stopped"] },
+    };
+  }
+
+  if (cmd.endsWith(".exe")) {
+    const direct = joinPath(state.cwd, cmd);
+    const path = files[direct] != null ? direct : files[`/home/fox/${baseName(cmd)}`] != null ? `/home/fox/${baseName(cmd)}` : null;
+    if (!path) return { lines: [err(`${cmd}: ありません`)] };
+    return runExe(path, files[path]);
+  }
+
+  if (cmd === "copilot") {
+    const write = tokens[1] === "--write";
+    const prompt = (write ? tokens.slice(2) : tokens.slice(1)).join(" ").trim();
+    if (!prompt) return { lines: [err("copilot のあとに、作りたいものを書いてください")] };
+    const project = requireProject(state) ?? state.project;
+    if (!project) return { lines: [err("作業ディレクトリがありません")] };
+    const plan = planBuild(prompt, project);
+    if (!write) {
+      const safe = prompt.replace(/"/g, "'");
+      return {
+        lines: [out(plan.summary), out(plan.note), ...plan.files.map((file) => out(`create ${file.path}`))],
+        confirm: {
+          command: `copilot --write "${safe}"`,
+          warning: "これらのファイルをワークスペースに書き込みます。承認するまで書きません。",
+        },
+      };
+    }
+    for (const file of plan.files) files[file.path] = file.body;
+    return {
+      lines: plan.files.map((file) => out(`wrote ${file.path}`)),
+      patch: { files, dirty: true, project, log: [...state.log, `copilot wrote ${plan.files.length} files`] },
+    };
+  }
+
+  return { lines: [err(`${cmd}: コマンドが見つかりません。help を見てください。`)] };
+}
+

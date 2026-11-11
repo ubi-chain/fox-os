@@ -64,6 +64,7 @@ const KINDS: Record<string, DeskKind> = {
   "inari.exe": "inari",
   "map.exe": "atlas",
   "atlas.exe": "atlas",
+  "ietfubi.exe": "atlas",
   "crypt.exe": "crypt",
   "foxcrypt.exe": "crypt",
   "eclipse.exe": "crypt",
@@ -117,7 +118,7 @@ function resolveKind(raw: string, ctx: DeskContext): { kind: DeskKind; title: st
   if (alias) return alias;
   const kind = KINDS[key];
   if (!kind) return null;
-  return { kind, title: TITLES[kind] };
+  return { kind, title: key === "ietfubi.exe" ? "IETFUBI" : TITLES[kind] };
 }
 
 function front(ctx: DeskContext): DeskWindowRef | null {
@@ -173,12 +174,14 @@ export function deskCommand(input: string, ctx: DeskContext): DeskResult | null 
   const consentMap = typed.match(/^\/catch\s+(?:satelite|satellite)-map$/i);
   if (consentMap) {
     return {
-      lines: [sys("衛星図を開きました。位置共有は本人の明示同意時のみです。")],
-      fx: { op: "map-open", kind: "atlas", title: "衛星図" },
+      lines: [sys("IETFUBI の衛星図ウィンドウを開きます。位置共有は本人の明示同意時のみです。")],
+      fx: { op: "open", kind: "atlas", title: "IETFUBI" },
     };
   }
   if (/^\/close\s+(?:satelite|satellite)-map$/i.test(typed)) {
-    return { lines: [sys("衛星図を閉じました。")], fx: { op: "map-close" } };
+    const win = ctx.windows.filter((item) => item.kind === "atlas" && item.title === "IETFUBI").sort((a, b) => b.z - a.z)[0];
+    if (!win) return { lines: [err("IETFUBI の衛星図ウィンドウは開いていません。")] };
+    return { lines: [sys("IETFUBI の衛星図を閉じます。")], fx: { op: "close", id: win.id } };
   }
 
   const open = typed.match(/^\/open\s+(\S+)$/i);
@@ -241,7 +244,7 @@ export function deskCommand(input: string, ctx: DeskContext): DeskResult | null 
   if (stopDeploy) {
     const name = stopDeploy[1].trim();
     if (!ctx.deploys.some((item) => item.name === name)) return { lines: [err(`${name} は起動していません`)] };
-    return { lines: [sys(`${name} を停止しました。`)], fx: { op: "undeploy", name } };
+    return { lines: [sys(`${name} を停止しました。`)], fx: { op: "undeploy", name };
   }
 
   const download = typed.match(/^\/download\s+(\d{1,3}(?:\.\d{1,3}){3})\.([A-Za-z0-9]+)$/);
@@ -265,4 +268,3 @@ export function deskCommand(input: string, ctx: DeskContext): DeskResult | null 
 
   return null;
 }
-

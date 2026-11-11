@@ -1,47 +1,99 @@
-import { planBuild } from "./copilot";
-import { runPackage } from "./packages";
-import {
-  baseName,
-  joinPath,
-  projectFrom,
-  type CommandResult,
-  type Line,
-  type OsState,
-  type Pane,
-} from "./model";
+import { joinPath, type Line } from "./model";
 
-const HELP = [
-  "FOX OS ワークスペース（ブラウザ内。Ubuntu 実機ではない）",
-  "ls  cd  pwd  cat  rm   ファイル操作",
-  "apt install NAME      パッケージ導入（模擬）",
-  "apt remove / search / list / update",
-  "yum install NAME      Red Hat 系",
-  "dnf install NAME      dnf",
-  "rpm -ivh FILE.rpm     rpm 導入",
-  "rpm -qa / -qi / -e",
-  "dpkg -i FILE.deb      deb 導入",
-  "dpkg -l / -r",
-  "git status            ブランチと変更",
-  "clear                 画面消去",
-  "copilot 説明          承認後にメモを書く",
-  "/change to hebrew    コマンドをヘブライ語にする",
-  "/change to japanese  コマンドを日本語にする",
-  "/change to english   英語に戻す",
-  "hello.exe qdev.exe sys.exe ai.exe dict.exe",
-  "/lock  /sleep  /shutdown",
-  "/open NAME.exe   /close NAME.exe   /name to タイトル",
-  "/true enter      改行入力    /false enter で終了",
-  "name to FILE save",
-  "/catch packet of IP    /stop catch packet",
-  "/change packet to A to B name as ソケット",
-  "/send socket 名前 to IP/PORT",
-  "/catch asembla by ソフト    /change asembla to A to B",
-  "/deploy FILE to IP/PORT name to サーバー",
-  "/stop deploy サーバー",
-  "/download IP.拡張子",
-  "/upload to FTP IP PORT USER PASS",
-  "/sms foxsky to 電話番号   スキャナーリンクを実電話のSMSへ",
-].join("\n");
+export type DeskKind = "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg" | "sky" | "guard" | "net" | "furry" | "inari" | "atlas" | "crypt" | "qan" | "ime";
+
+export type DeskWindowRef = { id: string; kind: DeskKind; title: string; z: number };
+
+export type DeskContext = {
+  cwd: string;
+  files: Record<string, string>;
+  windows: DeskWindowRef[];
+  aliases: Record<string, { kind: DeskKind; title: string }>;
+  sockets: { name: string; from: string; to: string }[];
+  deploys: { name: string; file: string; host: string; port: string }[];
+  asm: Record<string, string>;
+  asmApp: string;
+};
+
+export type DeskFx =
+  | { op: "lock" }
+  | { op: "sleep" }
+  | { op: "shutdown" }
+  | { op: "open"; kind: DeskKind; title: string }
+  | { op: "close"; id: string }
+  | { op: "rename"; id: string; title: string }
+  | { op: "catch"; ip: string }
+  | { op: "stop-catch" }
+  | { op: "socket"; name: string; from: string; to: string }
+  | { op: "send"; name: string; ip: string; port: string }
+  | { op: "asm"; app: string; text: string }
+  | { op: "asm-edit"; app: string; text: string }
+  | { op: "enter"; on: boolean }
+  | { op: "deploy"; name: string; file: string; host: string; port: string }
+  | { op: "undeploy"; name: string }
+  | { op: "sms"; phone: string };
+
+export type DeskResult = { lines: Line[]; files?: Record<string, string>; fx?: DeskFx };
+
+const KINDS: Record<string, DeskKind> = {
+  "hello.exe": "term",
+  "term.exe": "term",
+  "terminal.exe": "term",
+  "trm.exe": "term",
+  "qdev.exe": "dev",
+  "dev.exe": "dev",
+  "sys.exe": "sys",
+  "ai.exe": "ai",
+  "web.exe": "browser",
+  "browser.exe": "browser",
+  "exp.exe": "explorer",
+  "explorer.exe": "explorer",
+  "chat.exe": "chat",
+  "cht.exe": "chat",
+  "slack.exe": "chat",
+  "dict.exe": "dict",
+  "dictionary.exe": "dict",
+  "jisho.exe": "dict",
+  "pkg.exe": "pkg",
+  "apt.exe": "pkg",
+  "packages.exe": "pkg",
+  "foxsky.exe": "sky",
+  "sky.exe": "sky",
+  "guard.exe": "guard",
+  "net.exe": "net",
+  "wifi.exe": "net",
+  "furry.exe": "furry",
+  "furrysys.exe": "furry",
+  "inari.exe": "inari",
+  "map.exe": "atlas",
+  "atlas.exe": "atlas",
+  "crypt.exe": "crypt",
+  "foxcrypt.exe": "crypt",
+  "eclipse.exe": "crypt",
+  "qan.exe": "qan",
+  "ime.exe": "ime",
+};
+
+const TITLES: Record<DeskKind, string> = {
+  term: "ターミナル",
+  dev: "Q-DEV",
+  ai: "AI",
+  sys: "SYS",
+  browser: "ブラウザ",
+  explorer: "エクスプローラ",
+  chat: "CHAT",
+  dict: "辞典",
+  pkg: "パッケージ",
+  sky: "FoxSky",
+  guard: "まもり",
+  net: "回線",
+  furry: "Furrysys",
+  inari: "Inari",
+  atlas: "衛星図",
+  crypt: "Foxcrypt",
+  qan: "Qan",
+  ime: "IME",
+};
 
 function out(text: string): Line {
   return { kind: "out", text };
@@ -53,291 +105,210 @@ function sys(text: string): Line {
   return { kind: "sys", text };
 }
 
-function tokenize(input: string): string[] {
-  const tokens: string[] = [];
-  const re = /"([^"]*)"|'([^']*)'|\S+/g;
-  let match: RegExpExecArray | null;
-  while ((match = re.exec(input))) tokens.push(match[1] ?? match[2] ?? match[0]);
-  return tokens;
+function exeKey(raw: string): string {
+  const name = raw.trim().replace(/^\/+/, "");
+  return name.toLowerCase().endsWith(".exe") ? name : `${name}.exe`;
 }
 
-const TO_HEBREW: Record<string, string> = {
-  help: "עזרה",
-  clear: "נקה",
-  pwd: "נתיב",
-  whoami: "מיאני",
-  date: "תאריך",
-  echo: "הדפס",
-  ls: "רשימה",
-  cd: "עבור",
-  cat: "קרא",
-  rm: "מחק",
-  git: "גיט",
-  kill: "עצור",
-  apt: "התקן",
-  new: "חדש",
-  server: "שרת",
-  test: "בדיקה",
-  status: "מצב",
-  branch: "ענף",
-  install: "התקן",
-  console: "מסוף",
-  stop: "הפסק",
-};
-
-const FROM_HEBREW: Record<string, string> = Object.fromEntries(
-  Object.entries(TO_HEBREW).map(([en, he]) => [he, en]),
-);
-
-const TO_JAPANESE: Record<string, string> = {
-  help: "ヘルプ",
-  clear: "消去",
-  pwd: "場所",
-  whoami: "誰",
-  date: "日付",
-  echo: "表示",
-  ls: "一覧",
-  cd: "移動",
-  cat: "読む",
-  rm: "削除",
-  git: "ギット",
-  kill: "終了",
-  apt: "導入",
-  new: "新規",
-  server: "サーバ",
-  test: "テスト",
-  status: "状態",
-  branch: "ブランチ",
-  install: "導入",
-  console: "コンソール",
-  stop: "停止",
-};
-
-const FROM_JAPANESE: Record<string, string> = Object.fromEntries(
-  Object.entries(TO_JAPANESE).map(([en, ja]) => [ja, en]),
-);
-
-const TO_LANG = { he: TO_HEBREW, ja: TO_JAPANESE };
-const FROM_LANG = { he: FROM_HEBREW, ja: FROM_JAPANESE };
-
-function mapWords(input: string, table: Record<string, string>): string {
-  return tokenize(input)
-    .map((word) => table[word] ?? word)
-    .join(" ");
+function stem(raw: string): string {
+  return raw.trim().replace(/\.exe$/i, "");
 }
 
-const SHOWN = ["help", "ls", "cd", "pwd", "cat", "apt", "git", "clear", "rm"];
-
-function languageResult(lang: "he" | "ja", sample: string, note: string): CommandResult {
-  const table = TO_LANG[lang];
-  const lines: Line[] = [
-    sys(note),
-    out(SHOWN.map((en) => `${en}  →  ${table[en]}`).join("\n")),
-  ];
-  if (sample) lines.push(out(`${sample}  →  ${mapWords(sample, table)}`));
-  return { lines, patch: { lang } };
+function resolveKind(raw: string, ctx: DeskContext): { kind: DeskKind; title: string } | null {
+  const key = exeKey(raw).toLowerCase();
+  const alias = ctx.aliases[key] ?? ctx.aliases[exeKey(raw)];
+  if (alias) return alias;
+  const kind = KINDS[key];
+  if (!kind) return null;
+  return { kind, title: TITLES[kind] };
 }
 
-function restOf(rest: string, words: string[]): string {
-  for (const word of words) {
-    if (rest === word) return "";
-    if (rest.startsWith(`${word} `)) return rest.slice(word.length).trim();
+function front(ctx: DeskContext): DeskWindowRef | null {
+  return ctx.windows.reduce<DeskWindowRef | null>((best, win) => (!best || win.z > best.z ? win : best), null);
+}
+
+function matchWindow(raw: string, ctx: DeskContext): DeskWindowRef | null {
+  const key = exeKey(raw).toLowerCase();
+  const plain = stem(raw);
+  const hits = ctx.windows.filter((win) => {
+    const titleKey = exeKey(win.title).toLowerCase();
+    return (
+      win.title === raw ||
+      win.title === plain ||
+      titleKey === key ||
+      exeKey(TITLES[win.kind]).toLowerCase() === key ||
+      `${win.kind}.exe` === key
+    );
+  });
+  return hits.sort((a, b) => b.z - a.z)[0] ?? null;
+}
+
+function asmFor(app: string): string {
+  return [
+    `; FOX OS 模擬アセンブラ  ${app}`,
+    "; ブラウザ内の見本です。実バイナリではありません。",
+    "push ebp",
+    "mov ebp, esp",
+    "mov eax, 1",
+    `call fox_${app.replace(/\W/g, "_")}`,
+    "pop ebp",
+    "ret",
+  ].join("\n");
+}
+
+function splitHost(token: string): { host: string; port: string } | null {
+  const slash = token.lastIndexOf("/");
+  if (slash <= 0) return null;
+  const host = token.slice(0, slash);
+  const port = token.slice(slash + 1);
+  if (!/^\d+$/.test(port)) return null;
+  return { host, port };
+}
+
+export function deskCommand(input: string, ctx: DeskContext): DeskResult | null {
+  const typed = input.trim();
+  if (typed === "/lock") return { lines: [sys("画面をロックしました。")], fx: { op: "lock" } };
+  if (typed === "/sleep") return { lines: [sys("スリープに入ります。")], fx: { op: "sleep" } };
+  if (typed === "/shutdown") return { lines: [sys("シャットダウンします。")], fx: { op: "shutdown" } };
+  if (typed === "/true enter") return { lines: [sys("改行入力です。Ctrl+Enter で実行します。")], fx: { op: "enter", on: true } };
+  if (typed === "/false enter") return { lines: [sys("改行入力を終了しました。")], fx: { op: "enter", on: false } };
+
+  const sateliteMap = typed.match(/^\/catch\s+(?:satelite|satellite)-map$/i);
+  if (sateliteMap) {
+    return {
+      lines: [sys("衛星図を開きました。位置共有は本人の明示同意時のみです。")],
+      fx: { op: "open", kind: "atlas", title: "衛星図" },
+    };
   }
-  return rest;
-}
 
-function changeLanguage(input: string): CommandResult | null {
-  if (!input.startsWith("/change")) return null;
-  const rest = input.slice("/change".length).trim().replace(/^to\s+/i, "");
-  if (rest === "hebrew" || rest.startsWith("hebrew ") || rest === "עברית" || rest.startsWith("עברית ")) {
-    return languageResult("he", restOf(rest, ["hebrew", "עברית"]), "ヘブライ語のコマンドを受け付けます。英語のままでも動きます。");
+  const sms = typed.match(/^\/sms\s+(\S+)\s+to\s+(\S+)$/i);
+  if (sms) {
+    if (sms[1].toLowerCase() !== "foxsky") return { lines: [err("使い方: /sms foxsky to 電話番号")] };
+    const phone = sms[2];
+    if (!/^\+?[0-9][0-9\-()]{5,18}$/.test(phone)) return { lines: [err("電話番号の形ではありません")] };
+    return {
+      lines: [sys(`FoxSky から ${phone} へスキャナーのリンクを送ります。端末の SMS 画面が開きます。送信はそこで確定してください。`)],
+      fx: { op: "sms", phone },
+    };
   }
-  if (rest === "japanese" || rest.startsWith("japanese ") || rest === "日本語" || rest.startsWith("日本語 ")) {
-    return languageResult("ja", restOf(rest, ["japanese", "日本語"]), "日本語のコマンドを受け付けます。英語のままでも動きます。");
-  }
-  if (rest === "english" || rest === "en" || rest === "英語") {
-    return { lines: [sys("コマンドを英語に戻しました。")], patch: { lang: "en" } };
-  }
-  return { lines: [err("/change to japanese [コマンド]  /change to hebrew  /change to english")] };
-}
 
-function destructive(command: string): string | null {
-  if (/\brm\b/.test(command)) return "ファイルを削除します。元に戻せません。";
-  if (/git\s+reset\s+--hard/.test(command)) return "未コミットの変更を破棄します。";
-  if (/\b(apt|apt-get|yum|dnf)\s+(remove|purge|erase)\b/.test(command)) return "パッケージを外します。";
-  if (/\brpm\s+-e\b/.test(command) || /\bdpkg\s+-r\b/.test(command)) return "パッケージを外します。";
+  const open = typed.match(/^\/open\s+(\S+)$/i);
+  if (open) {
+    const found = resolveKind(open[1], ctx);
+    if (!found) return { lines: [err(`/open ${open[1]}: ソフトがありません`)] };
+    return { lines: [sys(`${found.title} を開きます`)], fx: { op: "open", kind: found.kind, title: found.title } };
+  }
+
+  const close = typed.match(/^\/close\s+(\S+)$/i);
+  if (close) {
+    const win = matchWindow(close[1], ctx);
+    if (!win) return { lines: [err(`/close ${close[1]}: 開いているソフトがありません`)] };
+    return { lines: [sys(`${win.title} を閉じます`)], fx: { op: "close", id: win.id } };
+  }
+
+  const named = typed.match(/^\/name(?:\s+(\S+))?\s+to\s+(.+)$/i);
+  if (named) {
+    const title = named[2].trim();
+    if (!title) return { lines: [err("/name to タイトル の形式です")] };
+    const win = named[1] ? matchWindow(named[1], ctx) : front(ctx);
+    if (!win) return { lines: [err("名前を付けるウィンドウがありません")] };
+    return {
+      lines: [sys(`${win.title} を ${title} に変更しました。/close ${title}.exe で閉じられます`)],
+      fx: { op: "rename", id: win.id, title },
+    };
+  }
+
+  const catchPacket = typed.match(/^\/catch packet of\s+(\S+)$/i);
+  if (catchPacket) {
+    return {
+      lines: [sys(`${catchPacket[1]} のパケットログを開始しました。模擬です。実通信はしていません。`)],
+      fx: { op: "catch", ip: catchPacket[1] },
+    };
+  }
+  if (/^\/stop catch packet$/i.test(typed)) {
+    return { lines: [sys("パケットログを停止しました。")], fx: { op: "stop-catch" } };
+  }
+
+  const socket = typed.match(/^\/change packet to (.+?) to (.+?) name as (\S+)$/i);
+  if (socket) {
+    return {
+      lines: [sys(`ソケット ${socket[3]} を作りました。${socket[1]} → ${socket[2]}。送信は模擬です。`)],
+      fx: { op: "socket", name: socket[3], from: socket[1], to: socket[2] },
+    };
+  }
+
+  const send = typed.match(/^\/send socket\s+(\S+)\s+to\s+(\S+)(?:\s*\/\s*(\d+))?$/i);
+  if (send) {
+    const hostport = send[3] ? { host: send[2], port: send[3] } : splitHost(send[2]);
+    if (!hostport) return { lines: [err("/send socket 名前 to IP/ポート の形式です")] };
+    if (!ctx.sockets.some((item) => item.name === send[1])) return { lines: [err(`ソケット ${send[1]} はありません`)] };
+    return {
+      lines: [sys(`${send[1]} を ${hostport.host}:${hostport.port} へ模擬送信しました。実ソケットは開いていません。`)],
+      fx: { op: "send", name: send[1], ip: hostport.host, port: hostport.port },
+    };
+  }
+
+  const asm = typed.match(/^\/catch asembla by\s+(.+)$/i);
+  if (asm) {
+    const app = asm[1].trim();
+    const text = ctx.asm[app] ?? asmFor(app);
+    return { lines: [out(text), sys("模擬アセンブラです。実プロセスは読んでいません。")], fx: { op: "asm", app, text } };
+  }
+
+  const asmEdit = typed.match(/^\/change asembla to (.+?) to (.+)$/i);
+  if (asmEdit) {
+    const app = ctx.asmApp;
+    if (!app) return { lines: [err("先に /catch asembla by ソフト名 を実行してください")] };
+    const current = ctx.asm[app] ?? asmFor(app);
+    if (!current.includes(asmEdit[1])) return { lines: [err(`「${asmEdit[1]}」はアセンブラにありません`)] };
+    const text = current.replace(asmEdit[1], asmEdit[2]);
+    return { lines: [out(text), sys("模擬アセンブラを書き換えました。")], fx: { op: "asm-edit", app, text } };
+  }
+
+  const deploy = typed.match(/^\/deploy\s+(\S+)\s+to\s+(\S+)\s+name to\s+(.+)$/i);
+  if (deploy) {
+    const hostport = splitHost(deploy[2]);
+    if (!hostport) return { lines: [err("/deploy FILE to IP/PORT name to サーバー名 の形式です")] };
+    const path = deploy[1].startsWith("/") ? deploy[1] : joinPath(ctx.cwd, deploy[1]);
+    if (ctx.files[path] == null) return { lines: [err(`${deploy[1]} がありません`)] };
+    const name = deploy[3].trim();
+    return {
+      lines: [sys(`${name} を ${hostport.host}:${hostport.port} で模擬起動しました。実ポートは開いていません。`)],
+      fx: { op: "deploy", name, file: path, host: hostport.host, port: hostport.port },
+    };
+  }
+
+  const stopDeploy = typed.match(/^\/stop deploy\s+(.+)$/i);
+  if (stopDeploy) {
+    const name = stopDeploy[1].trim();
+    if (!ctx.deploys.some((item) => item.name === name)) return { lines: [err(`${name} は起動していません`)] };
+    return { lines: [sys(`${name} を停止しました。`)], fx: { op: "undeploy", name } };
+  }
+
+  const download = typed.match(/^\/download\s+(\d{1,3}(?:\.\d{1,3}){3})\.([A-Za-z0-9]+)$/);
+  if (download) {
+    const file = `/home/fox/downloads/${download[1]}.${download[2]}`;
+    return {
+      lines: [sys(`${file} をワークスペースに作りました。実通信はしていません。`)],
+      files: { ...ctx.files, [file]: `模擬ダウンロード ${download[1]}.${download[2]}\n実ネットワークからは取得していません。\n` },
+    };
+  }
+
+  const upload = typed.match(/^\/upload to FTP\s+(\S+)\s+(\d+)\s+(\S+)\s+(\S+)$/i);
+  if (upload) {
+    return { lines: [sys(`FTP ${upload[3]}@${upload[1]}:${upload[2]} への模擬アップロードを記録しました。資格情報は送っていません。`)] };
+  }
+
+  const save = typed.match(/^(.*?)name to (\S+) save$/i);
+  if (save && !typed.startsWith("/")) {
+    const path = joinPath(ctx.cwd, save[2]);
+    const body = save[1].trim();
+    return {
+      lines: [sys(`${path} に保存しました。`)],
+      files: { ...ctx.files, [path]: body ? `${body}\n` : `saved ${new Date().toISOString()}\n` },
+    };
+  }
+
   return null;
 }
 
-function listDir(cwd: string, files: Record<string, string>): { name: string; kind: "file" | "dir" }[] {
-  const names = new Map<string, "file" | "dir">();
-  const prefix = cwd === "/" ? "/" : `${cwd}/`;
-  for (const path of Object.keys(files)) {
-    if (cwd !== "/" && !path.startsWith(prefix)) continue;
-    if (cwd === "/" && !path.startsWith("/")) continue;
-    const rest = cwd === "/" ? path.slice(1) : path.slice(prefix.length);
-    if (!rest) continue;
-    const [head, ...more] = rest.split("/");
-    if (!head) continue;
-    const prev = names.get(head);
-    names.set(head, more.length > 0 || prev === "dir" ? "dir" : "file");
-  }
-  return [...names.entries()]
-    .map(([name, kind]) => ({ name, kind }))
-    .sort((a, b) => a.name.localeCompare(b.name));
-}
-
-function requireProject(state: OsState): string | null {
-  return projectFrom(state.cwd, state.files, state.project);
-}
-
-function runExe(path: string, content: string): CommandResult {
-  if (content.startsWith("MZ")) {
-    return { lines: [err("Windows の実行ファイルです。この机はブラウザ内なので、その形式は起動できません。")] };
-  }
-  if (!content.startsWith("FOXEXE\n")) {
-    const prints = [...content.matchAll(/puts\s+["']([^"']*)["']/g)].map((m) => m[1]);
-    return { lines: prints.length ? prints.map(out) : [sys(`${baseName(path)} を実行しました`)] };
-  }
-  const lines: Line[] = [];
-  let open: Pane | undefined;
-  for (const row of content.split("\n").slice(1)) {
-    if (row.startsWith("print ")) lines.push(out(row.slice(6)));
-    if (row.startsWith("open ")) {
-      const pane = row.slice(5).trim();
-      if (pane === "term" || pane === "dev" || pane === "ai" || pane === "sys") open = pane;
-    }
-  }
-  if (lines.length === 0) lines.push(sys(`${baseName(path)} を起動しました`));
-  return { lines, open };
-}
-
-export function runCommand(raw: string, state: OsState, confirmed = false): CommandResult {
-  const typed = raw.trim();
-  if (!typed) return { lines: [] };
-  const changed = changeLanguage(typed);
-  if (changed) return changed;
-  const input = state.lang === "en" ? typed : mapWords(typed, FROM_LANG[state.lang]);
-  const warning = destructive(input);
-  if (warning && !confirmed) return { lines: [], confirm: { command: input, warning } };
-
-  const tokens = tokenize(input);
-  const cmd = tokens[0];
-  const files = { ...state.files };
-
-  if (cmd === "help") return { lines: [out(HELP)] };
-  if (cmd === "clear") return { lines: [], clear: true };
-  if (cmd === "pwd") return { lines: [out(state.cwd)] };
-  if (cmd === "whoami") return { lines: [out("fox")] };
-  if (cmd === "date") return { lines: [out(new Date().toString())] };
-  if (cmd === "uname") return { lines: [sys("FOX OS workspace / browser — not a Linux kernel")] };
-
-  if (cmd === "echo") return { lines: [out(tokens.slice(1).join(" "))] };
-
-  if (cmd === "ls") {
-    const target = tokens[1] ? joinPath(state.cwd, tokens[1]) : state.cwd;
-    const entries = listDir(target, files);
-    if (entries.length === 0 && !Object.keys(files).some((p) => p === target || p.startsWith(`${target}/`))) {
-      return { lines: [err(`ls: ${tokens[1] ?? target}: ありません`)] };
-    }
-    return { lines: [out(entries.map((e) => (e.kind === "dir" ? `${e.name}/` : e.name)).join("  ") || "(empty)")] };
-  }
-
-  if (cmd === "cd") {
-    const next = tokens[1] ? joinPath(state.cwd, tokens[1]) : "/home/fox";
-    const exists =
-      next === "/" ||
-      next === "/home" ||
-      next === "/home/fox" ||
-      Object.keys(files).some((p) => p === next || p.startsWith(`${next}/`));
-    if (!exists) return { lines: [err(`cd: ${tokens[1]}: ありません`)] };
-    return { lines: [], patch: { cwd: next } };
-  }
-
-  if (cmd === "cat") {
-    if (!tokens[1]) return { lines: [err("cat: ファイル名が必要です")] };
-    const path = joinPath(state.cwd, tokens[1]);
-    const content = files[path];
-    if (content == null) return { lines: [err(`cat: ${tokens[1]}: ありません`)] };
-    return { lines: [out(content.replace(/\n$/, ""))] };
-  }
-
-  if (cmd === "rm") {
-    const path = joinPath(state.cwd, tokens[1] ?? "");
-    if (!tokens[1] || files[path] == null) return { lines: [err("rm: 対象がありません")] };
-    delete files[path];
-    return {
-      lines: [sys(`${path} を削除しました`)],
-      patch: { files, dirty: true, log: [...state.log, `removed ${path}`] },
-    };
-  }
-
-  if (cmd === "sudo") {
-    return runCommand(tokens.slice(1).join(" "), state, confirmed);
-  }
-
-  const packaged = runPackage(tokens, state.packages ?? {});
-  if (packaged) {
-    return {
-      lines: packaged.lines,
-      patch: packaged.packages ? { packages: packaged.packages, log: [...state.log, tokens.join(" ")] } : undefined,
-    };
-  }
-
-  if (cmd === "git") {
-    const project = requireProject(state);
-    if (tokens[1] === "status") {
-      return {
-        lines: [
-          out(`On branch ${state.branch}`),
-          out(state.dirty ? "Changes not staged for commit" : "nothing to commit, working tree clean"),
-          sys(project ? `project ${project}` : "Git リポジトリの外です"),
-        ],
-      };
-    }
-    if (tokens[1] === "branch") return { lines: [out(`* ${state.branch}`)] };
-    return { lines: [err("git: status と branch に対応しています")] };
-  }
-
-  if (cmd === "kill") {
-    const pid = Number(tokens[1]);
-    if (!state.server || state.server.pid !== pid) return { lines: [err("kill: そのプロセスはありません")] };
-    return {
-      lines: [sys(`開発サーバー pid ${pid} を停止しました`)],
-      patch: { server: null, log: [...state.log, "server stopped"] },
-    };
-  }
-
-  if (cmd.endsWith(".exe")) {
-    const direct = joinPath(state.cwd, cmd);
-    const path = files[direct] != null ? direct : files[`/home/fox/${baseName(cmd)}`] != null ? `/home/fox/${baseName(cmd)}` : null;
-    if (!path) return { lines: [err(`${cmd}: ありません`)] };
-    return runExe(path, files[path]);
-  }
-
-  if (cmd === "copilot") {
-    const write = tokens[1] === "--write";
-    const prompt = (write ? tokens.slice(2) : tokens.slice(1)).join(" ").trim();
-    if (!prompt) return { lines: [err("copilot のあとに、作りたいものを書いてください")] };
-    const project = requireProject(state) ?? state.project;
-    if (!project) return { lines: [err("作業ディレクトリがありません")] };
-    const plan = planBuild(prompt, project);
-    if (!write) {
-      const safe = prompt.replace(/"/g, "'");
-      return {
-        lines: [out(plan.summary), out(plan.note), ...plan.files.map((file) => out(`create ${file.path}`))],
-        confirm: {
-          command: `copilot --write "${safe}"`,
-          warning: "これらのファイルをワークスペースに書き込みます。承認するまで書きません。",
-        },
-      };
-    }
-    for (const file of plan.files) files[file.path] = file.body;
-    return {
-      lines: plan.files.map((file) => out(`wrote ${file.path}`)),
-      patch: { files, dirty: true, project, log: [...state.log, `copilot wrote ${plan.files.length} files`] },
-    };
-  }
-
-  return { lines: [err(`${cmd}: コマンドが見つかりません。help を見てください。`)] };
-}

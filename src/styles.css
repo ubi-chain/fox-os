@@ -1,2490 +1,454 @@
-@import "tailwindcss";
+import { useEffect, useMemo, useState } from "react";
+import { BRAND } from "@/lib/fox/brand";
+import { useFox } from "@/lib/fox/store";
 
-@theme {
-  --color-bg: #100608;
-  --color-panel: #1a0c10;
-  --color-sub: #261016;
-  --color-accent: #e31c2b;
-  --color-accent-dim: #ffd24a;
-  --color-warn: #ffd24a;
-  --color-fg: #f6f3f0;
-  --color-muted: #e7c4bc;
-  --color-line: #7a2a32;
-  --color-ok: #ffd24a;
-  --font-sans: "IBM Plex Sans JP", "IBM Plex Sans", sans-serif;
-  --font-mono: "IBM Plex Mono", "IBM Plex Sans JP", "Noto Sans Hebrew", ui-monospace, monospace;
-  --radius-sm: 2px;
+const CREATURES = [
+  { id: "fox", label: "狐" },
+  { id: "hare", label: "兎" },
+  { id: "crow", label: "烏" },
+  { id: "koi", label: "鯉" },
+  { id: "beetle", label: "虫" },
+  { id: "fern", label: "羊歯" },
+  { id: "none", label: "なし" },
+];
+
+export function emblemSrc(creature: string) {
+  if (creature === "fox") return "/emblem.png";
+  if (creature === "none") return "";
+  const glyph = CREATURES.find((item) => item.id === creature)?.label ?? "F";
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#14080c"/><text x="16" y="22" text-anchor="middle" font-size="16" fill="#f6f1ea" font-family="sans-serif">${glyph}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
-@layer base {
-  button:not(:disabled),
-  [role="button"]:not(:disabled) {
-    cursor: pointer;
-  }
-
-  html,
-  body {
-    height: 100%;
-    background: var(--color-bg);
-    color: var(--color-fg);
-  }
-
-  body {
-    margin: 0;
-    overflow: hidden;
-    font-family: var(--font-sans);
-    line-height: 1.5;
-  }
-
-  :focus-visible {
-    outline: 1px solid var(--color-accent);
-    outline-offset: 2px;
-  }
+export function MorphText({ text }: { text: string }) {
+  const [out, setOut] = useState("");
+  useEffect(() => {
+    let step = 0;
+    const id = window.setInterval(() => {
+      step += 1;
+      const locked = Math.floor(step / 3);
+      const head = text.slice(0, locked);
+      const flicker = locked < text.length ? "ｱｲｳ#*01"[step % 7] : "";
+      setOut(head + flicker);
+      if (locked >= text.length) window.clearInterval(id);
+    }, 42);
+    return () => window.clearInterval(id);
+  }, [text]);
+  return <span>{out}</span>;
 }
 
-@layer components {
-  .fox-root {
-    position: relative;
-    height: 100dvh;
-    display: flex;
-    flex-direction: column;
-    background:
-      radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--color-accent) 16%, transparent), transparent 42%),
-      var(--color-bg);
-    color: var(--color-fg);
-  }
-
-  .fox-root::before {
-    content: "";
-    pointer-events: none;
-    position: absolute;
-    inset: 0;
-    opacity: 0.35;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='56' height='48' viewBox='0 0 56 48'><path d='M28 2 L42 10 L42 26 L28 34 L14 26 L14 10 Z' fill='none' stroke='%237a2a32' stroke-width='1'/></svg>");
-    background-size: 56px 48px;
-    mask-image: radial-gradient(ellipse at 50% 40%, #000 20%, transparent 75%);
-  }
-
-  .fox-top {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.5rem 1rem;
-    min-height: 3rem;
-    padding: 0.4rem 1rem;
-    border: 0;
-    background: transparent;
-  }
-
-  .fox-brand {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    letter-spacing: 0.22em;
-    font-size: 0.8rem;
-    color: var(--color-fg);
-    position: relative;
-    padding: 0.2rem 0;
-    background: transparent;
-    border: 0;
-  }
-
-  .fox-brand .fox-mark,
-  .fox-link .fox-mark {
-    width: 2rem;
-    height: 2.2rem;
-    border: 0;
-    background: transparent;
-  }
-
-  .fox-meta {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 0.5rem 1rem;
-    color: var(--color-muted);
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-  }
-
-  img.fox-mark {
-    display: block;
-    object-fit: contain;
-  }
-
-  .fox-brand .fox-mark {
-    width: 2rem;
-    height: 2.2rem;
-  }
-
-  .fox-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-  }
-
-  .fox-link .fox-mark {
-    width: 1.35rem;
-    height: 1.5rem;
-  }
-
-  .fox-meta strong {
-    color: var(--color-warn);
-    font-weight: 500;
-  }
-
-  .fox-stage {
-    position: relative;
-    z-index: 1;
-    flex: 1;
-    min-height: 0;
-    display: grid;
-    grid-template-columns: 4.6rem minmax(0, 1.5fr) minmax(13rem, 0.85fr) minmax(13rem, 0.85fr);
-    grid-template-rows: minmax(0, 1fr) auto;
-    gap: 0.75rem;
-    padding: 0.75rem;
-  }
-
-  .fox-panel {
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    min-width: 0;
-    overflow: hidden;
-    opacity: 0.62;
-    background: color-mix(in srgb, var(--color-panel) 94%, transparent);
-    border: 1px solid var(--color-line);
-    border-radius: var(--radius-sm);
-  }
-
-  .fox-panel.is-active {
-    opacity: 1;
-    border-color: var(--color-warn);
-  }
-
-  .fox-panel.is-launch {
-    animation: fox-launch 0.7s ease;
-  }
-
-  .fox-panel-h {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-    padding: 0.6rem 0.8rem;
-    border-bottom: 1px solid var(--color-line);
-    color: var(--color-accent);
-    font-size: 0.72rem;
-    letter-spacing: 0.16em;
-  }
-
-  .fox-window .fox-panel-h {
-    position: relative;
-    margin: 0.25rem;
-    background: color-mix(in srgb, #100608 75%, transparent);
-    border: 1.5px solid var(--color-accent);
-    border-radius: 1.5px;
-    overflow: hidden;
-  }
-
-  .fox-window.is-line-in .fox-panel-h {
-    animation: line-in 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-  }
-
-  .fox-window.is-line-in .fox-panel-h::after,
-  .fox-window.is-line-out .fox-panel-h::after,
-  .fox-window.is-line-in::after,
-  .fox-window.is-line-out::after,
-  .fox-dock::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 1.5px;
-    background: var(--color-accent);
-    pointer-events: none;
-    z-index: 4;
-  }
-
-  .fox-window.is-line-in .fox-panel-h::after,
-  .fox-window.is-line-in::after,
-  .fox-dock::after {
-    animation: scan-up 0.5s linear both;
-  }
-
-  .fox-window.is-line-out .fox-panel-h,
-  .fox-window.is-line-out {
-    animation: line-out 0.42s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-  }
-
-  .fox-window.is-line-out .fox-panel-h::after,
-  .fox-window.is-line-out::after {
-    animation: dissolve-scan 0.42s linear both;
-  }
-
-  .fox-panel-b {
-    min-height: 0;
-    flex: 1;
-    overflow: auto;
-    padding: 0.8rem;
-  }
-
-  .fox-apps {
-    position: relative;
-    z-index: 2;
-    grid-column: 1;
-    grid-row: 1 / span 2;
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    min-height: 0;
-    overflow: auto;
-  }
-
-  .fox-app {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.15rem;
-    padding: 0.3rem 0.15rem;
-    border: 1px solid transparent;
-    background: transparent;
-    color: var(--color-fg);
-    font-family: var(--font-mono);
-    font-size: 0.62rem;
-    letter-spacing: 0.08em;
-  }
-
-  .fox-app .fox-mark {
-    width: 2.7rem;
-    height: 3rem;
-  }
-
-  .fox-app.is-on,
-  .fox-app:hover {
-    border-color: var(--color-warn);
-    background: color-mix(in srgb, var(--color-accent) 28%, transparent);
-  }
-
-  .fox-term {
-    grid-column: 2;
-    grid-row: 1 / span 2;
-  }
-
-  .fox-qdev {
-    grid-column: 3;
-    grid-row: 1;
-  }
-
-  .fox-ai {
-    grid-column: 4;
-    grid-row: 1 / span 2;
-  }
-
-  .fox-sys {
-    grid-column: 3;
-    grid-row: 2;
-  }
-
-  .fox-term-body {
-    position: relative;
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    background: var(--color-bg);
-  }
-
-  .fox-scan {
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: var(--color-accent);
-    box-shadow: 0 0 8px var(--color-accent);
-    z-index: 2;
-    pointer-events: none;
-    opacity: 0;
-  }
-
-  .fox-term.is-opening .fox-term-body {
-    animation: term-up 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-  }
-
-  .fox-term.is-opening .fox-scan {
-    opacity: 1;
-    animation: scan-up 0.7s linear both;
-  }
-
-  .fox-term.is-closing .fox-term-body {
-    animation: term-down 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-  }
-
-  .fox-term.is-closing .fox-scan {
-    opacity: 1;
-    animation: dissolve-scan 0.7s linear both;
-  }
-
-  .fox-term.is-closed {
-    display: none;
-  }
-
-  .fox-log {
-    flex: 1;
-    min-height: 0;
-    overflow: auto;
-    padding: 0.8rem;
-    font-family: var(--font-mono);
-    font-size: 0.78rem;
-    line-height: 1.55;
-    white-space: pre-wrap;
-    word-break: break-word;
-    unicode-bidi: plaintext;
-  }
-
-  .fox-line-err {
-    color: var(--color-warn);
-  }
-
-  .fox-line-sys {
-    color: var(--color-muted);
-  }
-
-  .fox-line-cmd {
-    color: var(--color-accent-dim);
-  }
-
-  .fox-prompt {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.55rem 0.8rem;
-    border-top: 1px solid var(--color-line);
-    font-family: var(--font-mono);
-    font-size: 0.78rem;
-  }
-
-  .fox-prompt span {
-    color: var(--color-accent);
-  }
-
-  .fox-prompt input {
-    flex: 1;
-    min-width: 0;
-    background: transparent;
-    border: 0;
-    color: var(--color-fg);
-    font: inherit;
-  }
-
-  .fox-prompt textarea {
-    flex: 1;
-    min-width: 0;
-    min-height: 3.2rem;
-    resize: vertical;
-    background: transparent;
-    border: 0;
-    color: var(--color-fg);
-    font: inherit;
-  }
-
-  .fox-prompt input:focus,
-  .fox-prompt textarea:focus {
-    outline: none;
-  }
-
-  .fox-kv {
-    display: flex;
-    justify-content: space-between;
-    gap: 0.75rem;
-    padding: 0.4rem 0;
-    border-bottom: 1px solid var(--color-line);
-    font-size: 0.82rem;
-  }
-
-  .fox-kv span:first-child {
-    color: var(--color-muted);
-  }
-
-  .fox-kv b {
-    font-weight: 500;
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-  }
-
-  .fox-ok {
-    color: var(--color-ok);
-  }
-
-  .fox-warn {
-    color: var(--color-warn);
-  }
-
-  .fox-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-    margin-top: 0.8rem;
-  }
-
-  .fox-btn {
-    min-height: 2.75rem;
-    padding: 0.4rem 0.75rem;
-    background: transparent;
-    color: var(--color-fg);
-    border: 1px solid var(--color-accent);
-    border-radius: var(--radius-sm);
-    font-size: 0.75rem;
-    letter-spacing: 0.04em;
-  }
-
-  .fox-btn:hover {
-    border-color: var(--color-warn);
-    color: var(--color-warn);
-  }
-
-  .fox-btn-accent {
-    border-color: var(--color-warn);
-    color: var(--color-warn);
-    background: color-mix(in srgb, var(--color-accent) 24%, transparent);
-  }
-
-  .fox-btn-warn {
-    border-color: color-mix(in srgb, var(--color-warn) 70%, var(--color-line));
-    color: var(--color-warn);
-  }
-
-  .fox-chat {
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-  }
-
-  .fox-bubble {
-    padding: 0.55rem 0.7rem;
-    background: var(--color-sub);
-    border: 1px solid var(--color-line);
-    font-size: 0.84rem;
-  }
-
-  .fox-bubble.is-user {
-    color: var(--color-muted);
-  }
-
-  .fox-proposal {
-    margin-top: 0.45rem;
-    padding: 0.55rem;
-    border: 1px solid color-mix(in srgb, var(--color-warn) 55%, var(--color-line));
-    background: var(--color-bg);
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-  }
-
-  .fox-proposal p {
-    margin: 0.2rem 0;
-    color: var(--color-muted);
-    font-family: var(--font-sans);
-    font-size: 0.75rem;
-  }
-
-  .fox-ai-form {
-    display: flex;
-    gap: 0.4rem;
-    padding: 0.7rem;
-    border-top: 1px solid var(--color-line);
-  }
-
-  .fox-ai-form input {
-    flex: 1;
-    min-width: 0;
-    min-height: 2.75rem;
-    padding: 0 0.7rem;
-    background: var(--color-sub);
-    border: 1px solid var(--color-line);
-    color: var(--color-fg);
-    font: inherit;
-    font-size: 0.84rem;
-  }
-
-  .fox-note {
-    color: var(--color-muted);
-    font-size: 0.75rem;
-  }
-
-  .fox-dock {
-    position: relative;
-    z-index: 4;
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
-    min-height: 3rem;
-    margin: 0 14px 0.35rem;
-    padding: 0.28rem 0.45rem;
-    background: color-mix(in srgb, #100608 75%, transparent);
-    border: 1.5px solid var(--color-accent);
-    border-radius: 1.5px;
-    overflow-x: auto;
-    backdrop-filter: blur(8px);
-  }
-
-  .fox-power {
-    display: flex;
-    align-items: center;
-    gap: 0.15rem;
-  }
-
-  .fox-power .fox-task-ico {
-    min-width: 4.6rem;
-    font-size: 0.55rem;
-  }
-
-  .fox-power-screen {
-    position: absolute;
-    inset: 0;
-    z-index: 8;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.6rem;
-    background: color-mix(in srgb, #050203 92%, transparent);
-    color: #f6f3f0;
-    border: 0;
-    letter-spacing: 0.18em;
-  }
-
-  .fox-power-screen span,
-  .fox-power-screen p {
-    color: var(--color-muted);
-    letter-spacing: 0.08em;
-    font-size: 0.8rem;
-  }
-
-  .fox-power-screen.is-off {
-    background: #050203;
-  }
-
-  .fox-task-apps,
-  .fox-task-wins,
-  .fox-task-tray {
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-    min-width: 0;
-  }
-
-  .fox-task-wins {
-    flex: 1;
-    overflow-x: auto;
-    overflow-y: hidden;
-  }
-
-  .fox-task-tray {
-    margin-left: auto;
-    flex-shrink: 0;
-  }
-
-  .fox-vol {
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-    color: #f6f3f0;
-    font-size: 0.68rem;
-    letter-spacing: 0.06em;
-  }
-
-  .fox-vol input {
-    width: 5.2rem;
-    accent-color: #ffd24a;
-  }
-
-  .fox-dock .fox-btn {
-    background: #100608;
-    color: #f6f3f0;
-    border-color: #ffd24a;
-  }
-
-  .fox-task-ico {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.05rem;
-    min-width: 2.5rem;
-    padding: 0.12rem 0.2rem;
-    border: 1px solid transparent;
-    background: transparent;
-    color: #f6f3f0;
-    font-family: var(--font-mono);
-    font-size: 0.58rem;
-    letter-spacing: 0.06em;
-  }
-
-  .fox-task-ico .fox-mark,
-  .fox-vol .fox-mark {
-    width: 1.25rem;
-    height: 1.4rem;
-  }
-
-  .fox-task-ico:hover,
-  .fox-task-ico.is-on,
-  .fox-ime.is-on {
-    border-color: #ffd24a;
-    background: #100608;
-  }
-
-  .fox-ime.is-on span {
-    color: #ffd24a;
-  }
-
-  .fox-ime-field {
-    position: relative;
-    flex: 1;
-    min-width: 0;
-    display: flex;
-  }
-
-  .fox-ime-field input {
-    width: 100%;
-  }
-
-  .fox-ime-picks {
-    position: absolute;
-    z-index: 8;
-    left: 0;
-    top: calc(100% + 4px);
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-    max-width: min(32rem, 86vw);
-    padding: 0.35rem;
-    background: #1a0c10;
-    border: 1px solid #ffd24a;
-  }
-
-  .fox-ime-picks button {
-    min-height: 1.8rem;
-    padding: 0.15rem 0.45rem;
-    border: 1px solid #7a2a32;
-    background: transparent;
-    color: #f6f3f0;
-    font-size: 0.78rem;
-  }
-
-  .fox-ime-picks button.is-on {
-    border-color: #ffd24a;
-    background: #e31c2b;
-    color: #fff;
-  }
-
-  .fox-dock strong {
-    color: #ffd24a;
-    font-size: 0.75rem;
-  }
-
-  .fox-dock .fox-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.1rem;
-    min-width: 0;
-  }
-
-  .fox-dock .fox-mark {
-    width: 1.7rem;
-    height: 1.85rem;
-  }
-
-  .fox-boot {
-    position: absolute;
-    inset: 0;
-    z-index: 5;
-    background: #100608;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .fox-boot.is-leaving {
-    animation: boot-out 0.45s ease both;
-  }
-
-  .fox-boot canvas,
-  .fox-hive {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-  }
-
-  .fox-hive polygon {
-    fill: color-mix(in srgb, var(--color-accent) 18%, transparent);
-    stroke: var(--color-accent);
-    stroke-width: 1;
-    opacity: 0;
-    animation: hive-cell 1.35s ease both;
-  }
-
-  .fox-boot.is-audible .fox-hive polygon {
-    animation: hive-cell 1.35s ease both;
-  }
-
-  .fox-boot-center {
-    position: relative;
-    z-index: 1;
-    text-align: center;
-    opacity: 1;
-  }
-
-  .fox-boot.is-audible .fox-boot-center {
-    animation: fox-in 0.7s ease 1.6s both;
-  }
-
-  .fox-boot-center .fox-boot-hint {
-    margin: 0.8rem 0 0;
-    color: var(--color-warn);
-    font-size: 0.85rem;
-    letter-spacing: 0.08em;
-  }
-
-  .fox-boot-center .fox-mark {
-    width: 8.4rem;
-    height: 9.2rem;
-  }
-
-  .fox-boot-center h1 {
-    margin: 0.85rem 0 0;
-    letter-spacing: 0.42em;
-    font-weight: 500;
-    font-size: 1.15rem;
-    color: var(--color-fg);
-  }
-
-  .fox-boot-center p,
-  .fox-boot-phase {
-    color: var(--color-muted);
-    letter-spacing: 0.18em;
-    font-size: 0.72rem;
-  }
-
-  .fox-boot-phase {
-    position: absolute;
-    top: 1.2rem;
-    left: 1.2rem;
-    z-index: 2;
-  }
-
-  .fox-boot-skip {
-    position: absolute;
-    bottom: 1.2rem;
-    right: 1.2rem;
-    z-index: 2;
-  }
-
-  .fox-browser {
-    position: absolute;
-    z-index: 4;
-    right: 1rem;
-    bottom: 1rem;
-    width: min(28rem, calc(100% - 2rem));
-    background: var(--color-panel);
-    border: 1px solid var(--color-accent);
-    box-shadow: 0 12px 40px color-mix(in srgb, var(--color-bg) 70%, transparent);
-  }
-
-  .fox-browser header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.45rem 0.7rem;
-    border-bottom: 1px solid var(--color-line);
-    color: var(--color-muted);
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-  }
-
-  .fox-tree {
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
-    margin-top: 0.8rem;
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-  }
-
-  .fox-tree button {
-    min-height: 2rem;
-    padding: 0.2rem 0.4rem;
-    text-align: left;
-    background: transparent;
-    color: var(--color-fg);
-    border: 0;
-  }
-
-  .fox-tree pre {
-    margin: 0.4rem 0 0;
-    white-space: pre-wrap;
-    color: var(--color-muted);
-  }
-
-  .fox-slack {
-    position: absolute;
-    z-index: 6;
-    inset: 4.5rem 1rem 1rem;
-    display: grid;
-    grid-template-columns: 9rem minmax(0, 1fr);
-    background: transparent;
-    border: 1.5px solid var(--color-accent);
-    border-radius: 1.5px;
-  }
-
-  .fox-slack aside {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    padding: 0.6rem;
-    background: #1a0c10;
-    border-right: 1px solid var(--color-line);
-  }
-
-  .fox-slack aside button {
-    min-height: 2.25rem;
-    text-align: left;
-    background: transparent;
-    color: var(--color-fg);
-    border: 0;
-  }
-
-  .fox-slack aside button.is-on {
-    color: var(--color-warn);
-  }
-
-  .fox-slack section {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    min-height: 0;
-  }
-
-  .fox-slack-log {
-    flex: 1;
-    overflow: auto;
-    padding: 0.8rem;
-  }
-
-  .fox-slack-log b {
-    color: var(--color-warn);
-    margin-right: 0.4rem;
-  }
-
-  .fox-browser pre {
-    margin: 0;
-    padding: 1.2rem;
-    min-height: 6rem;
-    font-family: var(--font-mono);
-    color: var(--color-fg);
-  }
-
-  .fox-confirm {
-    margin: 0.6rem 0.8rem;
-    padding: 0.6rem;
-    border: 1px solid var(--color-warn);
-    color: var(--color-warn);
-    font-size: 0.78rem;
-  }
+export function LookPanel() {
+  const creature = useFox((s) => s.creature);
+  const emblemOn = useFox((s) => s.emblemOn);
+  const promptName = useFox((s) => s.promptName);
+  const plugins = useFox((s) => s.plugins);
+  const setLook = useFox((s) => s.setLook);
+  const addPlugin = useFox((s) => s.addPlugin);
+  const [name, setName] = useState(promptName);
+  const [idea, setIdea] = useState("");
+  const kinds = ["txt", "md", "py", "js", "ts", "json", "png", "svg", "mp3", "iso", "pdf", "zip"];
+
+  return (
+    <div className="fox-extra">
+      <h2>見た目</h2>
+      <MorphText text="名前もエンブレムも、机の中だけで変わります。人の情報は外へ送りません。" />
+      <label>
+        プロンプト名
+        <input value={name} aria-label="プロンプト名" onChange={(event) => setName(event.target.value)} />
+      </label>
+      <button type="button" className="fox-btn" onClick={() => setLook({ promptName: name.trim() || BRAND.prompt })}>
+        ターミナル名を変える
+      </button>
+      <div className="fox-kinds">
+        {CREATURES.map((item) => (
+          <button key={item.id} type="button" className={creature === item.id ? "is-on" : ""} onClick={() => setLook({ creature: item.id, emblemOn: item.id !== "none" })}>
+            {item.label}
+          </button>
+        ))}
+        <button type="button" className={!emblemOn ? "is-on" : ""} onClick={() => setLook({ emblemOn: !emblemOn })}>
+          {emblemOn ? "エンブレムを消す" : "エンブレムを戻す"}
+        </button>
+      </div>
+      <h2>ルール</h2>
+      <p>傷つけない。意見の勝ち負けは追わない。合否より、一緒にいることを先にする。これがこの机のアサーティブなジンテーゼです。</p>
+      <h2>プラグイン</h2>
+      <p>少ない意見も、ここに残します。自動では公開しません。</p>
+      <input value={idea} aria-label="アイデア" placeholder="入れたいソフト" onChange={(event) => setIdea(event.target.value)} />
+      <button
+        type="button"
+        className="fox-btn"
+        onClick={() => {
+          if (!idea.trim()) return;
+          addPlugin(idea.trim(), "Grok Bot の更新候補（この机だけ）");
+          setIdea("");
+        }}
+      >
+        更新候補にする
+      </button>
+      <ul>
+        {plugins.map((item) => (
+          <li key={item.name}>
+            {item.name} · {item.note}
+          </li>
+        ))}
+      </ul>
+      <h2>拡張子</h2>
+      <p>{kinds.join("  ")} はエクスプローラのテキストとして開けます。実在の専用ソフトの全部は、このブラウザには入っていません。</p>
+    </div>
+  );
 }
 
-.fox-login {
-    position: absolute;
-    inset: 0;
-    z-index: 6;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.7rem;
-    background: #100608;
-  }
-
-  .fox-login .fox-mark {
-    width: 5rem;
-    height: 5.5rem;
-  }
-
-  .fox-login h1 {
-    margin: 0;
-    letter-spacing: 0.28em;
-    font-size: 1rem;
-  }
-
-  .fox-login label {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    width: min(18rem, 86vw);
-    color: var(--color-muted);
-    font-size: 0.75rem;
-  }
-
-  .fox-login input {
-    min-height: 2.5rem;
-    background: #0c0608;
-    color: var(--color-fg);
-    border: 1px solid var(--color-line);
-    padding: 0 0.6rem;
-  }
-
-  .fox-login p {
-    margin: 0;
-    color: var(--color-warn);
-  }
-
-  .fox-login-go {
-    margin-top: 1.1rem;
-  }
-
-  .fox-desk {
-    display: block;
-  }
-
-  .fox-desk .fox-apps {
-    position: absolute;
-    inset: 0 0 0.2rem 0;
-    width: auto;
-    overflow: hidden;
-    display: block;
-    pointer-events: none;
-  }
-
-  .fox-desk .fox-app {
-    position: absolute;
-    width: 4.4rem;
-    pointer-events: auto;
-    cursor: grab;
-    touch-action: none;
-  }
-
-  .fox-apps .fox-context {
-    pointer-events: auto;
-  }
-
-  .fox-icon-edit {
-    width: 100%;
-    min-height: 1.2rem;
-    padding: 0;
-    border: 1px solid #ffd24a;
-    background: #100608;
-    color: #f6f3f0;
-    font-size: 0.62rem;
-    text-align: center;
-  }
-
-  .fox-window {
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    min-width: 12rem;
-    min-height: 8rem;
-    background: color-mix(in srgb, #1a0c10 95%, transparent);
-    border: 1.5px solid var(--color-accent);
-    border-radius: 1.5px;
-    overflow: hidden;
-  }
-
-  .fox-window.is-line-in {
-    animation: line-in 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-  }
-
-  .fox-window.is-line-out {
-    animation: line-out 0.42s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-    pointer-events: none;
-  }
-
-  .fox-window-body {
-    flex: 1;
-    min-height: 0;
-    overflow: auto;
-    background: color-mix(in srgb, var(--color-panel) 95%, transparent);
-  }
-
-  .fox-window .fox-term-body {
-    background: transparent;
-  }
-
-  .fox-resize {
-    display: none;
-  }
-
-  .fox-edge {
-    position: absolute;
-    z-index: 6;
-  }
-
-  .fox-edge-n { top: 0; left: 10px; right: 10px; height: 6px; cursor: ns-resize; }
-  .fox-edge-s { bottom: 0; left: 10px; right: 10px; height: 6px; cursor: ns-resize; }
-  .fox-edge-e { top: 10px; right: 0; bottom: 10px; width: 6px; cursor: ew-resize; }
-  .fox-edge-w { top: 10px; left: 0; bottom: 10px; width: 6px; cursor: ew-resize; }
-  .fox-edge-nw { top: 0; left: 0; width: 12px; height: 12px; cursor: nwse-resize; }
-  .fox-edge-se { right: 0; bottom: 0; width: 12px; height: 12px; cursor: nwse-resize; }
-  .fox-edge-ne { top: 0; right: 0; width: 12px; height: 12px; cursor: nesw-resize; }
-  .fox-edge-sw { left: 0; bottom: 0; width: 12px; height: 12px; cursor: nesw-resize; }
-
-  .fox-win-ctl {
-    display: flex;
-    gap: 0.15rem;
-  }
-
-  .fox-win-ctl button {
-    width: 1.7rem;
-    height: 1.35rem;
-    padding: 0;
-    border: 1px solid transparent;
-    background: transparent;
-    color: #f6f3f0;
-    font-size: 0.85rem;
-    line-height: 1;
-  }
-
-  .fox-win-ctl button:hover {
-    border-color: #ffd24a;
-    background: #100608;
-  }
-
-  .fox-win-ctl .is-close:hover {
-    border-color: #e31c2b;
-    background: #e31c2b;
-    color: #fff;
-  }
-
-  .fox-start,
-  .fox-clock-btn,
-  .fox-show-desk {
-    border: 1px solid transparent;
-    background: transparent;
-    color: #f6f3f0;
-  }
-
-  .fox-start {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    min-height: 2.2rem;
-    padding: 0 0.45rem;
-    font-size: 0.68rem;
-    letter-spacing: 0.08em;
-  }
-
-  .fox-start .fox-mark {
-    width: 1.25rem;
-    height: 1.4rem;
-  }
-
-  .fox-start.is-on,
-  .fox-start:hover,
-  .fox-clock-btn:hover {
-    border-color: #ffd24a;
-    background: #100608;
-  }
-
-  .fox-clock-btn {
-    color: #ffd24a;
-    font-size: 0.75rem;
-    padding: 0.2rem 0.35rem;
-  }
-
-  .fox-show-desk {
-    width: 0.45rem;
-    align-self: stretch;
-    border-left: 1px solid #ffd24a;
-  }
-
-  .fox-task-ico.is-min {
-    opacity: 0.45;
-  }
-
-  .fox-task-wins .fox-task-ico {
-    max-width: 7.5rem;
-  }
-
-  .fox-task-wins .fox-task-ico span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 5.5rem;
-  }
-
-  .fox-start-menu,
-  .fox-calendar,
-  .fox-context,
-  .fox-switcher {
-    position: absolute;
-    z-index: 8;
-    background: color-mix(in srgb, #100608 88%, transparent);
-    border: 1.5px solid #ffd24a;
-    color: #f6f3f0;
-    backdrop-filter: blur(8px);
-  }
-
-  .fox-start-menu {
-    left: 14px;
-    bottom: 3.7rem;
-    width: min(22rem, calc(100vw - 2rem));
-    padding: 0.6rem;
-  }
-
-  .fox-start-menu input {
-    width: 100%;
-    min-height: 2.2rem;
-    margin-bottom: 0.45rem;
-    padding: 0 0.55rem;
-    border: 1px solid #7a2a32;
-    background: #1a0c10;
-    color: #f6f3f0;
-  }
-
-  .fox-start-apps {
-    display: grid;
-    gap: 0.25rem;
-  }
-
-  .fox-start-apps button,
-  .fox-start-power button,
-  .fox-context button,
-  .fox-switcher button {
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
-    width: 100%;
-    min-height: 2.2rem;
-    padding: 0.25rem 0.4rem;
-    border: 0;
-    background: transparent;
-    color: #f6f3f0;
-    text-align: left;
-  }
-
-  .fox-start-apps button:hover,
-  .fox-start-power button:hover,
-  .fox-context button:hover,
-  .fox-switcher button:hover,
-  .fox-switcher button.is-on {
-    background: #e31c2b;
-  }
-
-  .fox-start-apps small {
-    display: block;
-    color: #e7c4bc;
-    font-size: 0.65rem;
-  }
-
-  .fox-start-apps .fox-mark {
-    width: 1.4rem;
-    height: 1.55rem;
-  }
-
-  .fox-start-power {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.3rem;
-    margin-top: 0.55rem;
-    padding-top: 0.45rem;
-    border-top: 1px solid #7a2a32;
-  }
-
-  .fox-start-power button {
-    justify-content: center;
-    border: 1px solid #7a2a32;
-    font-size: 0.68rem;
-  }
-
-  .fox-calendar {
-    right: 1.2rem;
-    bottom: 3.7rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    padding: 0.7rem 0.9rem;
-  }
-
-  .fox-context {
-    position: fixed;
-    min-width: 11rem;
-    padding: 0.25rem;
-  }
-
-  .fox-switcher {
-    left: 50%;
-    top: 38%;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-    width: min(28rem, calc(100% - 2rem));
-    padding: 0.55rem;
-    transform: translateX(-50%);
-  }
-
-  .fox-switcher button {
-    width: auto;
-    border: 1px solid #7a2a32;
-  }
-
-  .fox-dict,
-  .fox-pkg,
-  .fox-chrome {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    min-height: 0;
-    background: #202124;
-    color: #e8eaed;
-  }
-
-  .fox-dict header,
-  .fox-pkg header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-    padding: 0.45rem 0.6rem;
-    background: #292a2d;
-  }
-
-  .fox-dict header span,
-  .fox-pkg small,
-  .fox-chrome small {
-    color: #9aa0a6;
-  }
-
-  .fox-dict .fox-kana,
-  .fox-dict input,
-  .fox-pkg > input {
-    margin: 0.4rem 0.6rem 0;
-  }
-
-  .fox-dict-body,
-  .fox-pkg-grid {
-    display: grid;
-    grid-template-columns: 11rem 1fr;
-    gap: 0.4rem;
-    min-height: 0;
-    flex: 1;
-    padding: 0.45rem 0.6rem;
-  }
-
-  .fox-dict-body ul,
-  .fox-pkg-grid ul,
-  .fox-pkg aside {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    overflow: auto;
-  }
-
-  .fox-dict-body button,
-  .fox-pkg button {
-    display: grid;
-    width: 100%;
-    text-align: left;
-    border: 0;
-    background: transparent;
-    color: inherit;
-    padding: 0.3rem 0.35rem;
-  }
-
-  .fox-dict-body button.is-on,
-  .fox-pkg header button.is-on {
-    background: #3c4043;
-  }
-
-  .fox-dict article {
-    padding: 0.4rem 0.2rem;
-  }
-
-  .fox-dict h2 {
-    margin: 0.15rem 0;
-    font-size: 1.6rem;
-    color: #f2d2cb;
-  }
-
-  .fox-dict blockquote {
-    margin: 0.6rem 0 0;
-    color: #e8eaed;
-  }
-
-  .fox-pkg header div {
-    display: flex;
-    gap: 0.25rem;
-  }
-
-  .fox-pkg header button {
-    width: auto;
-    border-radius: 999px;
-    padding: 0.15rem 0.45rem;
-  }
-
-  .fox-pkg-grid {
-    grid-template-columns: 1fr 9.5rem;
-  }
-
-  .fox-pkg-grid li {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 0.1rem 0.4rem;
-    border-bottom: 1px solid #3c4043;
-    padding: 0.25rem 0;
-  }
-
-  .fox-pkg-grid li small {
-    grid-column: 1;
-  }
-
-  .fox-pkg pre {
-    margin: 0;
-    max-height: 5.5rem;
-    overflow: auto;
-    padding: 0.4rem 0.6rem;
-    background: #171717;
-    color: #e7c4bc;
-    white-space: pre-wrap;
-  }
-
-  .fox-chrome-tabs {
-    display: flex;
-    align-items: flex-end;
-    gap: 0.2rem;
-    padding: 0.35rem 0.4rem 0;
-    background: #202124;
-  }
-
-  .fox-chrome-tabs > button {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    max-width: 11rem;
-    height: 2rem;
-    padding: 0 0.55rem;
-    border: 0;
-    border-radius: 0.55rem 0.55rem 0 0;
-    background: transparent;
-    color: #9aa0a6;
-  }
-
-  .fox-chrome-tabs > button.is-on {
-    background: #323639;
-    color: #e8eaed;
-  }
-
-  .fox-chrome-tabs span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .fox-chrome-tabs i {
-    font-style: normal;
-  }
-
-  .fox-chrome-add {
-    width: 2rem;
-    justify-content: center;
-  }
-
-  .fox-chrome-nav {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.35rem 0.45rem;
-    background: #323639;
-  }
-
-  .fox-chrome-nav > button,
-  .fox-chrome-marks button,
-  .fox-ntp button,
-  .fox-chrome-menu button,
-  .fox-chrome-embed > button {
-    border: 0;
-    background: transparent;
-    color: #e8eaed;
-  }
-
-  .fox-chrome-nav > button {
-    width: 1.8rem;
-    height: 1.8rem;
-    border-radius: 50%;
-  }
-
-  .fox-chrome-nav > button:disabled {
-    opacity: 0.35;
-  }
-
-  .fox-chrome-nav .is-star {
-    color: #f2c14e;
-  }
-
-  .fox-omnibox {
-    display: flex;
-    flex: 1;
-    align-items: center;
-    gap: 0.35rem;
-    height: 2rem;
-    padding: 0 0.7rem;
-    border-radius: 1rem;
-    background: #202124;
-    border: 1px solid #5f6368;
-  }
-
-  .fox-omnibox input {
-    flex: 1;
-    border: 0;
-    background: transparent;
-    color: #e8eaed;
-    outline: none;
-  }
-
-  .fox-chrome-menu {
-    position: absolute;
-    top: 2.4rem;
-    right: 0.4rem;
-    z-index: 3;
-    display: flex;
-    flex-direction: column;
-    min-width: 12rem;
-    padding: 0.3rem;
-    background: #292a2d;
-    border-radius: 0.4rem;
-    box-shadow: 0 8px 24px #0008;
-  }
-
-  .fox-chrome-menu button {
-    text-align: left;
-    padding: 0.35rem 0.5rem;
-  }
-
-  .fox-chrome-marks {
-    display: flex;
-    gap: 0.35rem;
-    padding: 0.2rem 0.55rem 0.35rem;
-    background: #323639;
-    overflow: auto;
-  }
-
-  .fox-chrome-page {
-    flex: 1;
-    min-height: 0;
-    background: #fff;
-    color: #202124;
-  }
-
-  .fox-chrome-page iframe {
-    width: 100%;
-    height: 100%;
-    border: 0;
-    background: #fff;
-  }
-
-  .fox-ntp {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.8rem;
-    height: 100%;
-    background: #202124;
-    color: #e8eaed;
-  }
-
-  .fox-ntp b {
-    font-size: 2.4rem;
-    letter-spacing: 0.2rem;
-    color: #e24b4b;
-  }
-
-  .fox-ntp form {
-    width: min(28rem, 90%);
-  }
-
-  .fox-ntp input {
-    width: 100%;
-    height: 2.6rem;
-    border-radius: 1.3rem;
-    border: 1px solid #5f6368;
-    background: #303134;
-    color: #e8eaed;
-    padding: 0 1rem;
-  }
-
-  .fox-ntp div {
-    display: flex;
-    gap: 0.4rem;
-  }
-
-  .fox-chrome-list {
-    margin: 0;
-    padding: 0.6rem;
-    list-style: none;
-    color: #e8eaed;
-    background: #202124;
-    height: 100%;
-    overflow: auto;
-  }
-
-  .fox-chrome-list button {
-    display: grid;
-    width: 100%;
-    text-align: left;
-    border: 0;
-    background: transparent;
-    color: inherit;
-    padding: 0.4rem 0;
-  }
-
-  .fox-chrome-card,
-  .fox-chrome-embed {
-    height: 100%;
-    padding: 0.8rem;
-    background: #202124;
-    color: #e8eaed;
-    overflow: auto;
-  }
-
-  .fox-chrome-embed {
-    display: flex;
-    flex-direction: column;
-    padding: 0;
-  }
-
-  .fox-kinds,
-  .fox-dict-pages {
-    display: flex;
-    gap: 0.25rem;
-    overflow: auto;
-    padding: 0.35rem 0.5rem 0;
-  }
-
-  .fox-dict-pages {
-    padding: 0;
-  }
-
-  .fox-kinds button,
-  .fox-dict-pages button,
-  .fox-grammar button {
-    width: auto;
-    border: 0;
-    border-radius: 999px;
-    background: transparent;
-    color: #e8eaed;
-    padding: 0.15rem 0.45rem;
-  }
-
-  .fox-kinds button.is-on,
-  .fox-dict-pages button.is-on,
-  .fox-grammar button.is-on {
-    background: #8a2a32;
-  }
-
-  .fox-tr,
-  .fox-grammar {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.5rem;
-    min-height: 0;
-    flex: 1;
-    padding: 0.5rem;
-  }
-
-  .fox-tr textarea {
-    width: 100%;
-    min-height: 8rem;
-    border: 1px solid #5f6368;
-    background: #171717;
-    color: #e8eaed;
-    padding: 0.4rem;
-  }
-
-  .fox-grammar {
-    grid-template-columns: 7rem 1fr;
-  }
-
-  .fox-grammar aside {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-  }
-
-  .fox-grammar article,
-  .fox-tr article {
-    overflow: auto;
-  }
-
-  .fox-grammar h2,
-  .fox-grammar h3 {
-    margin: 0.2rem 0;
-  }
-
-  .fox-chrome.is-private {
-    outline: 1px solid #9aa0a6;
-  }
-
-  .fox-chrome-load {
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 2px;
-    width: 40%;
-    background: #e24b4b;
-    animation: fox-load 0.42s ease both;
-  }
-
-  .fox-chrome-tabs > button.is-pin {
-    max-width: 4.5rem;
-  }
-
-  .fox-lock {
-    border: 0;
-    background: transparent;
-    color: inherit;
-    padding: 0;
-  }
-
-  .fox-suggest {
-    position: absolute;
-    top: 2.5rem;
-    left: 6rem;
-    right: 8rem;
-    z-index: 4;
-    display: flex;
-    flex-direction: column;
-    background: #292a2d;
-    border-radius: 0.4rem;
-  }
-
-  .fox-suggest button {
-    display: grid;
-    text-align: left;
-    border: 0;
-    background: transparent;
-    color: #e8eaed;
-    padding: 0.35rem 0.6rem;
-  }
-
-  .fox-find,
-  .fox-shelf,
-  .fox-chrome-status {
-    display: flex;
-    gap: 0.4rem;
-    align-items: center;
-    padding: 0.25rem 0.5rem;
-    background: #292a2d;
-  }
-
-  .fox-find input {
-    flex: 1;
-    border: 0;
-    background: #202124;
-    color: #e8eaed;
-    padding: 0.2rem 0.4rem;
-  }
-
-  .fox-chrome-menu.is-tab {
-    position: absolute;
-  }
-
-  .fox-blocks {
-    display: grid;
-    grid-template-columns: 8.5rem minmax(0, 1fr) minmax(12rem, 0.9fr);
-    height: 100%;
-    min-height: 0;
-    background: #202124;
-    color: #e8eaed;
-  }
-
-  .fox-blocks aside,
-  .fox-script,
-  .fox-kid-stage {
-    min-height: 0;
-    overflow: auto;
-    padding: 0.45rem;
-  }
-
-  .fox-blocks aside > button {
-    display: block;
-    width: 100%;
-    margin: 0 0 0.3rem;
-    border: 0;
-    border-radius: 0.35rem;
-    background: #3c4043;
-    color: #fff;
-    padding: 0.3rem;
-    text-align: left;
-  }
-
-  .fox-block {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-    align-items: center;
-    margin: 0 0 0.35rem;
-    padding: 0.35rem 0.45rem;
-    border: 0;
-    border-radius: 0.45rem;
-    color: #fff;
-    text-align: left;
-  }
-
-  .fox-block.is-say { background: #7b4bb6; }
-  .fox-block.is-wait { background: #c96b1a; }
-  .fox-block.is-term { background: #2f6f4e; }
-  .fox-block.is-open { background: #2a62b5; }
-  .fox-block.is-repeat { background: #b4532a; }
-
-  .fox-block input,
-  .fox-block select {
-    max-width: 9rem;
-    border: 0;
-    border-radius: 0.25rem;
-    padding: 0.1rem 0.25rem;
-  }
-
-  .fox-block ul {
-    width: 100%;
-    margin: 0.3rem 0 0;
-    padding: 0 0 0 0.6rem;
-    list-style: none;
-  }
-
-  .fox-script ul {
-    margin: 0.4rem 0 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .fox-flag {
-    border: 0;
-    border-radius: 999px;
-    background: #1f9d55;
-    color: #fff;
-    padding: 0.35rem 0.8rem;
-  }
-
-  .fox-tags {
-    width: 100%;
-    min-height: 12rem;
-    margin-top: 0.4rem;
-    border: 0;
-    border-radius: 0.4rem;
-    background: #111;
-    color: #e8eaed;
-    font-family: var(--font-mono);
-    font-size: 0.78rem;
-    line-height: 1.5;
-    padding: 0.45rem;
-    resize: vertical;
-  }
-
-  .fox-kid-stage {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: flex-start;
-    gap: 0.4rem;
-    background: #111;
-  }
-
-  .fox-code {
-    flex: 1;
-    margin: 0;
-    overflow: auto;
-    padding: 0.45rem;
-    background: #0c0c0c;
-    color: #d7e8c8;
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    line-height: 1.45;
-    white-space: pre-wrap;
-  }
-
-  .fox-kid-stage img {
-    width: 3.2rem;
-    height: 3.2rem;
-    align-self: center;
-  }
-
-  .fox-bubble {
-    background: #fff;
-    color: #202124;
-    border-radius: 0.8rem;
-    padding: 0.4rem 0.55rem;
-  }
-
-  .fox-phone {
-    display: flex;
-    flex-direction: column;
-    gap: 0.45rem;
-    height: 100%;
-    padding: 0.6rem;
-    background: #101418;
-    color: #e8eaed;
-  }
-
-  .fox-phone header {
-    display: flex;
-    justify-content: space-between;
-  }
-
-  .fox-phone-tabs,
-  .fox-pad {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.35rem;
-  }
-
-  .fox-phone button {
-    border: 0;
-    border-radius: 0.6rem;
-    background: #2a3138;
-    color: #fff;
-    padding: 0.45rem;
-  }
-
-  .fox-phone-tabs button.is-on,
-  .fox-kinds button.is-on {
-    background: #8a2a32;
-  }
-
-  .fox-dial {
-    text-align: center;
-    font-size: 1.3rem;
-    letter-spacing: 0.08rem;
-  }
-
-  .fox-sms {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    overflow: auto;
-  }
-
-  .fox-bot {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-  }
-
-  .fox-panes {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    min-height: 0;
-    flex: 1;
-  }
-
-  .fox-pane {
-    min-width: 0;
-    overflow: auto;
-    border-right: 1px solid #3c4043;
-  }
-
-  .fox-exp-row button.is-on {
-    background: #3c4043;
-  }
-
-  .fox-hint {
-    color: #8d939a;
-    font-style: normal;
-    font-size: 0.68rem;
-    white-space: nowrap;
-  }
-
-  .fox-chrome-split {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 11rem;
-    min-height: 0;
-    flex: 1;
-  }
-
-  .fox-page-note {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-    padding: 0.4rem;
-    background: #292a2d;
-    color: #e8eaed;
-  }
-
-  .fox-page-note textarea {
-    flex: 1;
-    min-height: 8rem;
-    border: 0;
-    background: #202124;
-    color: inherit;
-    padding: 0.35rem;
-  }
-
-  .fox-mark-blank {
-    display: inline-block;
-    width: 1.4rem;
-    height: 1.4rem;
-    border-radius: 0.3rem;
-    background: transparent;
-  }
-
-  .fox-ime-hint {
-    position: absolute;
-    left: 0;
-    top: calc(100% + 2px);
-    z-index: 7;
-    color: #ffd24a;
-    font-size: 0.68rem;
-    white-space: nowrap;
-  }
-
-  .fox-extra {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-    height: 100%;
-    overflow: auto;
-    padding: 0.6rem;
-    background: #141414;
-    color: #f6f3f0;
-  }
-
-  .fox-ide {
-    display: grid;
-    grid-template-columns: 7.5rem minmax(0, 1fr);
-    height: 100%;
-    min-height: 0;
-    background: #100608;
-    color: #f6f3f0;
-  }
-
-  .fox-ide aside {
-    padding: 0.5rem;
-    border-right: 1px solid #7a2a32;
-    font-size: 0.72rem;
-  }
-
-  .fox-ide-main {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    min-height: 0;
-  }
-
-  .fox-ide textarea {
-    flex: 1;
-    min-height: 8rem;
-    border: 0;
-    resize: none;
-    background: transparent;
-    color: #f6f3f0;
-    padding: 0.6rem;
-    font: inherit;
-  }
-
-  .fox-ide-line,
-  .fox-ghost-meta {
-    margin: 0;
-    padding: 0 0.6rem 0.45rem;
-    font-size: 0.75rem;
-  }
-
-  .fox-ghost,
-  .fox-type-ghost {
-    opacity: 0.38;
-  }
-
-  .fox-type-ghost {
-    position: absolute;
-    z-index: 6;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 12rem;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    text-align: center;
-  }
-
-  .fox-type-ghost strong {
-    font-size: 1.4rem;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-  }
-
-  .fox-type-ghost span {
-    font-size: 0.68rem;
-  }
-
-  .fox-extra h2 {
-    margin: 0.3rem 0 0;
-    font-size: 0.85rem;
-  }
-
-  .fox-extra input {
-    min-height: 2rem;
-    border: 1px solid #7a2a32;
-    background: #100608;
-    color: #f6f3f0;
-    padding: 0 0.4rem;
-  }
-
-  .fox-extra button.is-on {
-    background: #e31c2b;
-  }
-
-  .fox-stream {
-    position: relative;
-    height: 4.5rem;
-    overflow: hidden;
-    background: #050203;
-    border: 1px solid #ffd24a;
-  }
-
-  .fox-stream i {
-    position: absolute;
-    top: 1.4rem;
-    width: 1.4rem;
-    height: 1.4rem;
-    background: #e31c2b;
-  }
-
-  .fox-card {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-    width: 14rem;
-    padding: 0.7rem;
-    border-radius: 0.6rem;
-    background: #1a0c10;
-    border: 1px solid #ffd24a;
-  }
-
-  .fox-map-frame {
-    position: relative;
-    background:
-      linear-gradient(rgba(227, 28, 43, 0.08) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 210, 74, 0.05) 1px, transparent 1px),
-      #07090c;
-    background-size: 12px 12px, 12px 12px, auto;
-    border: 1px solid #7a2a32;
-  }
-
-  .fox-map-frame.is-open {
-    box-shadow: inset 0 0 0 1px #e31c2b;
-  }
-
-  .fox-map {
-    width: 100%;
-    height: 16rem;
-    background: transparent;
-    border: 0;
-  }
-
-  .fox-map-hex {
-    position: absolute;
-    right: 0.35rem;
-    bottom: 0.25rem;
-    color: #ffd24a;
-    font-size: 0.68rem;
-    letter-spacing: 0.08em;
-  }
-
-  .fox-map .fox-wire {
-    fill: none;
-    stroke: #f6f3f0;
-    stroke-width: 0.35;
-    opacity: 0.55;
-  }
-
-  .fox-map .fox-tube {
-    fill: none;
-    stroke: #e31c2b;
-    stroke-width: 0.7;
-    stroke-dasharray: 2 2;
-    animation: fox-wiggle 0.8s linear infinite;
-  }
-
-  .fox-map .fox-route {
-    fill: none;
-    stroke: #ffd24a;
-    stroke-width: 1.15;
-    stroke-dasharray: 3 2;
-    animation: fox-wiggle 0.55s linear infinite;
-  }
-
-  .fox-map .fox-node,
-  .fox-map .fox-particle {
-    fill: #ffd24a;
-  }
-
-  .fox-rail {
-    position: absolute;
-    top: 0.45rem;
-    right: 0.45rem;
-    bottom: 0.45rem;
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    width: min(15rem, 34vw);
-    padding: 0.45rem;
-    overflow: hidden;
-    background: color-mix(in srgb, #100608 82%, transparent);
-    border: 1.5px solid #e31c2b;
-    color: #f6f3f0;
-    backdrop-filter: blur(6px);
-  }
-
-  .fox-rail header {
-    letter-spacing: 0.14em;
-    font-size: 0.72rem;
-  }
-
-  .fox-rail p {
-    margin: 0;
-    font-size: 0.68rem;
-  }
-
-  .fox-hex {
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    overflow: hidden;
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
-    font-size: 0.68rem;
-  }
-
-  .fox-hex button {
-    border: 0;
-    background: transparent;
-    color: #ffd24a;
-    text-align: left;
-    padding: 0;
-    line-height: 1.35;
-  }
-
-  .fox-rail-fx {
-    color: #f6f3f0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .fox-shogi {
-    display: grid;
-    grid-template-columns: repeat(5, 2.4rem);
-    gap: 0.2rem;
-  }
-
-  .fox-shogi button {
-    height: 2.4rem;
-    border: 1px solid #3c4043;
-    background: #1a120c;
-    color: #f6f3f0;
-  }
-
-  .fox-shogi button.is-on {
-    border-color: #ffd24a;
-  }
-
-  @keyframes fox-wiggle {
-    to { stroke-dashoffset: -20; }
-  }
-
-  @keyframes fox-load {
-    from { width: 8%; }
-    to { width: 85%; }
-  }
-
-  .fox-exp-row {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-  }
-
-  .fox-exp-bar input {
-    flex: 1;
-    min-width: 0;
-    min-height: 2rem;
-    background: #100608;
-    color: var(--color-fg);
-    border: 1px solid var(--color-line);
-    padding: 0 0.4rem;
-  }
-
-  .fox-exp-row button:first-child {
-    flex: 1;
-    text-align: left;
-  }
-
-  .fox-run,
-  .fox-tasks,
-  .fox-quick,
-  .fox-notes,
-  .fox-assist {
-    position: absolute;
-    z-index: 8;
-    background: color-mix(in srgb, #100608 90%, transparent);
-    border: 1.5px solid #ffd24a;
-    color: #f6f3f0;
-    backdrop-filter: blur(8px);
-  }
-
-  .fox-run {
-    left: 50%;
-    top: 28%;
-    display: flex;
-    flex-direction: column;
-    gap: 0.55rem;
-    width: min(22rem, calc(100% - 2rem));
-    padding: 0.8rem;
-    transform: translateX(-50%);
-  }
-
-  .fox-run label {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-    font-size: 0.75rem;
-  }
-
-  .fox-run input,
-  .fox-tasks button,
-  .fox-quick button,
-  .fox-notes button,
-  .fox-assist button {
-    min-height: 2.1rem;
-    border: 1px solid #7a2a32;
-    background: transparent;
-    color: #f6f3f0;
-    padding: 0.2rem 0.45rem;
-  }
-
-  .fox-tasks,
-  .fox-quick,
-  .fox-notes {
-    right: 1rem;
-    bottom: 3.8rem;
-    width: min(18rem, calc(100% - 2rem));
-    padding: 0.55rem;
-  }
-
-  .fox-tasks header,
-  .fox-task-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 0.4rem;
-    align-items: center;
-  }
-
-  .fox-assist {
-    left: 50%;
-    top: 18%;
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-    width: min(16rem, calc(100% - 2rem));
-    padding: 0.6rem;
-    transform: translateX(-50%);
-  }
-
-  .fox-assist p,
-  .fox-start-menu .fox-note {
-    margin: 0.35rem 0 0;
-    font-size: 0.68rem;
-  }
-
-  .fox-pass {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-    margin-top: 1rem;
-  }
-
-  .fox-pass h2 {
-    margin: 0;
-    font-size: 0.78rem;
-    letter-spacing: 0.14em;
-    font-weight: 500;
-  }
-
-  .fox-pass label {
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
-    color: var(--color-muted);
-    font-size: 0.72rem;
-  }
-
-  .fox-pass input {
-    min-height: 2.2rem;
-    background: color-mix(in srgb, #100608 80%, transparent);
-    color: var(--color-fg);
-    border: 1px solid var(--color-line);
-    padding: 0 0.5rem;
-  }
-
-  .fox-window .fox-panel,
-  .fox-window .fox-term,
-  .fox-window .fox-qdev,
-  .fox-window .fox-ai,
-  .fox-window .fox-sys {
-    grid-column: auto;
-    grid-row: auto;
-    height: 100%;
-    border-width: 0;
-    opacity: 1;
-  }
-
-  .fox-slack.is-embedded {
-    position: relative;
-    inset: auto;
-    height: 100%;
-    border: 0;
-  }
-
-  .fox-web,
-  .fox-explorer {
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    height: 100%;
-  }
-
-  .fox-web iframe {
-    flex: 1;
-    min-height: 12rem;
-    border: 0;
-    background: #fff;
-  }
-
-  .fox-web pre,
-  .fox-explorer pre {
-    margin: 0;
-    padding: 0.8rem;
-    white-space: pre-wrap;
-  }
-
-  .fox-web-home {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    padding: 0.8rem;
-  }
-
-@keyframes line-in {
-  from { clip-path: inset(100% 0 0 0); }
-  to { clip-path: inset(0 0 0 0); }
+const HOTSPOTS = [
+  { name: "FREE-CAFE", km: 0.04, open: true, wire: false },
+  { name: "HOTEL-LOBBY", km: 0.11, open: true, wire: true },
+  { name: "STATION-FREE", km: 0.28, open: true, wire: false },
+];
+
+export function NetWindow() {
+  const nearest = useMemo(() => HOTSPOTS.filter((item) => item.open).sort((a, b) => a.km - b.km)[0], []);
+  const [link, setLink] = useState(nearest.name);
+  const [note, setNote] = useState("一番近い開放ポイントへ机の中で接続しました。実在の電波は掴んでいません。");
+  const [frame, setFrame] = useState(0);
+  useEffect(() => {
+    const id = window.setInterval(() => setFrame((n) => (n + 8) % 280), 80);
+    return () => window.clearInterval(id);
+  }, []);
+  return (
+    <div className="fox-extra">
+      <h2>回線</h2>
+      <p>{note}</p>
+      <ul>
+        {HOTSPOTS.map((item) => (
+          <li key={item.name}>
+            <button type="button" className={link === item.name ? "is-on" : ""} onClick={() => setLink(item.name)}>
+              {item.name} · {item.km} km {item.wire ? "有線" : "wifi"}
+            </button>
+          </li>
+        ))}
+      </ul>
+      <button
+        type="button"
+        className="fox-btn"
+        onClick={() => setNote("ホテルの有線を机の中でセットアップしました。壁の差込口は操作していません。")}
+      >
+        ホテルの有線
+      </button>
+      <h2>USB / Bluetooth</h2>
+      <p>机の中の端子です。実機の USB や Bluetooth は切り替えていません。</p>
+      <p>見えている端子: desk-key · speaker · gamepad</p>
+      <h2>遠隔プレ���（模擬）</h2>
+      <p>グラボがない机でも、この枠の中だけ絵を動かします。Steam にはつながっていません。</p>
+      <div className="fox-stream" aria-hidden>
+        <i style={{ transform: `translateX(${frame}px)` }} />
+      </div>
+    </div>
+  );
 }
 
-@keyframes line-out {
-  from { clip-path: inset(0 0 0 0); opacity: 1; }
-  to { clip-path: inset(100% 0 0 0); opacity: 0; }
+export function FurryWindow() {
+  const [seed, setSeed] = useState("雨の駅");
+  const [out, setOut] = useState("ここに生成結果が出ます。外部のクレジットは使いません。");
+  const make = (kind: string) => {
+    if (kind === "文") setOut(`${seed}。机の上の狐狸が、無限に見える回数だけこの文を書き直せる。回数の上限は、このウィンドウを閉じるまでです。[...]`);
+    if (kind === "音") {
+      setOut("読み上げます。");
+      window.speechSynthesis?.speak(new SpeechSynthesisUtterance(seed));
+    }
+    if (kind === "絵") setOut(`絵の種: ${seed}。学習データは送っていません。`);
+  };
+  return (
+    <div className="fox-extra">
+      <h2>Furrysys</h2>
+      <p>名前は Furrysys。無制限に見えるのは机の中だけです。共産主義的、というのはここでは「席がある人は同じ生成机を使える」という意味であります。</p>
+      <input value={seed} aria-label="種" onChange={(event) => setSeed(event.target.value)} />
+      <div className="fox-kinds">
+        <button type="button" onClick={() => make("文")}>文</button>
+        <button type="button" onClick={() => make("音")}>音</button>
+        <button type="button" onClick={() => make("絵")}>絵</button>
+      </div>
+      <pre>{out}</pre>
+    </div>
+  );
 }
 
-@keyframes term-up {
-  from { clip-path: inset(100% 0 0 0); }
-  to { clip-path: inset(0 0 0 0); }
+export function InariWindow() {
+  const makeEntry = useFox((s) => s.makeEntry);
+  const [name, setName] = useState("");
+  const [joined, setJoined] = useState("");
+  const [text, setText] = useState("");
+  const [log, setLog] = useState<{ who: string; text: string }[]>([]);
+  const leave = () => {
+    const body = log.map((item) => `${item.who}: ${item.text}`).join("\n");
+    makeEntry("/home/fox/inari-log.txt", body || `${joined} は無言で出ました`);
+    setJoined("");
+    setLog([]);
+  };
+  return (
+    <div className="fox-extra">
+      <h2>Inari</h2>
+      <p>表示上の番地は 127.0.0.1:80 です。このブラウザはポート80を占有しません。部屋はメモリの中です。ISO は GitHub に上げません。ログは机の中だけに残します。</p>
+      {joined ? (
+        <>
+          <p>{joined} が入室しています</p>
+          <ul>
+            {log.map((item, index) => (
+              <li key={`${item.who}-${index}`}>
+                {item.who}: {item.text}
+              </li>
+            ))}
+          </ul>
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (!text.trim()) return;
+              setLog((list) => [...list, { who: joined, text: text.trim() }]);
+              setText("");
+            }}
+          >
+            <input value={text} aria-label="発言" onChange={(event) => setText(event.target.value)} />
+            <button type="submit" className="fox-btn">送る</button>
+          </form>
+          <button type="button" className="fox-btn" onClick={leave}>
+            退室してログを保存
+          </button>
+        </>
+      ) : (
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (!name.trim()) return;
+            setJoined(name.trim());
+          }}
+        >
+          <input value={name} aria-label="名前" placeholder="名前だけ" onChange={(event) => setName(event.target.value)} />
+          <button type="submit" className="fox-btn">入室</button>
+        </form>
+      )}
+    </div>
+  );
 }
 
-@keyframes term-down {
-  from { clip-path: inset(0 0 0 0); opacity: 1; }
-  to { clip-path: inset(100% 0 0 0); opacity: 0; }
+type Point = { x: number; y: number };
+
+const TUBE = [
+  { name: "北", d: "M8,78 C22,62 28,48 42,38 C56,28 68,22 88,18" },
+  { name: "中央", d: "M12,52 C28,58 38,46 52,44 C66,42 74,56 90,62" },
+  { name: "南", d: "M10,22 C24,36 36,58 50,68 C64,78 78,74 92,58" },
+];
+
+const WIRES = [
+  "M6,90 C20,70 18,40 34,28 C50,16 62,30 78,18",
+  "M8,12 C22,30 16,55 36,62 C54,70 70,48 92,40",
+  "M14,80 C30,50 48,78 66,46 C78,28 84,60 94,22",
+  "M4,48 C24,40 40,18 58,34 C72,48 80,20 96,30",
+  "M10,34 C28,22 44,44 60,24 C74,8 86,36 94,14",
+];
+
+export function AtlasWindow() {
+  const [place, setPlace] = useState("現場");
+  const [points, setPoints] = useState<Point[]>([
+    { x: 18, y: 72 },
+    { x: 46, y: 38 },
+    { x: 74, y: 58 },
+  ]);
+  const [key, setKey] = useState("granborough");
+  const [open, setOpen] = useState(false);
+  const [status, setStatus] = useState("位置共有の同意待ち");
+  const [hex, setHex] = useState("00 00");
+  const [consent, setConsent] = useState(false);
+  const [viewMode, setViewMode] = useState<"terrain" | "satellite">("satellite");
+  const [emergency, setEmergency] = useState(false);
+
+  const incidentFlags = useMemo(
+    () => [
+      { x: 18, y: 30, label: "警戒", level: "warn" as const },
+      { x: 52, y: 60, label: "SOS", level: "danger" as const },
+      { x: 78, y: 44, label: "確認", level: "safe" as const },
+    ],
+    [],
+  );
+
+  const view = open ? encrypt(points, key) : points;
+  const route = view.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      const a = Math.floor(Math.random() * 256).toString(16).padStart(2, "0");
+      const b = Math.floor(Math.random() * 256).toString(16).padStart(2, "0");
+      setHex(`${a} ${b}`);
+    }, 120);
+    return () => window.clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    if (!consent) {
+      setStatus("位置共有の同意待ち");
+      return;
+    }
+    setStatus(emergency ? "緊急表示: 同意済みの位置情報のみ表示中" : "同意済み: 位置共有を許可しています");
+  }, [consent, emergency]);
+
+  const applyKey = () => {
+    const hit = key.trim().toLowerCase() === "granborough" || key.trim().toLowerCase() === "skyfall";
+    setOpen(true);
+    setStatus(hit ? "経路が解けました" : "鍵不一致 · 線は絡んだままです");
+  };
+
+  const toggleEmergency = () => {
+    if (!consent) {
+      setStatus("緊急表示するには位置共有の同意が必要です");
+      setEmergency(false);
+      return;
+    }
+    setEmergency((value) => !value);
+    setStatus("緊急表示: 共有済みの位置データを参照");
+  };
+
+  return (
+    <div className="fox-extra">
+      <h2>衛星図 · 位置共有</h2>
+      <p>緊急時と事件の目撃情報は、利用者が明示的に同意した場合のみ地図へ表示します。IP アドレスや電話番号からの追跡は行いません。</p>
+      <div className="fox-sat-controls">
+        <label className="fox-sat-check">
+          <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} />
+          位置共有に同意する
+        </label>
+        <div className="fox-sat-mode">
+          <button type="button" className={viewMode === "satellite" ? "is-on" : ""} onClick={() => setViewMode("satellite")}>
+            衛星
+          </button>
+          <button type="button" className={viewMode === "terrain" ? "is-on" : ""} onClick={() => setViewMode("terrain")}>
+            地図
+          </button>
+        </div>
+      </div>
+      <label>
+        場所
+        <input value={place} aria-label="場所" onChange={(event) => setPlace(event.target.value)} />
+      </label>
+      <label>
+        鍵
+        <input value={key} aria-label="鍵" onChange={(event) => setKey(event.target.value)} />
+      </label>
+      <p className={open ? "fox-warn" : ""}>{status}</p>
+      <div className={`fox-map-frame${open ? " is-open" : ""} fox-sat-map${consent ? " is-active" : ""}`}>
+        <svg viewBox="0 0 100 100" className="fox-map" onClick={(event) => {
+          const rect = event.currentTarget.getBoundingClientRect();
+          const x = ((event.clientX - rect.left) / rect.width) * 100;
+          const y = ((event.clientY - rect.top) / rect.height) * 100;
+          setPoints((list) => [...list, { x, y }]);
+          setOpen(false);
+          setStatus("点を足しました。鍵で解いてください。");
+        }}>
+          {viewMode === "satellite" ? (
+            <>
+              <defs>
+                <pattern id="sat-grid" width="18" height="18" patternUnits="userSpaceOnUse">
+                  <rect width="18" height="18" fill="rgba(10,20,18,0.7)" />
+                  <path d="M 18 0 L 0 0 0 18" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="0.25" />
+                </pattern>
+              </defs>
+              <rect x="0" y="0" width="100" height="100" fill="url(#sat-grid)" />
+              <g opacity="0.8">
+                <path d="M0,30 C18,18 30,14 42,18 S74,26 100,18" stroke="rgba(140,146,151,0.32)" strokeWidth="1.2" fill="none" />
+                <path d="M4,60 C22,48 42,50 60,63 S84,74 100,66" stroke="rgba(140,146,151,0.26)" strokeWidth="1.1" fill="none" />
+                <path d="M14,18 C26,32 36,58 48,72 C60,84 78,82 96,70" stroke="rgba(255,255,255,0.18)" strokeWidth="0.8" fill="none" />
+              </g>
+            </>
+          ) : (
+            <>
+              {(open ? TUBE.map((line) => line.d) : WIRES).map((d) => (
+                <path key={d} d={d} className={open ? "fox-tube" : "fox-wire"} />
+              ))}
+            </>
+          )}
+          <path d={route} className="fox-route" />
+          {open ? (
+            <circle r="1.1" className="fox-particle">
+              <animateMotion dur="3.2s" repeatCount="indefinite" path={TUBE[1].d} />
+            </circle>
+          ) : null}
+          {view.map((point, index) => (
+            <circle key={`${point.x}-${point.y}-${index}`} cx={point.x} cy={point.y} r="1.5" className="fox-node" />
+          ))}
+          {consent && emergency
+            ? incidentFlags.map((flag, index) => (
+                <g key={`${flag.label}-${index}`} transform={`translate(${flag.x} ${flag.y})`}>
+                  <circle r={flag.level === "danger" ? 2.6 : flag.level === "warn" ? 2.1 : 1.8} fill={flag.level === "danger" ? "#e31c2b" : flag.level === "warn" ? "#ffd24a" : "#a8f0d0"} opacity="0.9" />
+                  <text x="3" y="0.6" fill="#f6f3f0" fontSize="2.5" fontFamily="sans-serif">{flag.label}</text>
+                </g>
+              ))
+            : null}
+        </svg>
+        <span className="fox-map-hex">{hex}</span>
+      </div>
+      <div className="fox-actions">
+        <button type="button" className="fox-btn" onClick={toggleEmergency}>緊急表示</button>
+        <button type="button" className="fox-btn" onClick={applyKey}>鍵を使う</button>
+        <button
+          type="button"
+          className="fox-btn"
+          onClick={() => {
+            setConsent(false);
+            setEmergency(false);
+            setStatus("共有を停止しました。");
+          }}
+        >
+          共有を停止
+        </button>
+      </div>
+    </div>
+  );
 }
 
-@keyframes dissolve-scan {
-  from { top: 0; opacity: 1; }
-  to { top: 28%; opacity: 0; }
+function hexByte() {
+  return Math.floor(Math.random() * 256).toString(16).padStart(2, "0");
 }
 
-@keyframes scan-up {
-  from { top: 100%; }
-  to { top: 0; }
-}
-
-@keyframes scan-down {
-  from { top: 0; }
-  to { top: 100%; }
-}
-
-@keyframes fox-launch {
-  0% { box-shadow: inset 0 0 0 2px var(--color-warn); }
-  100% { box-shadow: inset 0 0 0 0 transparent; }
-}
-
-@keyframes fox-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: none; }
-}
-
-@keyframes hive-cell {
-  0% { opacity: 0; }
-  35% { opacity: 0.85; }
-  100% { opacity: 0.16; }
-}
-
-@media (max-width: 960px) {
-  .fox-stage {
-    display: block;
-    overflow: hidden;
+function hexLine(virus: boolean) {
+  const cells = Array.from({ length: 8 }, hexByte);
+  if (virus) {
+    cells[2] = "de";
+    cells[3] = "ad";
   }
-
-  .fox-panel {
-    display: none;
-    height: 100%;
-  }
-
-  .fox-panel.is-active {
-    display: flex;
-  }
-
-  .fox-term.is-closed.is-active {
-    display: flex;
-  }
-
-  .fox-apps {
-    display: none;
-  }
-
-  .fox-dock {
-    display: flex;
-    flex-wrap: wrap;
-    grid-template-columns: none;
-  }
+  return cells.join(" ");
 }
 
-@keyframes hive-cell {
-  0% { opacity: 0; }
-  35% { opacity: 0.85; }
-  100% { opacity: 0.16; }
+export function HexRail() {
+  const [lines, setLines] = useState<string[]>(() => Array.from({ length: 18 }, () => hexLine(false)));
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setLines((prev) => [hexLine(Math.random() < 0.22), ...prev].slice(0, 22));
+    }, 80);
+    return () => window.clearInterval(id);
+  }, []);
+
+  return (
+    <aside className="fox-rail">
+      <div className="fox-hex">
+        {lines.map((line, index) => (
+          <button
+            key={`${line}-${index}`}
+            type="button"
+            onClick={() => {
+              if (!line.includes("de ad")) return;
+              setLines((prev) => prev.map((item, at) => (at === index ? item.replace("de ad", "00 00") : item)));
+            }}
+          >
+            {line}
+          </button>
+        ))}
+      </div>
+    </aside>
+  );
 }
 
-@keyframes hive-cell {
-  0% { opacity: 0; }
-  28% { opacity: 0.95; }
-  100% { opacity: 0.08; }
+function encrypt(points: Point[], word: string): Point[] {
+  const salt = [...word].reduce((sum, char) => sum + char.charCodeAt(0), 3);
+  return points.map((point, index) => ({
+    x: (point.x + ((salt * (index + 1)) % 37)) % 100,
+    y: (point.y + ((salt * (index + 2)) % 29)) % 100,
+  }));
 }
 
-@keyframes boot-out {
-  to { opacity: 0; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .fox-term.is-opening .fox-term-body,
-  .fox-term.is-closing .fox-term-body,
-  .fox-term.is-opening .fox-scan,
-  .fox-term.is-closing .fox-scan,
-  .fox-boot-center,
-  .fox-boot.is-leaving,
-  .fox-hive polygon {
-    animation: none;
-  }
-
-  .fox-hive polygon {
-    opacity: 0.16;
-  }
-}

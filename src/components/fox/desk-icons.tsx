@@ -30,8 +30,13 @@ export function DeskIcons() {
       openWindow("explorer");
       return;
     }
+    if (icon.kind === "fwpe" || icon.kind === "faes" || icon.kind === "fbf") {
+      openWindow("term");
+      submit(`${icon.kind}.exe`);
+      return;
+    }
     setExplorerBin(false);
-    openWindow(icon.kind);
+    openWindow(icon.kind as any);
   };
 
   const drag = (event: PointerEvent<HTMLButtonElement>, icon: DeskIcon) => {

@@ -1,6 +1,6 @@
 export type DeskIcon = {
   id: string;
-  kind: "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg" | "sky" | "guard" | "net" | "furry" | "inari" | "atlas" | "crypt" | "qan" | "ime" | "sat" | "exe" | "bin";
+  kind: "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg" | "sky" | "guard" | "net" | "furry" | "inari" | "atlas" | "crypt" | "qan" | "ime" | "sat" | "exe" | "bin" | "fwpe" | "faes" | "fbf";
   label: string;
   col: number;
   row: number;
@@ -27,6 +27,9 @@ export const ICON_SEED: DeskIcon[] = [
   { id: "qan", kind: "qan", label: "QAN", col: 3, row: 2 },
   { id: "ime", kind: "ime", label: "IME", col: 3, row: 3 },
   { id: "sat", kind: "sat", label: "SAT", col: 3, row: 4 },
+  { id: "fwpe", kind: "fwpe", label: "FWPE", col: 4, row: 0 },
+  { id: "faes", kind: "faes", label: "FAES", col: 4, row: 1 },
+  { id: "fbf", kind: "fbf", label: "FBF", col: 4, row: 2 },
 ];
 
 function free(icons: DeskIcon[], col: number, row: number, except: string) {

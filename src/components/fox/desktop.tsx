@@ -7,7 +7,7 @@ import { DeskIcons } from "./desk-icons";
 import { DeskWindows } from "./desk-windows";
 import { FoxMark } from "./fox-mark";
 import { LoginScreen } from "./login-screen";
-import { HexRail } from "./extra-windows";
+import { HexRail } from "@/lib/fox/shell";
 import { BRAND } from "@/lib/fox/brand";
 
 const ICONS: { kind: WinKind; label: string }[] = [
@@ -99,6 +99,7 @@ export function Desktop() {
   const [notesOpen, setNotesOpen] = useState(false);
   const noteType = useFox((s) => s.noteType);
   const [bright, setBright] = useState(100);
+  const [deskLayer, setDeskLayer] = useState("1F");
   const dateLabel = new Date().toLocaleDateString("ja-JP", { dateStyle: "full" });
 
   useEffect(() => {
@@ -250,12 +251,24 @@ export function Desktop() {
     return !current || win.z > current.z ? win.id : best;
   }, null);
 
+  const layerTint =
+    deskLayer === "バンカー"
+      ? "brightness(0.72) saturate(0.85)"
+      : deskLayer === "B1"
+        ? "brightness(0.82)"
+        : deskLayer === "屋上"
+          ? "brightness(1.08) saturate(1.1)"
+          : deskLayer === "3F"
+            ? "brightness(1.02)"
+            : "none";
+
   return (
-    <div className="fox-root">
+    <div className="fox-root" data-layer={deskLayer}>
       <header className="fox-top">
         <div className="fox-brand">
           <FoxMark />
           {BRAND.title}
+          <span style={{ marginLeft: 10, fontSize: 12, opacity: 0.75 }}>層 {deskLayer}</span>
         </div>
         <div className="fox-meta">
           <span className="fox-link">
@@ -269,16 +282,25 @@ export function Desktop() {
             className="fox-btn"
             onClick={() => {
               armBootSound();
+              try {
+                if ("caches" in window) {
+                  caches.keys().then((keys) => keys.forEach((k) => caches.delete(k)));
+                }
+                localStorage.removeItem("fox-os-cache");
+              } catch {
+                /* ignore */
+              }
               replayBoot();
+              pushNote("キャッシュをクリアして再初期化しました");
             }}
           >
-            再初期化
+            再初期化 / キャッシュ消去
           </button>
         </div>
       </header>
       <div
         className="fox-stage fox-desk"
-        style={{ filter: `brightness(${bright}%)` }}
+        style={{ filter: `brightness(${bright}%) ${layerTint}` }}
         onContextMenu={(event) => {
           if ((event.target as HTMLElement).closest(".fox-window, .fox-apps, button, input, textarea")) return;
           event.preventDefault();
@@ -292,7 +314,7 @@ export function Desktop() {
         }}
       >
         <DeskIcons />
-        {phase === "desktop" ? <HexRail /> : null}
+        {phase === "desktop" ? <HexRail layer={deskLayer} onLayer={setDeskLayer} /> : null}
         {phase === "desktop" ? <DeskWindows /> : null}
       </div>
       <nav className="fox-dock" aria-label="タスクバー">
@@ -503,148 +525,54 @@ export function Desktop() {
         <section className="fox-notes" aria-label="通知">
           {notes.length === 0 ? <p className="fox-note">通知はありません</p> : null}
           {notes.map((note) => (
-            <button key={note.id} type="button" onClick={() => dismissNote(note.id)}>
-              {note.text}
-            </button>
+            <div key={note.id} className="fox-note-row">
+              <span>{note.text}</span>
+              <button type="button" onClick={() => dismissNote(note.id)}>
+                消す
+              </button>
+            </div>
           ))}
         </section>
       ) : null}
-      {assist ? (
-        <section className="fox-assist" aria-label="スナップ補助">
-          <p>もう半分に置くウィンドウ</p>
-          {windows
-            .filter((win) => win.id !== assist.id)
-            .map((win) => (
-              <button
-                key={win.id}
-                type="button"
-                onClick={() => {
-                  const { width, height } = stageSize();
-                  const frame = snapFrame(width, height, assist.side === "left" ? "right" : "left");
-                  placeWindow(win.id, frame.x, frame.y, frame.w, frame.h, assist.side === "left" ? "right" : "left");
-                  setAssist(null);
-                }}
-              >
-                {win.title}
-              </button>
-            ))}
-          <button type="button" onClick={() => setAssist(null)}>
-            閉じる
-          </button>
-        </section>
-      ) : null}
       {calendar ? (
-        <div className="fox-calendar" role="dialog" aria-label="日付">
-          <strong>{dateLabel}</strong>
-          <span>{clock}</span>
-        </div>
+        <section className="fox-calendar" aria-label="カレンダー">
+          <p>{dateLabel}</p>
+          <p>{clock}</p>
+        </section>
       ) : null}
       {menu ? (
         <div className="fox-context" style={{ left: menu.x, top: menu.y }} role="menu">
-          <button
-            type="button"
-            onClick={() => {
-              openWindow("term");
-              setMenu(null);
-            }}
-          >
-            ターミナル
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              openWindow("explorer");
-              setMenu(null);
-            }}
-          >
-            エクスプローラ
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              showDesktop();
-              setMenu(null);
-            }}
-          >
-            デスクトップを表示
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              arrangeIcons();
-              setMenu(null);
-            }}
-          >
-            アイコンを整列
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              cascadeWindows();
-              setMenu(null);
-            }}
-          >
-            ウィンドウを重ねて表示
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              tileWindows();
-              setMenu(null);
-            }}
-          >
-            ウィンドウを並べて表示
-          </button>
+          <button type="button" onClick={() => { arrangeIcons(); setMenu(null); }}>アイコンを整列</button>
+          <button type="button" onClick={() => { cascadeWindows(); setMenu(null); }}>重ねて表示</button>
+          <button type="button" onClick={() => { tileWindows(); setMenu(null); }}>並べて表示</button>
+          <button type="button" onClick={() => { showDesktop(); setMenu(null); }}>デスクトップを表示</button>
         </div>
       ) : null}
       {taskMenu ? (
         <div className="fox-context" style={{ left: taskMenu.x, top: taskMenu.y }} role="menu">
-          <button
-            type="button"
-            onClick={() => {
-              focusWindow(taskMenu.id);
-              setTaskMenu(null);
-            }}
-          >
-            開く
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              closeWindow(taskMenu.id);
-              setTaskMenu(null);
-            }}
-          >
-            閉じる
-          </button>
+          <button type="button" onClick={() => { focusWindow(taskMenu.id); setTaskMenu(null); }}>前面へ</button>
+          <button type="button" onClick={() => { toggleMin(taskMenu.id); setTaskMenu(null); }}>最小化</button>
+          <button type="button" onClick={() => { closeWindow(taskMenu.id); setTaskMenu(null); }}>閉じる</button>
         </div>
       ) : null}
       {switchId ? (
-        <div className="fox-switcher" role="status">
-          {windows.map((win) => (
-            <button key={win.id} type="button" className={win.id === switchId ? "is-on" : ""} onClick={() => focusWindow(win.id)}>
-              {win.title}
-            </button>
-          ))}
-          <span>Alt+Tab</span>
+        <div className="fox-switcher" aria-live="polite">
+          {windows.find((w) => w.id === switchId)?.title ?? ""}
         </div>
       ) : null}
+      {assist ? <div className="fox-assist" data-side={assist.side} /> : null}
+      {phase === "boot" ? <BootOverlay /> : null}
+      {phase === "login" || phase === "locked" ? <LoginScreen /> : null}
       {phase === "sleep" ? (
-        <button type="button" className="fox-power-screen" onClick={wake}>
-          スリープ中
-          <span>クリックで復帰</span>
+        <button type="button" className="fox-sleep" onClick={wake}>
+          クリックで復帰
         </button>
       ) : null}
       {phase === "off" ? (
-        <div className="fox-power-screen is-off">
-          <p>シャットダウンしました</p>
-          <button type="button" className="fox-btn" onClick={powerOn}>
-            起動
-          </button>
-        </div>
+        <button type="button" className="fox-off" onClick={powerOn}>
+          電源
+        </button>
       ) : null}
-      {phase === "boot" ? <BootOverlay /> : null}
-      {phase === "login" ? <LoginScreen /> : null}
     </div>
   );
 }

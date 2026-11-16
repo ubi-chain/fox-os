@@ -154,7 +154,7 @@ export function FurryWindow() {
       setOut("読み上げます。");
       window.speechSynthesis?.speak(new SpeechSynthesisUtterance(seed));
     }
-    if (kind === "絵") setOut(`絵の種: ${seed}。学習データは��っていません。`);
+    if (kind === "絵") setOut(`絵の種: ${seed}。学習データは送っていません。`);
   };
   return (
     <div className="fox-extra">
@@ -321,52 +321,283 @@ function hexByte() {
   return Math.floor(Math.random() * 256).toString(16).padStart(2, "0");
 }
 
+const SIGS = ["de ad", "ca fe", "ba be", "fe ed"];
+
 function hexLine(virus: boolean) {
   const cells = Array.from({ length: 8 }, hexByte);
   if (virus) {
-    cells[2] = "de";
-    cells[3] = "ad";
+    const sig = SIGS[Math.floor(Math.random() * SIGS.length)].split(" ");
+    cells[2] = sig[0];
+    cells[3] = sig[1];
   }
   return cells.join(" ");
 }
 
-export function HexRail() {
+function hasSig(line: string) {
+  return SIGS.some((s) => line.includes(s));
+}
+
+const LAYERS = [
+  { id: "バンカー", y: 88, label: "Bunker" },
+  { id: "B1", y: 72, label: "B1" },
+  { id: "1F", y: 56, label: "1F" },
+  { id: "2F", y: 40, label: "2F" },
+  { id: "3F", y: 24, label: "3F" },
+  { id: "屋上", y: 8, label: "Roof" },
+] as const;
+
+export type DeskLayer = (typeof LAYERS)[number]["id"];
+
+export function HexRail({
+  layer = "1F",
+  onLayer,
+}: {
+  layer?: string;
+  onLayer?: (id: string) => void;
+}) {
+  const pushNote = useFox((s) => s.pushNote);
   const [lines, setLines] = useState<string[]>(() => Array.from({ length: 18 }, () => hexLine(false)));
+  const [hits, setHits] = useState(0);
+  const [alert, setAlert] = useState<{ sig: string; at: string } | null>(null);
+  const [paused, setPaused] = useState(false);
+  const [mapOpen, setMapOpen] = useState(false);
 
   useEffect(() => {
+    if (paused) return;
     const id = window.setInterval(() => {
-      setLines((prev) => [hexLine(Math.random() < 0.22), ...prev].slice(0, 22));
-    }, 80);
+      setLines((prev) => {
+        const next = hexLine(Math.random() < 0.18);
+        if (hasSig(next)) {
+          const sig = SIGS.find((s) => next.includes(s)) ?? "de ad";
+          setHits((h) => h + 1);
+          setAlert({ sig, at: new Date().toLocaleTimeString("ja-JP", { hour12: false }) });
+        }
+        return [next, ...prev].slice(0, 24);
+      });
+    }, 90);
     return () => window.clearInterval(id);
-  }, []);
+  }, [paused]);
+
+  const clearCache = () => {
+    setLines(Array.from({ length: 18 }, () => hexLine(false)));
+    setHits(0);
+    setAlert(null);
+    try {
+      if ("caches" in window) caches.keys().then((keys) => keys.forEach((k) => caches.delete(k)));
+      sessionStorage.clear();
+    } catch {
+      /* ignore */
+    }
+    pushNote("HEX解析バッファとキャッシュをクリアしました");
+  };
+
+  const neutralize = (index: number) => {
+    setLines((prev) =>
+      prev.map((item, at) => {
+        if (at !== index) return item;
+        let out = item;
+        for (const s of SIGS) out = out.replace(s, "00 00");
+        return out;
+      }),
+    );
+    setAlert(null);
+  };
 
   return (
-    <aside className="fox-rail">
-      <div className="fox-hex">
-        {lines.map((line, index) => (
-          <button
-            key={`${line}-${index}`}
-            type="button"
-            onClick={() => {
-              if (!line.includes("de ad")) return;
-              setLines((prev) => prev.map((item, at) => (at === index ? item.replace("de ad", "00 00") : item)));
-            }}
-          >
-            {line}
+    <>
+      <aside className="fox-rail" aria-label="16進数解析">
+        <div style={{ padding: "6px 8px 4px", fontSize: 11, letterSpacing: "0.06em", opacity: 0.9 }}>
+          HEX解析 · 痕跡 {hits}
+        </div>
+        <div className="fox-hex">
+          {lines.map((line, index) => {
+            const bad = hasSig(line);
+            return (
+              <button
+                key={`${line}-${index}`}
+                type="button"
+                style={bad ? { color: "#ff6b6b", fontWeight: 600 } : undefined}
+                onClick={() => {
+                  if (!bad) return;
+                  neutralize(index);
+                }}
+                title={bad ? "クリックで中和" : undefined}
+              >
+                {line}
+              </button>
+            );
+          })}
+        </div>
+        <div style={{ display: "flex", gap: 4, padding: 6, flexWrap: "wrap" }}>
+          <button type="button" className="fox-btn" style={{ fontSize: 11, padding: "2px 6px" }} onClick={() => setPaused((p) => !p)}>
+            {paused ? "再開" : "一時停止"}
           </button>
-        ))}
-      </div>
-    </aside>
+          <button type="button" className="fox-btn" style={{ fontSize: 11, padding: "2px 6px" }} onClick={clearCache}>
+            クリア
+          </button>
+          <button type="button" className="fox-btn" style={{ fontSize: 11, padding: "2px 6px" }} onClick={() => setMapOpen(true)}>
+            階層
+          </button>
+        </div>
+      </aside>
+
+      {alert ? (
+        <div
+          role="alertdialog"
+          aria-modal="true"
+          aria-label="ハッキング検知"
+          style={{
+            position: "fixed",
+            right: 200,
+            bottom: 72,
+            zIndex: 80,
+            minWidth: 260,
+            maxWidth: 320,
+            padding: "12px 14px",
+            borderRadius: 10,
+            background: "rgba(40,8,12,0.94)",
+            border: "1px solid #e31c2b",
+            boxShadow: "0 0 24px rgba(227,28,43,0.35)",
+            color: "#f6f1ea",
+            fontFamily: "IBM Plex Mono, monospace",
+          }}
+        >
+          <div style={{ fontSize: 12, letterSpacing: "0.08em", color: "#ff8a8a", marginBottom: 6 }}>DETECT</div>
+          <strong style={{ display: "block", marginBottom: 6 }}>ハッキング痕跡を検知</strong>
+          <p style={{ margin: "0 0 8px", fontSize: 13, lineHeight: 1.45 }}>
+            シグネチャ <code style={{ color: "#ffd24a" }}>{alert.sig}</code>
+            <br />
+            時刻 {alert.at}
+            <br />
+            机の中の解析バッファのみ。実機通信は監視していません。
+          </p>
+          <div style={{ display: "flex", gap: 6 }}>
+            <button type="button" className="fox-btn" onClick={() => setAlert(null)}>
+              閉じる
+            </button>
+            <button
+              type="button"
+              className="fox-btn"
+              onClick={() => {
+                setLines((prev) => prev.map((item) => {
+                  let out = item;
+                  for (const s of SIGS) out = out.replace(s, "00 00");
+                  return out;
+                }));
+                setAlert(null);
+                pushNote("痕跡を一括中和しました");
+              }}
+            >
+              一括中和
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {mapOpen ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="仮想デスクトップ階層"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 90,
+            display: "grid",
+            placeItems: "center",
+            background: "rgba(8,6,10,0.55)",
+            backdropFilter: "blur(6px)",
+          }}
+          onClick={() => setMapOpen(false)}
+        >
+          <div
+            style={{
+              width: "min(420px, 92vw)",
+              borderRadius: 14,
+              border: "1px solid rgba(246,241,234,0.2)",
+              background: "rgba(18,12,16,0.92)",
+              padding: 16,
+              color: "#f6f1ea",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 style={{ margin: "0 0 8px", fontSize: 16 }}>ヘキサグラム階層 · 仮想デスクトップ</h2>
+            <p style={{ margin: "0 0 12px", fontSize: 13, opacity: 0.85 }}>
+              バンカーから屋上までの透過マップ上で階層を選ぶと、仮想デスクトップを移動します。
+            </p>
+            <svg viewBox="0 0 100 100" style={{ width: "100%", height: 220, display: "block", borderRadius: 10, background: "rgba(0,0,0,0.25)" }}>
+              <defs>
+                <linearGradient id="layerFade" x1="0" y1="1" x2="0" y2="0">
+                  <stop offset="0%" stopColor="#3a1a22" stopOpacity="0.9" />
+                  <stop offset="100%" stopColor="#1a2830" stopOpacity="0.55" />
+                </linearGradient>
+              </defs>
+              <rect x="0" y="0" width="100" height="100" fill="url(#layerFade)" />
+              {/* hexagon stack silhouette */}
+              {[88, 72, 56, 40, 24, 8].map((cy, i) => (
+                <polygon
+                  key={cy}
+                  points={`50,${cy - 7} 62,${cy - 2} 62,${cy + 5} 50,${cy + 10} 38,${cy + 5} 38,${cy - 2}`}
+                  fill={LAYERS[i].id === layer ? "rgba(255,210,74,0.35)" : "rgba(246,241,234,0.08)"}
+                  stroke={LAYERS[i].id === layer ? "#ffd24a" : "rgba(246,241,234,0.25)"}
+                  strokeWidth="0.8"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => {
+                    onLayer?.(LAYERS[i].id);
+                    pushNote(`仮想デスクトップ → ${LAYERS[i].id}`);
+                    setMapOpen(false);
+                  }}
+                />
+              ))}
+              <text x="50" y="96" textAnchor="middle" fill="rgba(246,241,234,0.5)" fontSize="3.2">
+                透過マップ · クリックで移動
+              </text>
+            </svg>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 12 }}>
+              {LAYERS.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className="fox-btn"
+                  style={{
+                    fontSize: 12,
+                    padding: "4px 10px",
+                    outline: item.id === layer ? "1px solid #ffd24a" : undefined,
+                  }}
+                  onClick={() => {
+                    onLayer?.(item.id);
+                    pushNote(`仮想デスクトップ → ${item.id}`);
+                    setMapOpen(false);
+                  }}
+                >
+                  {item.id}
+                  <small style={{ opacity: 0.7, marginLeft: 4 }}>{item.label}</small>
+                </button>
+              ))}
+            </div>
+            <button type="button" className="fox-btn" style={{ marginTop: 12 }} onClick={() => setMapOpen(false)}>
+              閉じる
+            </button>
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }
 
 function encrypt(points: Point[], word: string): Point[] {
   const salt = [...word].reduce((sum, char) => sum + char.charCodeAt(0), 3);
   return points.map((point, index) => ({
-    x: (point.x + (salt * (index + 1)) % 37) % 100,
-    y: (point.y + (salt * (index + 2)) % 29) % 100,
+    x: (point.x + ((salt * (index + 1)) % 37)) % 100,
+    y: (point.y + ((salt * (index + 2)) % 29)) % 100,
   }));
 }
 
-
-
+export function SatWindow() {
+  return (
+    <div className="fox-extra">
+      <h2>SAT</h2>
+      <p>衛星枠のプレースホルダ。Atlas の同意付き地図を使ってください。</p>
+    </div>
+  );
+}

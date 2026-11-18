@@ -13,7 +13,10 @@ const ROWS: Record<string, { grammar: string; color: string; lang: string; progr
     { grammar: "分岐", color: "#e31c2b", lang: "Java", program: "if (ready) save();", body: "if (ready)" },
   ],
   qan: [
+    { grammar: "定数", color: "#86efac", lang: "Qan", program: "π", body: "π" },
+    { grammar: "関数", color: "#9fd0ff", lang: "Qan", program: "π(2)", body: "π(" },
     { grammar: "関数", color: "#9fd0ff", lang: "Qan", program: "fn main() { say(\"こんにちは\") }", body: "fn main" },
+    { grammar: "出力", color: "#c8f7c5", lang: "Qan", program: "print 2 * π", body: "print " },
     { grammar: "翻訳", color: "#c8f7c5", lang: "日本語", program: "say(\"hello\")", body: "こんにちは" },
     { grammar: "翻訳", color: "#d7c4ff", lang: "English", program: "say(\"こんにちは\")", body: "hello" },
     { grammar: "翻訳", color: "#ffd24a", lang: "العربية", program: "say(\"平和\")", body: "سلام" },

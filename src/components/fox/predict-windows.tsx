@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { predict } from "@/lib/fox/predict";
+import { QAN_PI_SEED, runQan, type QanLine } from "@/lib/fox/qan-runtime";
 import { useFox } from "@/lib/fox/store";
 
 function GhostEditor({ kind, seed }: { kind: "crypt" | "qan"; seed: string }) {
@@ -31,8 +32,46 @@ export function CryptWindow() {
   return <GhostEditor kind="crypt" seed="public " />;
 }
 
+/** Qan with π constant + local π() — browser-only, no external credits. */
 export function QanWindow() {
-  return <GhostEditor kind="qan" seed="" />;
+  const [code, setCode] = useState(QAN_PI_SEED);
+  const [out, setOut] = useState<QanLine[]>([]);
+  const hint = predict(code, "qan");
+
+  const run = () => {
+    const result = runQan(code);
+    setOut(result.lines);
+  };
+
+  return (
+    <div className="fox-ide fox-qan-pi">
+      <aside>
+        <p>Qan</p>
+        <p>π ローカル</p>
+        <p className="fox-ghost-meta">{hint.lang}</p>
+        <button type="button" className="fox-btn fox-btn-accent" onClick={run}>
+          実行
+        </button>
+      </aside>
+      <div className="fox-ide-main">
+        <textarea aria-label="Qan" value={code} onChange={(event) => setCode(event.target.value)} spellCheck={false} />
+        <p className="fox-ghost-meta">
+          {hint.program} · クレジット不要 · 机の中だけ
+        </p>
+        <pre className="fox-qan-out" aria-live="polite">
+          {out.length === 0
+            ? "実行すると結果がここに出ます。π / π(2) / print 2 * π"
+            : out.map((line, i) => (
+                <span key={`${line.kind}-${i}`} data-kind={line.kind}>
+                  {line.kind === "err" ? "! " : line.kind === "sys" ? "# " : ""}
+                  {line.text}
+                  {"\n"}
+                </span>
+              ))}
+        </pre>
+      </div>
+    </div>
+  );
 }
 
 export function ImeWindow() {

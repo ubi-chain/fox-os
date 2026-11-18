@@ -1,0 +1,48 @@
+:root { color-scheme: dark; }
+.nami-page { min-height: 100vh; padding: 24px clamp(16px, 4vw, 56px); color: #f5eee8; background: #100b10; font-family: "IBM Plex Sans JP", system-ui, sans-serif; }
+.nami-header { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; border-bottom: 1px solid #39252a; padding-bottom: 18px; }
+.nami-brand { color: #ffd24a; font-weight: 700; font-size: 22px; text-decoration: none; }
+.nami-header p { color: #cbbdc0; margin: 0 auto 0 0; }
+.nami-locale { display: flex; align-items: center; gap: 8px; color: #cbbdc0; font-size: 13px; }
+.nami-locale select, .nami-search input, .nami-comment-form input { color: #f5eee8; background: #1b1117; border: 1px solid #53343c; border-radius: 8px; padding: 10px 12px; }
+.nami-layout { max-width: 1440px; margin: 24px auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 350px); gap: 28px; }
+.nami-main { min-width: 0; }
+.nami-player { position: relative; min-height: 300px; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 14px; background-image: linear-gradient(135deg, rgba(10,8,12,.1), rgba(10,8,12,.82)), repeating-linear-gradient(45deg, transparent 0 25px, rgba(255,255,255,.07) 26px 28px); display: grid; place-items: center; }
+.nami-player video { width: 100%; height: 100%; object-fit: contain; background: #000; }
+.nami-demo-screen { display: grid; gap: 12px; justify-items: center; padding: 24px; text-align: center; text-shadow: 0 2px 8px #000; }
+.nami-demo-screen span { font: 12px monospace; letter-spacing: .18em; color: #ffd24a; }
+.nami-demo-screen strong { font-size: clamp(20px, 4vw, 40px); }
+.nami-demo-screen small { color: #eee; }
+.nami-overlay { position: absolute; inset: 12% 0 auto; display: flex; flex-direction: column; align-items: flex-start; gap: 18px; padding: 0 7%; pointer-events: none; overflow: hidden; }
+.nami-overlay span { max-width: 90%; padding: 4px 8px; color: white; font-weight: 700; font-size: clamp(16px, 2.4vw, 28px); text-shadow: 0 2px 4px #000, 1px 0 #000, -1px 0 #000; animation: nami-comment-in .25s ease-out both; }
+@keyframes nami-comment-in { from { transform: translateX(25px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.nami-video-heading { display: flex; justify-content: space-between; gap: 16px; align-items: center; padding: 16px 0; }
+.nami-video-heading h1 { font-size: clamp(20px, 3vw, 28px); margin: 0 0 5px; }
+.nami-video-heading p, .nami-upload p { color: #b7a9ad; margin: 0; }
+.nami-button, .nami-comment-form button, .nami-file { border: 1px solid #79505a; border-radius: 8px; color: #f5eee8; background: #28151c; padding: 10px 14px; cursor: pointer; }
+.nami-button.is-active { color: #160e0a; background: #ffd24a; border-color: #ffd24a; }
+.nami-comments, .nami-upload { border-top: 1px solid #39252a; padding: 18px 0; }
+.nami-comments h2, .nami-upload h2, .nami-sidebar h2 { font-size: 17px; margin: 0 0 12px; }
+.nami-comments h2 span { color: #ae989e; font-weight: 400; }
+.nami-comment-form { display: flex; gap: 8px; }
+.nami-comment-form input { flex: 1; min-width: 0; }
+.nami-comment-form button:disabled { opacity: .5; cursor: not-allowed; }
+.nami-comments ul { list-style: none; padding: 0; display: grid; gap: 8px; }
+.nami-comments li { background: #1b1117; border-radius: 8px; padding: 10px 12px; overflow-wrap: anywhere; }
+.nami-upload { display: grid; gap: 10px; }
+.nami-file { display: inline-flex; width: fit-content; }
+.nami-file input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+.nami-sidebar { display: flex; flex-direction: column; gap: 10px; }
+.nami-search input { width: 100%; box-sizing: border-box; }
+.nami-sidebar h2 { margin: 8px 0 0; }
+.nami-card { display: grid; grid-template-columns: 132px minmax(0,1fr); gap: 10px; text-align: left; color: inherit; background: transparent; border: 1px solid transparent; border-radius: 10px; padding: 6px; cursor: pointer; }
+.nami-card:hover, .nami-card.is-selected { border-color: #76505a; background: #21151b; }
+.nami-thumb { aspect-ratio: 16 / 9; border-radius: 7px; display: flex; align-items: end; justify-content: end; padding: 5px; box-sizing: border-box; background-image: linear-gradient(135deg, transparent, rgba(0,0,0,.7)); }
+.nami-thumb span { font: 11px monospace; background: rgba(0,0,0,.75); border-radius: 3px; padding: 2px 4px; }
+.nami-card-copy { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.nami-card-copy strong { font-size: 13px; line-height: 1.35; }
+.nami-card-copy small { color: #b7a9ad; font-size: 11px; }
+.nami-footer { max-width: 1440px; margin: 28px auto 0; padding-top: 16px; border-top: 1px solid #39252a; color: #9c898f; font-size: 12px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+@media (max-width: 850px) { .nami-layout { grid-template-columns: 1fr; } .nami-sidebar { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); } .nami-search, .nami-sidebar h2 { grid-column: 1 / -1; } }
+@media (max-width: 520px) { .nami-header { gap: 12px; } .nami-header p { order: 3; width: 100%; } .nami-video-heading { align-items: flex-start; flex-direction: column; } .nami-card { grid-template-columns: 110px minmax(0,1fr); } .nami-player { min-height: 200px; } }

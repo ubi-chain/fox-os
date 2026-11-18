@@ -177,7 +177,7 @@ export function deskCommand(input: string, ctx: DeskContext): DeskResult | null 
       lines: [sys("IETFUBI の衛星図ウィンドウを開きます。位置共有は本人の明示同意時のみです。")],
       fx: { op: "open", kind: "atlas", title: "IETFUBI" },
     };
-  }
+n  }
   if (/^\/close\s+(?:satelite|satellite)-map$/i.test(typed)) {
     const win = ctx.windows.filter((item) => item.kind === "atlas" && item.title === "IETFUBI").sort((a, b) => b.z - a.z)[0];
     if (!win) return { lines: [err("IETFUBI の衛星図ウィンドウは開いていません。")] };
@@ -244,7 +244,7 @@ export function deskCommand(input: string, ctx: DeskContext): DeskResult | null 
   if (stopDeploy) {
     const name = stopDeploy[1].trim();
     if (!ctx.deploys.some((item) => item.name === name)) return { lines: [err(`${name} は起動していません`)] };
-    return { lines: [sys(`${name} を停止しました。`)], fx: { op: "undeploy", name };
+    return { lines: [sys(`${name} を停止しました。`)], fx: { op: "undeploy", name } };
   }
 
   const download = typed.match(/^\/download\s+(\d{1,3}(?:\.\d{1,3}){3})\.([A-Za-z0-9]+)$/);

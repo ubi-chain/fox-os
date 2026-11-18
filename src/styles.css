@@ -12,32 +12,239 @@
   --color-line: #14532d;
   --color-ok: #4ade80;
   --font-sans: "IBM Plex Sans JP", "IBM Plex Sans", sans-serif;
-  --font-mono: "IBM Plex Mono", "IBM Plex Sans JP", "Noto Sans Hebrew", ui-monospace, monospace;
+  --font-mono: "IBM Plex Mono", "IBM Plex Sans JP", ui-monospace, monospace;
   --radius-sm: 2px;
 }
 
 @layer base {
-  button:not(:disabled),
-  [role="button"]:not(:disabled) {
-    cursor: pointer;
+  button:not(:disabled), [role="button"]:not(:disabled) { cursor: pointer; }
+  html, body { height: 100%; background: var(--color-bg); color: var(--color-fg); }
+  body { margin: 0; overflow: hidden; font-family: var(--font-sans); line-height: 1.5; }
+  :focus-visible { outline: 1px solid var(--color-accent); outline-offset: 2px; }
+}
+
+@layer components {
+  .fox-root {
+    position: relative;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    background:
+      radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--color-accent) 16%, transparent), transparent 42%),
+      var(--color-bg);
+    color: var(--color-fg);
+    overflow: hidden;
   }
 
-  html,
-  body {
+  .fox-desk {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .fox-apps {
+    position: absolute;
+    inset: 0 0 2.6rem 0;
+  }
+
+  .fox-task {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 2.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0 0.4rem;
+    background: color-mix(in srgb, var(--color-panel) 92%, black);
+    border-top: 1px solid var(--color-line);
+    z-index: 4;
+  }
+
+  .fox-btn {
+    min-height: 2rem;
+    padding: 0 0.75rem;
+    border: 1px solid var(--color-line);
+    background: var(--color-sub);
+    color: var(--color-fg);
+    border-radius: var(--radius-sm);
+  }
+  .fox-btn-accent {
+    background: var(--color-accent);
+    color: #041008;
+    border-color: color-mix(in srgb, var(--color-accent) 70%, white);
+    font-weight: 600;
+  }
+
+  .fox-mark { display: block; width: 3rem; height: 3rem; object-fit: contain; }
+
+  .fox-boot {
+    position: absolute;
+    inset: 0;
+    z-index: 50;
+    background: #061008;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .fox-boot.is-leaving { animation: boot-out 0.45s ease both; }
+  .fox-hive {
+    position: absolute;
+    inset: 0;
+    width: 100%;
     height: 100%;
-    background: var(--color-bg);
+  }
+  .fox-hive polygon {
+    fill: color-mix(in srgb, var(--color-accent) 18%, transparent);
+    stroke: var(--color-accent);
+    stroke-width: 1;
+    opacity: 0;
+    animation: hive-cell 1.35s ease both;
+  }
+  .fox-boot.is-audible .fox-hive polygon { animation: hive-cell 1.35s ease both; }
+  .fox-boot-center {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+  }
+  .fox-boot.is-audible .fox-boot-center { animation: fox-in 0.7s ease 1.6s both; }
+  .fox-boot-stack { display: flex; justify-content: center; margin-bottom: 0.6rem; }
+  .fox-boot-center .fox-mark { width: 5.5rem; height: 5.5rem; }
+  .fox-boot-center h1 {
+    margin: 0;
+    letter-spacing: 0.28em;
+    font-size: 1.05rem;
     color: var(--color-fg);
   }
+  .fox-login-go { margin-top: 1.1rem; }
 
-  body {
+  .fox-login {
+    position: absolute;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
+    background: #061008;
+  }
+  .fox-login .fox-mark { width: 5rem; height: 5.5rem; }
+  .fox-login h1 {
     margin: 0;
-    overflow: hidden;
-    font-family: var(--font-sans);
-    line-height: 1.5;
+    letter-spacing: 0.28em;
+    font-size: 1rem;
+  }
+  .fox-login label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    width: min(18rem, 86vw);
+    color: var(--color-muted);
+    font-size: 0.75rem;
+  }
+  .fox-login input {
+    min-height: 2.5rem;
+    background: #0c1a12;
+    color: var(--color-fg);
+    border: 1px solid var(--color-line);
+    padding: 0 0.6rem;
+    border-radius: var(--radius-sm);
+  }
+  .fox-login p { margin: 0; color: var(--color-warn); }
+
+  .fox-sleep, .fox-off {
+    position: absolute;
+    inset: 0;
+    z-index: 70;
+    background: #020604;
+    color: var(--color-fg);
+    border: 0;
+    font-size: 1rem;
+    letter-spacing: 0.12em;
   }
 
-  :focus-visible {
-    outline: 1px solid var(--color-accent);
-    outline-offset: 2px;
+  .fox-icon {
+    position: absolute;
+    width: 4.5rem;
+    text-align: center;
+    font-size: 0.7rem;
+    color: var(--color-fg);
+    cursor: default;
+    user-select: none;
   }
+  .fox-icon img, .fox-icon .fox-mark { width: 2.4rem; height: 2.4rem; margin: 0 auto 0.25rem; }
+  .fox-window {
+    position: absolute;
+    background: var(--color-panel);
+    border: 1px solid var(--color-line);
+    border-radius: 4px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+    display: flex;
+    flex-direction: column;
+    min-width: 12rem;
+    min-height: 8rem;
+  }
+  .fox-titlebar {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.25rem 0.4rem;
+    background: color-mix(in srgb, var(--color-sub) 80%, black);
+    border-bottom: 1px solid var(--color-line);
+    cursor: move;
+    font-size: 0.78rem;
+  }
+  .fox-win-body { flex: 1; min-height: 0; overflow: auto; padding: 0.5rem; }
+  .fox-context {
+    position: fixed;
+    z-index: 80;
+    min-width: 10rem;
+    background: var(--color-panel);
+    border: 1px solid var(--color-line);
+    padding: 0.25rem;
+  }
+  .fox-context button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: 0;
+    color: var(--color-fg);
+    padding: 0.35rem 0.5rem;
+  }
+  .fox-rail {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 2.4rem;
+    width: 9.5rem;
+    background: color-mix(in srgb, #041008 88%, green);
+    border-left: 1px solid var(--color-line);
+    overflow: hidden;
+    z-index: 3;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+  }
+  .fox-hex button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: 0;
+    color: var(--color-muted);
+    padding: 0.1rem 0.35rem;
+  }
+}
+
+@keyframes hive-cell {
+  0% { opacity: 0; transform: scale(0.4); }
+  55% { opacity: 0.95; }
+  100% { opacity: 0.35; transform: scale(1); }
+}
+@keyframes fox-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes boot-out {
+  to { opacity: 0; }
 }

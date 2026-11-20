@@ -11,6 +11,16 @@ The experimental **Quad-First Geometry Editor** is available in this public repo
 
 The editor supports quad-first primitive generation, GLB/glTF/OBJ import, GLB/OBJ export, orbit/pan/zoom, and basic topology checks. It is an experimental preview, not a validated engineering tool. Self-intersection and inter-object collision detection are not yet implemented.
 
+## QAN Geometry Editor — lightweight 3D reference models
+
+The free QAN Geometry Editor prototype is the starting point for a focused geometry-editor project. Its reference specification covers quad-first topology, QAN PI integration, import/export, and optimized lightweight 3D references for a fictional 10 km × 10 km Third-City-inspired environment and a conceptual linear/maglev system.
+
+- Prototype: public/geometry-editor/index.html
+- Reference architecture: docs/qan-geometry-editor-reference.md
+- Preview limitations: docs/geometry-editor-public-release.md
+
+The city and linear models are visualization assets, not construction-ready engineering plans. Robust self-intersection and inter-object collision detection remain planned work.
+
 ## Build FOX OS ISO
 
 This repository uses `os/build.sh` to build an Ubuntu 24.04-based FOX OS ISO.

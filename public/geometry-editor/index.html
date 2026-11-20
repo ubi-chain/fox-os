@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>QAN Geometry Editor — Open QAN Geometry</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1018;--panel:#121c29;--line:#26394c;--accent:#65d8e8;--text:#e8f1f7;--muted:#9db0c0}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px system-ui,sans-serif}
+header{height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--line);background:#0e1722}
+h1{font-size:16px;margin:0;letter-spacing:.08em}h1 span{color:var(--accent);font-weight:500}
+main{display:grid;grid-template-columns:250px 1fr 260px;height:calc(100vh - 62px)}
+aside{background:var(--panel);padding:16px;overflow:auto}aside:first-child{border-right:1px solid var(--line)}aside:last-child{border-left:1px solid var(--line)}
+h2{font-size:11px;color:var(--accent);letter-spacing:.12em;margin:8px 0 12px}
+button,.filelabel{display:block;width:100%;border:1px solid var(--line);background:#182737;color:var(--text);padding:10px 12px;border-radius:7px;text-align:left;margin:7px 0;cursor:pointer}
+button:hover,.filelabel:hover{border-color:var(--accent)}button.primary{background:#164451;border-color:#287e8b}
+small,.muted{color:var(--muted)}input[type=file]{display:none}
+#viewport{position:relative;min-width:0;background:radial-gradient(ellipse at center,#152637,#080d14)}
+#view{width:100%;height:100%;display:block}
+#hint{position:absolute;bottom:14px;left:16px;color:#9db0c0;background:#101b28cc;padding:8px 10px;border:1px solid var(--line);border-radius:6px;font-size:12px}
+#status{white-space:pre-wrap;line-height:1.55;font-size:12px;color:#bdd0dc}
+input[type=number]{width:72px;background:#0c1520;border:1px solid var(--line);color:var(--text);padding:6px;border-radius:5px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0}
+@media(max-width:900px){main{grid-template-columns:190px 1fr;height:auto;min-height:calc(100vh - 62px)}aside:last-child{grid-column:1/-1;border-left:0;border-top:1px solid var(--line)}#viewport{height:65vh}aside{padding:12px}}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+</head>
+<body>
+<header><h1>OPEN QAN GEOMETRY <span>/ 3D EDITOR</span></h1><small>Quad-first mesh · Local browser processing</small></header>
+<main>
+<aside>
+<h2>CREATE PRIMITIVE</h2>
+<button id="cube" class="primary">＋ Quad Cube</button>
+<button id="sphere">＋ Quad Sphere</button>
+<button id="plane">＋ Quad Plane</button>
+<div class="row"><label for="segments">Subdivision</label><input id="segments" type="number" min="1" max="32" value="4"></div>
+<h2>IMPORT MODEL</h2>
+<label class="filelabel" for="file">Choose GLB / GLTF / OBJ file</label><input id="file" type="file" accept=".glb,.gltf,.obj,model/gltf-binary,model/gltf+json">
+<h2>EXPORT MODEL</h2>
+<button id="glb" class="primary">⇩ Export GLB</button>
+<button id="obj">⇩ Export OBJ (quad faces preserved where available)</button>
+<h2>VIEW</h2>
+<button id="reset">Reset camera</button>
+<small>Mouse: left drag orbit · right drag pan · wheel zoom</small>
+</aside>
+<section id="viewport"><canvas id="view"></canvas><div id="hint">3D workspace · Select a model by clicking it</div></section>
+<aside>
+<h2>SCENE OBJECTS</h2><div id="objects" class="muted">No objects yet.</div>
+<h2>QAN PI</h2><div id="pi" class="muted">π = 3.141592653589793<br>τ = 6.283185307179586</div>
+<h2>TOPOLOGY CHECK</h2><div id="status">Create or import a mesh to inspect it.</div>
+<h2>DESIGN RULES</h2><p class="muted">Quad-first construction. Shared vertices across generated surfaces. Degenerate faces and invalid indices are rejected. GLB is triangulated by the glTF format; OBJ export retains quads for generated meshes.</p>
+</aside>
+</main>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {GLTFExporter} from 'three/addons/exporters/GLTFExporter.js';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {OBJLoader} from 'three/addons/loaders/OBJLoader.js';
+import {OBJExporter} from 'three/addons/exporters/OBJExporter.js';
+
+const canvas=document.querySelector('#view');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(canvas.clientWidth,canvas.clientHeight,false);
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+const scene=new THREE.Scene();scene.background=new THREE.Color('#0b1420');
+const camera=new THREE.PerspectiveCamera(45,1,.1,10000);camera.position.set(9,8,12);
+const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.target.set(0,0,0);
+scene.add(new THREE.HemisphereLight(0xbfeaff,0x253040,2));
+const key=new THREE.DirectionalLight(0xffffff,2.2);key.position.set(8,12,7);scene.add(key);
+scene.add(new THREE.GridHelper(40,40,0x345064,0x1b2d3e));
+const root=new THREE.Group();scene.add(root);
+let selected=null;let serial=1;
+const mat=new THREE.MeshStandardMaterial({color:0x55c9d8,metalness:.28,roughness:.42,side:THREE.DoubleSide});
+const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
+
+function buildQuadSurface(name,points,quads){
+ const positions=points.flatMap(p=>[p.x,p.y,p.z]),indices=[];
+ for(const q of quads){if(q.length!==4||new Set(q).size!==4)throw Error('Invalid quad face');indices.push(q[0],q[1],q[2],q[0],q[2],q[3]);}
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.setIndex(indices);g.computeVertexNormals();
+ g.userData.quads=quads.map(q=>q.slice());g.userData.points=points.map(p=>p.clone());
+ const mesh=new THREE.Mesh(g,mat.clone());mesh.name=name+' '+serial++;mesh.userData.quads=g.userData.quads;mesh.userData.points=g.userData.points;
+ root.add(mesh);select(mesh);refresh();return mesh;
+}
+function cubeSurface(size,n,sphere=false){
+ const points=[],quads=[],map=new Map(),step=size/n;
+ const faces=[
+  {N:[1,0,0],U:[0,1,0],V:[0,0,1]},
+  {N:[-1,0,0],U:[0,-1,0],V:[0,0,1]},
+  {N:[0,1,0],U:[-1,0,0],V:[0,0,1]},
+  {N:[0,-1,0],U:[1,0,0],V:[0,0,1]},
+  {N:[0,0,1],U:[1,0,0],V:[0,1,0]},
+  {N:[0,0,-1],U:[-1,0,0],V:[0,1,0]}
+ ];
+ function vertex(x,y,z){const key=x+','+y+','+z;if(map.has(key))return map.get(key);let p=new THREE.Vector3(x,y,z);if(sphere)p.normalize().multiplyScalar(size/2);const id=points.length;points.push(p);map.set(key,id);return id;}
+ for(const f of faces){for(let j=0;j<n;j++)for(let i=0;i<n;i++){
+  const uv=(a,b)=>{const t=-size/2+size*a/n,u=-size/2+size*b/n;return [Math.round(f.N[0]*size/2+f.U[0]*t+f.V[0]*u),Math.round(f.N[1]*size/2+f.U[1]*t+f.V[1]*u),Math.round(f.N[2]*size/2+f.U[2]*t+f.V[2]*u)];};
+  const a=vertex(...uv(i,j)),b=vertex(...uv(i+1,j)),c=vertex(...uv(i+1,j+1)),d=vertex(...uv(i,j+1));
+  const pa=points[a],pb=points[b],pc=points[c],normal=new THREE.Vector3().subVectors(pb,pa).cross(new THREE.Vector3().subVectors(pc,pb));
+  const outward=new THREE.Vector3(...f.N);if(normal.dot(outward)<0)quads.push([a,d,c,b]);else quads.push([a,b,c,d]);
+ }}
+ return buildQuadSurface(sphere?'Quad Sphere':'Quad Cube',points,quads);
+}
+function plane(n){const points=[],quads=[];for(let j=0;j<=n;j++)for(let i=0;i<=n;i++)points.push(new THREE.Vector3(-5+10*i/n,0,-5+10*j/n));for(let j=0;j<n;j++)for(let i=0;i<n;i++){const a=j*(n+1)+i;quads.push([a,a+1,a+n+2,a+n+1]);}return buildQuadSurface('Quad Plane',points,quads);}
+function select(mesh){selected=mesh;document.querySelector('#hint').textContent='Selected: '+mesh.name;}
+function refresh(){const box=document.querySelector('#objects');box.innerHTML='';if(!root.children.length){box.textContent='No objects yet.';return;}for(const obj of root.children){const b=document.createElement('button');b.textContent=(obj===selected?'● ':'○ ')+obj.name;b.onclick=()=>{select(obj);inspect(obj)};box.appendChild(b);}if(selected)inspect(selected);}
+function inspect(mesh){
+ const p=mesh.geometry.attributes.position;const idx=mesh.geometry.index?.array||[];const quads=mesh.userData.quads||[];const edges=new Map();let degenerate=0;
+ for(const q of quads){if(q.length!==4||q.some(i=>i<0||i>=p.count)){degenerate++;continue;}for(let k=0;k<4;k++){const a=q[k],b=q[(k+1)%4],key=a<b?a+':'+b:b+':'+a;edges.set(key,(edges.get(key)||0)+1);}}
+ const boundary=[...edges.values()].filter(v=>v===1).length,nonmanifold=[...edges.values()].filter(v=>v>2).length;
+ document.querySelector('#status').textContent='Vertices: '+p.count+'\nQuad faces: '+quads.length+'\nRender triangles: '+idx.length/3+'\nUnique edges: '+edges.size+'\nBoundary edges: '+boundary+'\nNon-manifold edges: '+nonmanifold+'\nInvalid faces: '+degenerate+'\nSelf-intersection: not yet tested';
+}
+canvas.addEventListener('pointerdown',e=>{const r=canvas.getBoundingClientRect();pointer.x=((e.clientX-r.left)/r.width)*2-1;pointer.y=-((e.clientY-r.top)/r.height)*2+1;raycaster.setFromCamera(pointer,camera);const hits=raycaster.intersectObjects(root.children,true);if(hits.length){let o=hits[0].object;while(o.parent&&o.parent!==root)o=o.parent;select(o);inspect(o);refresh();}});
+function download(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+document.querySelector('#cube').onclick=()=>cubeSurface(2,Math.max(1,Math.min(32,+document.querySelector('#segments').value||1)));
+document.querySelector('#sphere').onclick=()=>cubeSurface(2,Math.max(2,Math.min(32,+document.querySelector('#segments').value||8)),true);
+document.querySelector('#plane').onclick=()=>plane(Math.max(1,Math.min(64,+document.querySelector('#segments').value||1)));
+document.querySelector('#reset').onclick=()=>{camera.position.set(9,8,12);controls.target.set(0,0,0);controls.update();};
+document.querySelector('#glb').onclick=async()=>{try{const data=await new GLTFExporter().parseAsync(root,{binary:true});download(new Blob([data],{type:'model/gltf-binary'}),'qan-geometry.glb');}catch(e){alert('GLB export failed: '+e.message);}};
+document.querySelector('#obj').onclick=()=>{let out='# QAN Geometry OBJ export\n',offset=1;for(const m of root.children){const p=m.geometry.attributes.position;const pts=m.userData.points||Array.from({length:p.count},(_,i)=>new THREE.Vector3().fromBufferAttribute(p,i));for(const v of pts)out+='v '+v.x+' '+v.y+' '+v.z+'\n';const qs=m.userData.quads;if(qs?.length){for(const q of qs)out+='f '+q.map(i=>i+offset).join(' ')+'\n';}else{const ix=m.geometry.index?.array; if(ix)for(let i=0;i<ix.length;i+=3)out+='f '+[ix[i],ix[i+1],ix[i+2]].map(v=>v+offset).join(' ')+'\n';}offset+=pts.length;}download(new Blob([out],{type:'text/plain'}),'qan-geometry.obj');};
+document.querySelector('#file').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const ext=f.name.toLowerCase().split('.').pop();let obj;if(ext==='obj'){obj=new OBJLoader().parse(await f.text());}else{const buf=await f.arrayBuffer();const gltf=await new GLTFLoader().parseAsync(buf,'');obj=gltf.scene;}obj.traverse(o=>{if(o.isMesh){o.material=mat.clone();o.name=o.name||f.name;root.add(o);}});const first=root.children[root.children.length-1];if(first){select(first);inspect(first);}refresh();}catch(err){alert('Import failed: '+err.message);}e.target.value='';};
+function resize(){const w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+new ResizeObserver(resize).observe(canvas);
+function frame(){requestAnimationFrame(frame);controls.update();renderer.render(scene,camera);}resize();frame();
+</script>
+</body></html>

@@ -13,7 +13,9 @@ import { SlackPanel } from "./slack-panel";
 import { SysPanel } from "./sys-panel";
 import { TerminalPanel } from "./terminal-panel";
 import { AtlasWindow, FurryWindow, InariWindow, NetWindow, SatWindow } from "./extra-windows";
-import { CryptWindow, ImeWindow, QanWindow, TypeGhost } from "./predict-windows";
+import { CryptWindow, ImeWindow, TypeGhost } from "./predict-windows";
+import { FzipWindow, HexWindow, ImodeWindow, QanStudio } from "./suite-windows";
+import { WwwMap } from "./www-map";
 
 const EDGES = ["n", "s", "e", "w", "nw", "ne", "sw", "se"] as const;
 
@@ -34,8 +36,12 @@ function body(kind: DeskWindow["kind"]) {
   if (kind === "atlas") return <AtlasWindow />;
   if (kind === "sat") return <SatWindow />;
   if (kind === "crypt") return <CryptWindow />;
-  if (kind === "qan") return <QanWindow />;
+  if (kind === "qan" || kind === "qref") return <QanStudio />;
   if (kind === "ime") return <ImeWindow />;
+  if (kind === "hex") return <HexWindow />;
+  if (kind === "fzip") return <FzipWindow />;
+  if (kind === "imode") return <ImodeWindow />;
+  if (kind === "www") return <WwwMap />;
   return <SlackPanel embedded />;
 }
 
@@ -57,7 +63,8 @@ function hitSnap(x: number, y: number, w: number): SnapMode {
 }
 
 export function DeskWindows() {
-  const windows = useFox((s) => s.windows);
+  const desk = useFox((s) => s.desk);
+  const windows = useFox((s) => s.windows).filter((win) => (win.desk ?? 0) === desk);
   const focusWindow = useFox((s) => s.focusWindow);
   const closeWindow = useFox((s) => s.closeWindow);
   const moveWindow = useFox((s) => s.moveWindow);

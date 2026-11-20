@@ -1,26 +1,45 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #061008;
-  --color-panel: #0c1a12;
-  --color-sub: #102618;
-  --color-accent: #22c55e;
-  --color-accent-dim: #86efac;
-  --color-warn: #bef264;
-  --color-fg: #f0fdf4;
-  --color-muted: #a7f3d0;
-  --color-line: #14532d;
-  --color-ok: #4ade80;
+  --color-bg: #100608;
+  --color-panel: #1a0c10;
+  --color-sub: #261016;
+  --color-accent: #e31c2b;
+  --color-accent-dim: #ffd24a;
+  --color-warn: #ffd24a;
+  --color-fg: #f6f3f0;
+  --color-muted: #e7c4bc;
+  --color-line: #7a2a32;
+  --color-ok: #ffd24a;
   --font-sans: "IBM Plex Sans JP", "IBM Plex Sans", sans-serif;
-  --font-mono: "IBM Plex Mono", "IBM Plex Sans JP", ui-monospace, monospace;
+  --font-mono: "IBM Plex Mono", "IBM Plex Sans JP", "Noto Sans Hebrew", ui-monospace, monospace;
   --radius-sm: 2px;
 }
 
 @layer base {
-  button:not(:disabled), [role="button"]:not(:disabled) { cursor: pointer; }
-  html, body { height: 100%; background: var(--color-bg); color: var(--color-fg); }
-  body { margin: 0; overflow: hidden; font-family: var(--font-sans); line-height: 1.5; }
-  :focus-visible { outline: 1px solid var(--color-accent); outline-offset: 2px; }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  html,
+  body {
+    height: 100%;
+    background: var(--color-bg);
+    color: var(--color-fg);
+  }
+
+  body {
+    margin: 0;
+    overflow: hidden;
+    font-family: var(--font-sans);
+    line-height: 1.5;
+  }
+
+  :focus-visible {
+    outline: 1px solid var(--color-accent);
+    outline-offset: 2px;
+  }
 }
 
 @layer components {
@@ -33,66 +52,677 @@
       radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--color-accent) 16%, transparent), transparent 42%),
       var(--color-bg);
     color: var(--color-fg);
+  }
+
+  .fox-root::before {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    opacity: 0.35;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='56' height='48' viewBox='0 0 56 48'><path d='M28 2 L42 10 L42 26 L28 34 L14 26 L14 10 Z' fill='none' stroke='%237a2a32' stroke-width='1'/></svg>");
+    background-size: 56px 48px;
+    mask-image: radial-gradient(ellipse at 50% 40%, #000 20%, transparent 75%);
+  }
+
+  .fox-top {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    min-height: 3rem;
+    padding: 0.4rem 1rem;
+    border: 0;
+    background: transparent;
+  }
+
+  .fox-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    letter-spacing: 0.22em;
+    font-size: 0.8rem;
+    color: var(--color-fg);
+    position: relative;
+    padding: 0.2rem 0;
+    background: transparent;
+    border: 0;
+  }
+
+  .fox-brand .fox-mark,
+  .fox-link .fox-mark {
+    width: 2rem;
+    height: 2.2rem;
+    border: 0;
+    background: transparent;
+  }
+
+  .fox-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.5rem 1rem;
+    color: var(--color-muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+  }
+
+  .fox-mark {
+    display: block;
+    width: 1.6rem;
+    height: 1.6rem;
+    object-fit: contain;
+    color: var(--color-accent);
+  }
+
+  .fox-brand .fox-mark {
+    width: 2rem;
+    height: 2.2rem;
+  }
+
+  .fox-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .fox-link .fox-mark {
+    width: 1.35rem;
+    height: 1.5rem;
+  }
+
+  .fox-meta strong {
+    color: var(--color-warn);
+    font-weight: 500;
+  }
+
+  .fox-stage {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 4.6rem minmax(0, 1.5fr) minmax(13rem, 0.85fr) minmax(13rem, 0.85fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .fox-panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    overflow: hidden;
+    opacity: 0.62;
+    background: color-mix(in srgb, var(--color-panel) 94%, transparent);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-sm);
+  }
+
+  .fox-panel.is-active {
+    opacity: 1;
+    border-color: var(--color-warn);
+  }
+
+  .fox-panel.is-launch {
+    animation: fox-launch 0.7s ease;
+  }
+
+  .fox-panel-h {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.6rem 0.8rem;
+    border-bottom: 1px solid var(--color-line);
+    color: var(--color-accent);
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+  }
+
+  .fox-window .fox-panel-h {
+    position: relative;
+    margin: 0.25rem;
+    background: color-mix(in srgb, #100608 75%, transparent);
+    border: 1.5px solid var(--color-accent);
+    border-radius: 1.5px;
     overflow: hidden;
   }
 
-  .fox-desk {
-    position: relative;
-    flex: 1;
-    min-height: 0;
+  .fox-window.is-line-in .fox-panel-h {
+    animation: line-in 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
   }
 
-  .fox-apps {
+  .fox-window.is-line-in .fox-panel-h::after,
+  .fox-window.is-line-out .fox-panel-h::after,
+  .fox-window.is-line-in::after,
+  .fox-window.is-line-out::after,
+  .fox-dock::after {
+    content: "";
     position: absolute;
-    inset: 0 0 2.6rem 0;
-  }
-
-  .fox-task {
-    position: absolute;
-    left: 0; right: 0; bottom: 0;
-    height: 2.4rem;
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0 0.4rem;
-    background: color-mix(in srgb, var(--color-panel) 92%, black);
-    border-top: 1px solid var(--color-line);
+    left: 0;
+    right: 0;
+    height: 1.5px;
+    background: var(--color-accent);
+    pointer-events: none;
     z-index: 4;
   }
 
-  .fox-btn {
-    min-height: 2rem;
-    padding: 0 0.75rem;
-    border: 1px solid var(--color-line);
-    background: var(--color-sub);
-    color: var(--color-fg);
-    border-radius: var(--radius-sm);
-  }
-  .fox-btn-accent {
-    background: var(--color-accent);
-    color: #041008;
-    border-color: color-mix(in srgb, var(--color-accent) 70%, white);
-    font-weight: 600;
+  .fox-window.is-line-in .fox-panel-h::after,
+  .fox-window.is-line-in::after,
+  .fox-dock::after {
+    animation: scan-up 0.5s linear both;
   }
 
-  .fox-mark { display: block; width: 3rem; height: 3rem; object-fit: contain; }
+  .fox-window.is-line-out .fox-panel-h,
+  .fox-window.is-line-out {
+    animation: line-out 0.42s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .fox-window.is-line-out .fox-panel-h::after,
+  .fox-window.is-line-out::after {
+    animation: dissolve-scan 0.42s linear both;
+  }
+
+  .fox-panel-b {
+    min-height: 0;
+    flex: 1;
+    overflow: auto;
+    padding: 0.8rem;
+  }
+
+  .fox-apps {
+    position: relative;
+    z-index: 2;
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-height: 0;
+    overflow: auto;
+  }
+
+  .fox-app {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+    padding: 0.3rem 0.15rem;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--color-fg);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+  }
+
+  .fox-app .fox-mark {
+    width: 2.8rem;
+    height: 2.8rem;
+  }
+
+  .fox-app.is-on,
+  .fox-app:hover {
+    border-color: var(--color-warn);
+    background: color-mix(in srgb, var(--color-accent) 28%, transparent);
+  }
+
+  .fox-term {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+
+  .fox-qdev {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .fox-ai {
+    grid-column: 4;
+    grid-row: 1 / span 2;
+  }
+
+  .fox-sys {
+    grid-column: 3;
+    grid-row: 2;
+  }
+
+  .fox-term-body {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--color-bg);
+  }
+
+  .fox-scan {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--color-accent);
+    box-shadow: 0 0 8px var(--color-accent);
+    z-index: 2;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  .fox-term.is-opening .fox-term-body {
+    animation: term-up 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .fox-term.is-opening .fox-scan {
+    opacity: 1;
+    animation: scan-up 0.7s linear both;
+  }
+
+  .fox-term.is-closing .fox-term-body {
+    animation: term-down 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .fox-term.is-closing .fox-scan {
+    opacity: 1;
+    animation: dissolve-scan 0.7s linear both;
+  }
+
+  .fox-term.is-closed {
+    display: none;
+  }
+
+  .fox-log {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 0.8rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-break: break-word;
+    unicode-bidi: plaintext;
+  }
+
+  .fox-line-err {
+    color: var(--color-warn);
+  }
+
+  .fox-line-sys {
+    color: var(--color-muted);
+  }
+
+  .fox-line-cmd {
+    color: var(--color-accent-dim);
+  }
+
+  .fox-prompt {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 0.8rem;
+    border-top: 1px solid var(--color-line);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+  }
+
+  .fox-prompt span {
+    color: var(--color-accent);
+  }
+
+  .fox-prompt input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: 0;
+    color: var(--color-fg);
+    font: inherit;
+  }
+
+  .fox-prompt textarea {
+    flex: 1;
+    min-width: 0;
+    min-height: 3.2rem;
+    resize: vertical;
+    background: transparent;
+    border: 0;
+    color: var(--color-fg);
+    font: inherit;
+  }
+
+  .fox-prompt input:focus,
+  .fox-prompt textarea:focus {
+    outline: none;
+  }
+
+  .fox-kv {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--color-line);
+    font-size: 0.82rem;
+  }
+
+  .fox-kv span:first-child {
+    color: var(--color-muted);
+  }
+
+  .fox-kv b {
+    font-weight: 500;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+  }
+
+  .fox-ok {
+    color: var(--color-ok);
+  }
+
+  .fox-warn {
+    color: var(--color-warn);
+  }
+
+  .fox-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.8rem;
+  }
+
+  .fox-btn {
+    min-height: 2.75rem;
+    padding: 0.4rem 0.75rem;
+    background: transparent;
+    color: var(--color-fg);
+    border: 1px solid var(--color-accent);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+  }
+
+  .fox-btn:hover {
+    border-color: var(--color-warn);
+    color: var(--color-warn);
+  }
+
+  .fox-btn-accent {
+    border-color: var(--color-warn);
+    color: var(--color-warn);
+    background: color-mix(in srgb, var(--color-accent) 24%, transparent);
+  }
+
+  .fox-btn-warn {
+    border-color: color-mix(in srgb, var(--color-warn) 70%, var(--color-line));
+    color: var(--color-warn);
+  }
+
+  .fox-chat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .fox-bubble {
+    padding: 0.55rem 0.7rem;
+    background: var(--color-sub);
+    border: 1px solid var(--color-line);
+    font-size: 0.84rem;
+  }
+
+  .fox-bubble.is-user {
+    color: var(--color-muted);
+  }
+
+  .fox-proposal {
+    margin-top: 0.45rem;
+    padding: 0.55rem;
+    border: 1px solid color-mix(in srgb, var(--color-warn) 55%, var(--color-line));
+    background: var(--color-bg);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+  }
+
+  .fox-proposal p {
+    margin: 0.2rem 0;
+    color: var(--color-muted);
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+  }
+
+  .fox-ai-form {
+    display: flex;
+    gap: 0.4rem;
+    padding: 0.7rem;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .fox-ai-form input {
+    flex: 1;
+    min-width: 0;
+    min-height: 2.75rem;
+    padding: 0 0.7rem;
+    background: var(--color-sub);
+    border: 1px solid var(--color-line);
+    color: var(--color-fg);
+    font: inherit;
+    font-size: 0.84rem;
+  }
+
+  .fox-note {
+    color: var(--color-muted);
+    font-size: 0.75rem;
+  }
+
+  .fox-dock {
+    position: relative;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 3rem;
+    margin: 0 14px 0.35rem;
+    padding: 0.28rem 0.45rem;
+    background: color-mix(in srgb, #100608 75%, transparent);
+    border: 1.5px solid var(--color-accent);
+    border-radius: 1.5px;
+    overflow-x: auto;
+    backdrop-filter: blur(8px);
+  }
+
+  .fox-power {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+  }
+
+  .fox-power .fox-task-ico {
+    min-width: 4.6rem;
+    font-size: 0.55rem;
+  }
+
+  .fox-power-screen {
+    position: absolute;
+    inset: 0;
+    z-index: 8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    background: color-mix(in srgb, #050203 92%, transparent);
+    color: #f6f3f0;
+    border: 0;
+    letter-spacing: 0.18em;
+  }
+
+  .fox-power-screen span,
+  .fox-power-screen p {
+    color: var(--color-muted);
+    letter-spacing: 0.08em;
+    font-size: 0.8rem;
+  }
+
+  .fox-power-screen.is-off {
+    background: #050203;
+  }
+
+  .fox-task-apps,
+  .fox-task-wins,
+  .fox-task-tray {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-width: 0;
+  }
+
+  .fox-task-wins {
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .fox-task-tray {
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  .fox-vol {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: #f6f3f0;
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+  }
+
+  .fox-vol input {
+    width: 5.2rem;
+    accent-color: #ffd24a;
+  }
+
+  .fox-dock .fox-btn {
+    background: #100608;
+    color: #f6f3f0;
+    border-color: #ffd24a;
+  }
+
+  .fox-task-ico {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.05rem;
+    min-width: 2.5rem;
+    padding: 0.12rem 0.2rem;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #f6f3f0;
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.06em;
+  }
+
+  .fox-task-ico .fox-mark,
+  .fox-vol .fox-mark {
+    width: 1.25rem;
+    height: 1.4rem;
+  }
+
+  .fox-task-ico:hover,
+  .fox-task-ico.is-on,
+  .fox-ime.is-on {
+    border-color: #ffd24a;
+    background: #100608;
+  }
+
+  .fox-ime.is-on span {
+    color: #ffd24a;
+  }
+
+  .fox-ime-field {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    display: flex;
+  }
+
+  .fox-ime-field input {
+    width: 100%;
+  }
+
+  .fox-ime-picks {
+    position: absolute;
+    z-index: 8;
+    left: 0;
+    top: calc(100% + 4px);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    max-width: min(32rem, 86vw);
+    padding: 0.35rem;
+    background: #1a0c10;
+    border: 1px solid #ffd24a;
+  }
+
+  .fox-ime-picks button {
+    min-height: 1.8rem;
+    padding: 0.15rem 0.45rem;
+    border: 1px solid #7a2a32;
+    background: transparent;
+    color: #f6f3f0;
+    font-size: 0.78rem;
+  }
+
+  .fox-ime-picks button.is-on {
+    border-color: #ffd24a;
+    background: #e31c2b;
+    color: #fff;
+  }
+
+  .fox-dock strong {
+    color: #ffd24a;
+    font-size: 0.75rem;
+  }
+
+  .fox-dock .fox-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1rem;
+    min-width: 0;
+  }
+
+  .fox-dock .fox-mark {
+    width: 1.7rem;
+    height: 1.85rem;
+  }
 
   .fox-boot {
     position: absolute;
     inset: 0;
-    z-index: 50;
+    z-index: 100;
     background: #061008;
     display: flex;
     align-items: center;
     justify-content: center;
   }
-  .fox-boot.is-leaving { animation: boot-out 0.45s ease both; }
+
+  .fox-boot.is-leaving {
+    animation: boot-out 0.45s ease both;
+  }
+
+  .fox-boot canvas,
   .fox-hive {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
   }
+
   .fox-hive polygon {
     fill: color-mix(in srgb, var(--color-accent) 18%, transparent);
     stroke: var(--color-accent);
@@ -100,40 +730,248 @@
     opacity: 0;
     animation: hive-cell 1.35s ease both;
   }
-  .fox-boot.is-audible .fox-hive polygon { animation: hive-cell 1.35s ease both; }
+
+  .fox-boot.is-audible .fox-hive polygon {
+    animation: hive-cell 1.35s ease both;
+  }
+
   .fox-boot-center {
     position: relative;
     z-index: 1;
     text-align: center;
+    opacity: 1;
   }
-  .fox-boot.is-audible .fox-boot-center { animation: fox-in 0.7s ease 1.6s both; }
-  .fox-boot-stack { display: flex; justify-content: center; margin-bottom: 0.6rem; }
-  .fox-boot-center .fox-mark { width: 5.5rem; height: 5.5rem; }
+
+  .fox-boot.is-audible .fox-boot-center {
+    animation: fox-in 0.7s ease 1.6s both;
+  }
+
+  .fox-boot-center .fox-boot-hint {
+    margin: 0.8rem 0 0;
+    color: var(--color-warn);
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+  }
+
+  .fox-boot-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.7rem;
+  }
+
+  .fox-cyber-bar {
+    width: 16rem;
+    height: 0.4rem;
+    border: 1px solid var(--color-accent);
+    background: #1a080a;
+    overflow: hidden;
+  }
+
+  .fox-cyber-bar span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: var(--color-accent);
+  }
+
+  .fox-boot.is-audible .fox-cyber-bar span,
+  .fox-desk-load .fox-cyber-bar span {
+    animation: fox-boot-fill 3.4s linear forwards;
+  }
+
+  .fox-desk-load .fox-cyber-bar span {
+    animation-duration: 1.6s;
+  }
+
+  .fox-desk-load .fox-mark {
+    width: 5.2rem;
+    height: 5.2rem;
+  }
+
+  @keyframes fox-boot-fill {
+    to {
+      width: 100%;
+    }
+  }
+
+  .fox-menorah {
+    width: 9.5rem;
+    height: 9.5rem;
+    object-fit: contain;
+    border-radius: 2px;
+  }
+
+  .fox-boot-center .fox-mark {
+    width: 6.2rem;
+    height: 6.2rem;
+  }
+
   .fox-boot-center h1 {
-    margin: 0;
-    letter-spacing: 0.28em;
-    font-size: 1.05rem;
+    margin: 0.85rem 0 0;
+    letter-spacing: 0.42em;
+    font-weight: 500;
+    font-size: 1.15rem;
     color: var(--color-fg);
   }
-  .fox-login-go { margin-top: 1.1rem; }
 
-  .fox-login {
+  .fox-boot-center p,
+  .fox-boot-phase {
+    color: var(--color-muted);
+    letter-spacing: 0.18em;
+    font-size: 0.72rem;
+  }
+
+  .fox-boot-phase {
+    position: absolute;
+    top: 1.2rem;
+    left: 1.2rem;
+    z-index: 2;
+  }
+
+  .fox-boot-skip {
+    position: absolute;
+    bottom: 1.2rem;
+    right: 1.2rem;
+    z-index: 2;
+  }
+
+  .fox-browser {
+    position: absolute;
+    z-index: 4;
+    right: 1rem;
+    bottom: 1rem;
+    width: min(28rem, calc(100% - 2rem));
+    background: var(--color-panel);
+    border: 1px solid var(--color-accent);
+    box-shadow: 0 12px 40px color-mix(in srgb, var(--color-bg) 70%, transparent);
+  }
+
+  .fox-browser header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.45rem 0.7rem;
+    border-bottom: 1px solid var(--color-line);
+    color: var(--color-muted);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+  }
+
+  .fox-tree {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    margin-top: 0.8rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+  }
+
+  .fox-tree button {
+    min-height: 2rem;
+    padding: 0.2rem 0.4rem;
+    text-align: left;
+    background: transparent;
+    color: var(--color-fg);
+    border: 0;
+  }
+
+  .fox-tree pre {
+    margin: 0.4rem 0 0;
+    white-space: pre-wrap;
+    color: var(--color-muted);
+  }
+
+  .fox-slack {
+    position: absolute;
+    z-index: 6;
+    inset: 4.5rem 1rem 1rem;
+    display: grid;
+    grid-template-columns: 9rem minmax(0, 1fr);
+    background: transparent;
+    border: 1.5px solid var(--color-accent);
+    border-radius: 1.5px;
+  }
+
+  .fox-slack aside {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.6rem;
+    background: #1a0c10;
+    border-right: 1px solid var(--color-line);
+  }
+
+  .fox-slack aside button {
+    min-height: 2.25rem;
+    text-align: left;
+    background: transparent;
+    color: var(--color-fg);
+    border: 0;
+  }
+
+  .fox-slack aside button.is-on {
+    color: var(--color-warn);
+  }
+
+  .fox-slack section {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .fox-slack-log {
+    flex: 1;
+    overflow: auto;
+    padding: 0.8rem;
+  }
+
+  .fox-slack-log b {
+    color: var(--color-warn);
+    margin-right: 0.4rem;
+  }
+
+  .fox-browser pre {
+    margin: 0;
+    padding: 1.2rem;
+    min-height: 6rem;
+    font-family: var(--font-mono);
+    color: var(--color-fg);
+  }
+
+  .fox-confirm {
+    margin: 0.6rem 0.8rem;
+    padding: 0.6rem;
+    border: 1px solid var(--color-warn);
+    color: var(--color-warn);
+    font-size: 0.78rem;
+  }
+}
+
+.fox-login {
     position: absolute;
     inset: 0;
-    z-index: 60;
+    z-index: 110;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 0.7rem;
-    background: #061008;
+    background: #100608;
   }
-  .fox-login .fox-mark { width: 5rem; height: 5.5rem; }
+
+  .fox-login .fox-mark {
+    width: 5rem;
+    height: 5.5rem;
+  }
+
   .fox-login h1 {
     margin: 0;
     letter-spacing: 0.28em;
     font-size: 1rem;
   }
+
   .fox-login label {
     display: flex;
     flex-direction: column;
@@ -142,125 +980,2054 @@
     color: var(--color-muted);
     font-size: 0.75rem;
   }
+
   .fox-login input {
     min-height: 2.5rem;
-    background: #0c1a12;
+    background: #0c0608;
     color: var(--color-fg);
     border: 1px solid var(--color-line);
     padding: 0 0.6rem;
-    border-radius: var(--radius-sm);
-  }
-  .fox-login p { margin: 0; color: var(--color-warn); }
-
-  .fox-sleep, .fox-off {
-    position: absolute;
-    inset: 0;
-    z-index: 70;
-    background: #020604;
-    color: var(--color-fg);
-    border: 0;
-    font-size: 1rem;
-    letter-spacing: 0.12em;
   }
 
-  .fox-icon {
+  .fox-login p {
+    margin: 0;
+    color: var(--color-warn);
+  }
+
+  .fox-login-go {
+    margin-top: 1.1rem;
+  }
+
+  .fox-desk {
+    display: block;
+  }
+
+  .fox-desk .fox-apps {
     position: absolute;
-    width: 4.5rem;
+    inset: 0 0 0.2rem 0;
+    width: auto;
+    overflow: hidden;
+    display: block;
+    pointer-events: none;
+  }
+
+  .fox-desk .fox-app {
+    position: absolute;
+    width: 4.4rem;
+    pointer-events: auto;
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .fox-apps .fox-context {
+    pointer-events: auto;
+  }
+
+  .fox-icon-edit {
+    width: 100%;
+    min-height: 1.2rem;
+    padding: 0;
+    border: 1px solid #ffd24a;
+    background: #100608;
+    color: #f6f3f0;
+    font-size: 0.62rem;
     text-align: center;
-    font-size: 0.7rem;
-    color: var(--color-fg);
-    cursor: default;
-    user-select: none;
   }
-  .fox-icon img, .fox-icon .fox-mark { width: 2.4rem; height: 2.4rem; margin: 0 auto 0.25rem; }
+
   .fox-window {
     position: absolute;
-    background: var(--color-panel);
-    border: 1px solid var(--color-line);
-    border-radius: 4px;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.45);
     display: flex;
     flex-direction: column;
     min-width: 12rem;
     min-height: 8rem;
+    background: color-mix(in srgb, #1a0c10 95%, transparent);
+    border: 1.5px solid var(--color-accent);
+    border-radius: 1.5px;
+    overflow: hidden;
   }
-  .fox-titlebar {
+
+  .fox-window.is-line-in {
+    animation: line-in 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .fox-window.is-line-out {
+    animation: line-out 0.42s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    pointer-events: none;
+  }
+
+  .fox-window-body {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    background: color-mix(in srgb, var(--color-panel) 95%, transparent);
+  }
+
+  .fox-window .fox-term-body {
+    background: transparent;
+  }
+
+  .fox-resize {
+    display: none;
+  }
+
+  .fox-edge {
+    position: absolute;
+    z-index: 6;
+  }
+
+  .fox-edge-n { top: 0; left: 10px; right: 10px; height: 6px; cursor: ns-resize; }
+  .fox-edge-s { bottom: 0; left: 10px; right: 10px; height: 6px; cursor: ns-resize; }
+  .fox-edge-e { top: 10px; right: 0; bottom: 10px; width: 6px; cursor: ew-resize; }
+  .fox-edge-w { top: 10px; left: 0; bottom: 10px; width: 6px; cursor: ew-resize; }
+  .fox-edge-nw { top: 0; left: 0; width: 12px; height: 12px; cursor: nwse-resize; }
+  .fox-edge-se { right: 0; bottom: 0; width: 12px; height: 12px; cursor: nwse-resize; }
+  .fox-edge-ne { top: 0; right: 0; width: 12px; height: 12px; cursor: nesw-resize; }
+  .fox-edge-sw { left: 0; bottom: 0; width: 12px; height: 12px; cursor: nesw-resize; }
+
+  .fox-win-ctl {
+    display: flex;
+    gap: 0.15rem;
+  }
+
+  .fox-win-ctl button {
+    width: 1.7rem;
+    height: 1.35rem;
+    padding: 0;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #f6f3f0;
+    font-size: 0.85rem;
+    line-height: 1;
+  }
+
+  .fox-win-ctl button:hover {
+    border-color: #ffd24a;
+    background: #100608;
+  }
+
+  .fox-win-ctl .is-close:hover {
+    border-color: #e31c2b;
+    background: #e31c2b;
+    color: #fff;
+  }
+
+  .fox-start,
+  .fox-clock-btn,
+  .fox-show-desk {
+    border: 1px solid transparent;
+    background: transparent;
+    color: #f6f3f0;
+  }
+
+  .fox-start {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.25rem 0.4rem;
-    background: color-mix(in srgb, var(--color-sub) 80%, black);
-    border-bottom: 1px solid var(--color-line);
-    cursor: move;
-    font-size: 0.78rem;
+    gap: 0.35rem;
+    min-height: 2.2rem;
+    padding: 0 0.45rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
   }
-  .fox-win-body { flex: 1; min-height: 0; overflow: auto; padding: 0.5rem; }
-  .fox-context {
-    position: fixed;
-    z-index: 80;
-    min-width: 10rem;
-    background: var(--color-panel);
-    border: 1px solid var(--color-line);
-    padding: 0.25rem;
+
+  .fox-start .fox-mark {
+    width: 1.25rem;
+    height: 1.4rem;
   }
-  .fox-context button {
-    display: block;
-    width: 100%;
-    text-align: left;
-    background: transparent;
-    border: 0;
-    color: var(--color-fg);
-    padding: 0.35rem 0.5rem;
+
+  .fox-start.is-on,
+  .fox-start:hover,
+  .fox-clock-btn:hover {
+    border-color: #ffd24a;
+    background: #100608;
   }
-  .fox-rail {
-    position: absolute;
-    right: 0;
-    top: 0;
-    bottom: 2.4rem;
-    width: 9.5rem;
-    background: color-mix(in srgb, #041008 88%, green);
-    border-left: 1px solid var(--color-line);
+
+  .fox-clock-btn {
+    color: #ffd24a;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.35rem;
+  }
+
+  .fox-show-desk {
+    width: 0.45rem;
+    align-self: stretch;
+    border-left: 1px solid #ffd24a;
+  }
+
+  .fox-task-ico.is-min {
+    opacity: 0.45;
+  }
+
+  .fox-task-wins .fox-task-ico {
+    max-width: 7.5rem;
+  }
+
+  .fox-task-wins .fox-task-ico span {
     overflow: hidden;
-    z-index: 3;
-    font-family: var(--font-mono);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 5.5rem;
+  }
+
+  .fox-start-menu,
+  .fox-calendar,
+  .fox-context,
+  .fox-switcher {
+    position: absolute;
+    z-index: 8;
+    background: color-mix(in srgb, #100608 88%, transparent);
+    border: 1.5px solid #ffd24a;
+    color: #f6f3f0;
+    backdrop-filter: blur(8px);
+  }
+
+  .fox-start-menu {
+    left: 14px;
+    bottom: 3.7rem;
+    width: min(22rem, calc(100vw - 2rem));
+    padding: 0.6rem;
+  }
+
+  .fox-start-menu input {
+    width: 100%;
+    min-height: 2.2rem;
+    margin-bottom: 0.45rem;
+    padding: 0 0.55rem;
+    border: 1px solid #7a2a32;
+    background: #1a0c10;
+    color: #f6f3f0;
+  }
+
+  .fox-start-apps {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .fox-start-apps button,
+  .fox-start-power button,
+  .fox-context button,
+  .fox-switcher button {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    width: 100%;
+    min-height: 2.2rem;
+    padding: 0.25rem 0.4rem;
+    border: 0;
+    background: transparent;
+    color: #f6f3f0;
+    text-align: left;
+  }
+
+  .fox-start-apps button:hover,
+  .fox-start-power button:hover,
+  .fox-context button:hover,
+  .fox-switcher button:hover,
+  .fox-switcher button.is-on {
+    background: #e31c2b;
+  }
+
+  .fox-start-apps small {
+    display: block;
+    color: #e7c4bc;
     font-size: 0.65rem;
   }
-  .fox-hex button {
-    display: block;
+
+  .fox-start-apps .fox-mark {
+    width: 1.4rem;
+    height: 1.55rem;
+  }
+
+  .fox-start-power {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.3rem;
+    margin-top: 0.55rem;
+    padding-top: 0.45rem;
+    border-top: 1px solid #7a2a32;
+  }
+
+  .fox-start-power button {
+    justify-content: center;
+    border: 1px solid #7a2a32;
+    font-size: 0.68rem;
+  }
+
+  .fox-calendar {
+    right: 1.2rem;
+    bottom: 3.7rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.7rem 0.9rem;
+  }
+
+  .fox-context {
+    position: fixed;
+    min-width: 11rem;
+    padding: 0.25rem;
+  }
+
+  .fox-switcher {
+    left: 50%;
+    top: 38%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    width: min(28rem, calc(100% - 2rem));
+    padding: 0.55rem;
+    transform: translateX(-50%);
+  }
+
+  .fox-switcher button {
+    width: auto;
+    border: 1px solid #7a2a32;
+  }
+
+  .fox-dict,
+  .fox-pkg,
+  .fox-chrome {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    background: #202124;
+    color: #e8eaed;
+  }
+
+  .fox-dict header,
+  .fox-pkg header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.45rem 0.6rem;
+    background: #292a2d;
+  }
+
+  .fox-dict header span,
+  .fox-pkg small,
+  .fox-chrome small {
+    color: #9aa0a6;
+  }
+
+  .fox-dict .fox-kana,
+  .fox-dict input,
+  .fox-pkg > input {
+    margin: 0.4rem 0.6rem 0;
+  }
+
+  .fox-dict-body,
+  .fox-pkg-grid {
+    display: grid;
+    grid-template-columns: 11rem 1fr;
+    gap: 0.4rem;
+    min-height: 0;
+    flex: 1;
+    padding: 0.45rem 0.6rem;
+  }
+
+  .fox-dict-body ul,
+  .fox-pkg-grid ul,
+  .fox-pkg aside {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    overflow: auto;
+  }
+
+  .fox-dict-body button,
+  .fox-pkg button {
+    display: grid;
     width: 100%;
     text-align: left;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    padding: 0.3rem 0.35rem;
+  }
+
+  .fox-dict-body button.is-on,
+  .fox-pkg header button.is-on {
+    background: #3c4043;
+  }
+
+  .fox-dict article {
+    padding: 0.4rem 0.2rem;
+  }
+
+  .fox-dict h2 {
+    margin: 0.15rem 0;
+    font-size: 1.6rem;
+    color: #f2d2cb;
+  }
+
+  .fox-dict blockquote {
+    margin: 0.6rem 0 0;
+    color: #e8eaed;
+  }
+
+  .fox-pkg header div {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .fox-pkg header button {
+    width: auto;
+    border-radius: 999px;
+    padding: 0.15rem 0.45rem;
+  }
+
+  .fox-pkg-grid {
+    grid-template-columns: 1fr 9.5rem;
+  }
+
+  .fox-pkg-grid li {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.1rem 0.4rem;
+    border-bottom: 1px solid #3c4043;
+    padding: 0.25rem 0;
+  }
+
+  .fox-pkg-grid li small {
+    grid-column: 1;
+  }
+
+  .fox-pkg pre {
+    margin: 0;
+    max-height: 5.5rem;
+    overflow: auto;
+    padding: 0.4rem 0.6rem;
+    background: #171717;
+    color: #e7c4bc;
+    white-space: pre-wrap;
+  }
+
+  .fox-chrome-tabs {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.2rem;
+    padding: 0.35rem 0.4rem 0;
+    background: #202124;
+  }
+
+  .fox-chrome-tabs > button {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    max-width: 11rem;
+    height: 2rem;
+    padding: 0 0.55rem;
+    border: 0;
+    border-radius: 0.55rem 0.55rem 0 0;
+    background: transparent;
+    color: #9aa0a6;
+  }
+
+  .fox-chrome-tabs > button.is-on {
+    background: #323639;
+    color: #e8eaed;
+  }
+
+  .fox-chrome-tabs span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .fox-chrome-tabs i {
+    font-style: normal;
+  }
+
+  .fox-chrome-add {
+    width: 2rem;
+    justify-content: center;
+  }
+
+  .fox-chrome-nav {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.35rem 0.45rem;
+    background: #323639;
+  }
+
+  .fox-chrome-nav > button,
+  .fox-chrome-marks button,
+  .fox-ntp button,
+  .fox-chrome-menu button,
+  .fox-chrome-embed > button {
+    border: 0;
+    background: transparent;
+    color: #e8eaed;
+  }
+
+  .fox-chrome-nav > button {
+    width: 1.8rem;
+    height: 1.8rem;
+    border-radius: 50%;
+  }
+
+  .fox-chrome-nav > button:disabled {
+    opacity: 0.35;
+  }
+
+  .fox-chrome-nav .is-star {
+    color: #f2c14e;
+  }
+
+  .fox-omnibox {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 0.35rem;
+    height: 2rem;
+    padding: 0 0.7rem;
+    border-radius: 1rem;
+    background: #202124;
+    border: 1px solid #5f6368;
+  }
+
+  .fox-omnibox input {
+    flex: 1;
+    border: 0;
+    background: transparent;
+    color: #e8eaed;
+    outline: none;
+  }
+
+  .fox-chrome-menu {
+    position: absolute;
+    top: 2.4rem;
+    right: 0.4rem;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    min-width: 12rem;
+    padding: 0.3rem;
+    background: #292a2d;
+    border-radius: 0.4rem;
+    box-shadow: 0 8px 24px #0008;
+  }
+
+  .fox-chrome-menu button {
+    text-align: left;
+    padding: 0.35rem 0.5rem;
+  }
+
+  .fox-chrome-marks {
+    display: flex;
+    gap: 0.35rem;
+    padding: 0.2rem 0.55rem 0.35rem;
+    background: #323639;
+    overflow: auto;
+  }
+
+  .fox-chrome-page {
+    flex: 1;
+    min-height: 0;
+    background: #fff;
+    color: #202124;
+  }
+
+  .fox-chrome-page iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: #fff;
+  }
+
+  .fox-ntp {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+    height: 100%;
+    background: #202124;
+    color: #e8eaed;
+  }
+
+  .fox-ntp b {
+    font-size: 2.4rem;
+    letter-spacing: 0.2rem;
+    color: #e24b4b;
+  }
+
+  .fox-ntp form {
+    width: min(28rem, 90%);
+  }
+
+  .fox-ntp input {
+    width: 100%;
+    height: 2.6rem;
+    border-radius: 1.3rem;
+    border: 1px solid #5f6368;
+    background: #303134;
+    color: #e8eaed;
+    padding: 0 1rem;
+  }
+
+  .fox-ntp div {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  .fox-chrome-list {
+    margin: 0;
+    padding: 0.6rem;
+    list-style: none;
+    color: #e8eaed;
+    background: #202124;
+    height: 100%;
+    overflow: auto;
+  }
+
+  .fox-chrome-list button {
+    display: grid;
+    width: 100%;
+    text-align: left;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    padding: 0.4rem 0;
+  }
+
+  .fox-chrome-card,
+  .fox-chrome-embed {
+    height: 100%;
+    padding: 0.8rem;
+    background: #202124;
+    color: #e8eaed;
+    overflow: auto;
+  }
+
+  .fox-chrome-embed {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+  }
+
+  .fox-kinds,
+  .fox-dict-pages {
+    display: flex;
+    gap: 0.25rem;
+    overflow: auto;
+    padding: 0.35rem 0.5rem 0;
+  }
+
+  .fox-dict-pages {
+    padding: 0;
+  }
+
+  .fox-kinds button,
+  .fox-dict-pages button,
+  .fox-grammar button {
+    width: auto;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: #e8eaed;
+    padding: 0.15rem 0.45rem;
+  }
+
+  .fox-kinds button.is-on,
+  .fox-dict-pages button.is-on,
+  .fox-grammar button.is-on {
+    background: #8a2a32;
+  }
+
+  .fox-tr,
+  .fox-grammar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    min-height: 0;
+    flex: 1;
+    padding: 0.5rem;
+  }
+
+  .fox-tr textarea {
+    width: 100%;
+    min-height: 8rem;
+    border: 1px solid #5f6368;
+    background: #171717;
+    color: #e8eaed;
+    padding: 0.4rem;
+  }
+
+  .fox-grammar {
+    grid-template-columns: 7rem 1fr;
+  }
+
+  .fox-grammar aside {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .fox-grammar article,
+  .fox-tr article {
+    overflow: auto;
+  }
+
+  .fox-grammar h2,
+  .fox-grammar h3 {
+    margin: 0.2rem 0;
+  }
+
+  .fox-chrome.is-private {
+    outline: 1px solid #9aa0a6;
+  }
+
+  .fox-chrome-load {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 2px;
+    width: 40%;
+    background: #e24b4b;
+    animation: fox-load 0.42s ease both;
+  }
+
+  .fox-chrome-tabs > button.is-pin {
+    max-width: 4.5rem;
+  }
+
+  .fox-lock {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    padding: 0;
+  }
+
+  .fox-suggest {
+    position: absolute;
+    top: 2.5rem;
+    left: 6rem;
+    right: 8rem;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    background: #292a2d;
+    border-radius: 0.4rem;
+  }
+
+  .fox-suggest button {
+    display: grid;
+    text-align: left;
+    border: 0;
+    background: transparent;
+    color: #e8eaed;
+    padding: 0.35rem 0.6rem;
+  }
+
+  .fox-find,
+  .fox-shelf,
+  .fox-chrome-status {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    background: #292a2d;
+  }
+
+  .fox-find input {
+    flex: 1;
+    border: 0;
+    background: #202124;
+    color: #e8eaed;
+    padding: 0.2rem 0.4rem;
+  }
+
+  .fox-chrome-menu.is-tab {
+    position: absolute;
+  }
+
+  .fox-blocks {
+    display: grid;
+    grid-template-columns: 8.5rem minmax(0, 1fr) minmax(12rem, 0.9fr);
+    height: 100%;
+    min-height: 0;
+    background: #202124;
+    color: #e8eaed;
+  }
+
+  .fox-blocks aside,
+  .fox-script,
+  .fox-kid-stage {
+    min-height: 0;
+    overflow: auto;
+    padding: 0.45rem;
+  }
+
+  .fox-blocks aside > button {
+    display: block;
+    width: 100%;
+    margin: 0 0 0.3rem;
+    border: 0;
+    border-radius: 0.35rem;
+    background: #3c4043;
+    color: #fff;
+    padding: 0.3rem;
+    text-align: left;
+  }
+
+  .fox-block {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    align-items: center;
+    margin: 0 0 0.35rem;
+    padding: 0.35rem 0.45rem;
+    border: 0;
+    border-radius: 0.45rem;
+    color: #fff;
+    text-align: left;
+  }
+
+  .fox-block.is-say { background: #7b4bb6; }
+  .fox-block.is-wait { background: #c96b1a; }
+  .fox-block.is-term { background: #2f6f4e; }
+  .fox-block.is-open { background: #2a62b5; }
+  .fox-block.is-repeat { background: #b4532a; }
+
+  .fox-block input,
+  .fox-block select {
+    max-width: 9rem;
+    border: 0;
+    border-radius: 0.25rem;
+    padding: 0.1rem 0.25rem;
+  }
+
+  .fox-block ul {
+    width: 100%;
+    margin: 0.3rem 0 0;
+    padding: 0 0 0 0.6rem;
+    list-style: none;
+  }
+
+  .fox-script ul {
+    margin: 0.4rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .fox-flag {
+    border: 0;
+    border-radius: 999px;
+    background: #1f9d55;
+    color: #fff;
+    padding: 0.35rem 0.8rem;
+  }
+
+  .fox-tags {
+    width: 100%;
+    min-height: 12rem;
+    margin-top: 0.4rem;
+    border: 0;
+    border-radius: 0.4rem;
+    background: #111;
+    color: #e8eaed;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    line-height: 1.5;
+    padding: 0.45rem;
+    resize: vertical;
+  }
+
+  .fox-kid-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0.4rem;
+    background: #111;
+  }
+
+  .fox-code {
+    flex: 1;
+    margin: 0;
+    overflow: auto;
+    padding: 0.45rem;
+    background: #0c0c0c;
+    color: #d7e8c8;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    line-height: 1.45;
+    white-space: pre-wrap;
+  }
+
+  .fox-kid-stage img {
+    width: 3.2rem;
+    height: 3.2rem;
+    align-self: center;
+  }
+
+  .fox-bubble {
+    background: #fff;
+    color: #202124;
+    border-radius: 0.8rem;
+    padding: 0.4rem 0.55rem;
+  }
+
+  .fox-phone {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    height: 100%;
+    padding: 0.6rem;
+    background: #101418;
+    color: #e8eaed;
+  }
+
+  .fox-phone header {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .fox-phone-tabs,
+  .fox-pad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.35rem;
+  }
+
+  .fox-phone button {
+    border: 0;
+    border-radius: 0.6rem;
+    background: #2a3138;
+    color: #fff;
+    padding: 0.45rem;
+  }
+
+  .fox-phone-tabs button.is-on,
+  .fox-kinds button.is-on {
+    background: #8a2a32;
+  }
+
+  .fox-dial {
+    text-align: center;
+    font-size: 1.3rem;
+    letter-spacing: 0.08rem;
+  }
+
+  .fox-sms {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    overflow: auto;
+  }
+
+  .fox-bot {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .fox-panes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 0;
+    flex: 1;
+  }
+
+  .fox-pane {
+    min-width: 0;
+    overflow: auto;
+    border-right: 1px solid #3c4043;
+  }
+
+  .fox-exp-row button.is-on {
+    background: #3c4043;
+  }
+
+  .fox-hint {
+    color: #8d939a;
+    font-style: normal;
+    font-size: 0.68rem;
+    white-space: nowrap;
+  }
+
+  .fox-chrome-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 11rem;
+    min-height: 0;
+    flex: 1;
+  }
+
+  .fox-page-note {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 0.4rem;
+    background: #292a2d;
+    color: #e8eaed;
+  }
+
+  .fox-page-note textarea {
+    flex: 1;
+    min-height: 8rem;
+    border: 0;
+    background: #202124;
+    color: inherit;
+    padding: 0.35rem;
+  }
+
+  .fox-mark-blank {
+    display: inline-block;
+    width: 1.4rem;
+    height: 1.4rem;
+    border-radius: 0.3rem;
+    background: transparent;
+  }
+
+  .fox-ime-hint {
+    position: absolute;
+    left: 0;
+    top: calc(100% + 2px);
+    z-index: 7;
+    color: #ffd24a;
+    font-size: 0.68rem;
+    white-space: nowrap;
+  }
+
+  .fox-extra {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    height: 100%;
+    overflow: auto;
+    padding: 0.6rem;
+    background: #141414;
+    color: #f6f3f0;
+  }
+
+  .fox-ide {
+    display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr);
+    height: 100%;
+    min-height: 0;
+    background: #100608;
+    color: #f6f3f0;
+  }
+
+  .fox-ide aside {
+    padding: 0.5rem;
+    border-right: 1px solid #7a2a32;
+    font-size: 0.72rem;
+  }
+
+  .fox-ide-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .fox-ide textarea {
+    flex: 1;
+    min-height: 8rem;
+    border: 0;
+    resize: none;
+    background: transparent;
+    color: #f6f3f0;
+    padding: 0.6rem;
+    font: inherit;
+  }
+
+  .fox-ide-line,
+  .fox-ghost-meta {
+    margin: 0;
+    padding: 0 0.6rem 0.45rem;
+    font-size: 0.75rem;
+  }
+
+  .fox-ghost,
+  .fox-type-ghost {
+    opacity: 0.38;
+  }
+
+  .fox-type-ghost {
+    position: absolute;
+    z-index: 6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 12rem;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    text-align: center;
+  }
+
+  .fox-type-ghost strong {
+    font-size: 1.4rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+  }
+
+  .fox-type-ghost span {
+    font-size: 0.68rem;
+  }
+
+  .fox-extra h2 {
+    margin: 0.3rem 0 0;
+    font-size: 0.85rem;
+  }
+
+  .fox-extra input {
+    min-height: 2rem;
+    border: 1px solid #7a2a32;
+    background: #100608;
+    color: #f6f3f0;
+    padding: 0 0.4rem;
+  }
+
+  .fox-extra button.is-on {
+    background: #e31c2b;
+  }
+
+  .fox-stream {
+    position: relative;
+    height: 4.5rem;
+    overflow: hidden;
+    background: #050203;
+    border: 1px solid #ffd24a;
+  }
+
+  .fox-stream i {
+    position: absolute;
+    top: 1.4rem;
+    width: 1.4rem;
+    height: 1.4rem;
+    background: #e31c2b;
+  }
+
+  .fox-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    width: 14rem;
+    padding: 0.7rem;
+    border-radius: 0.6rem;
+    background: #1a0c10;
+    border: 1px solid #ffd24a;
+  }
+
+  .fox-map-frame {
+    position: relative;
+    background:
+      linear-gradient(rgba(227, 28, 43, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 210, 74, 0.05) 1px, transparent 1px),
+      #07090c;
+    background-size: 12px 12px, 12px 12px, auto;
+    border: 1px solid #7a2a32;
+  }
+
+  .fox-map-frame.is-open {
+    box-shadow: inset 0 0 0 1px #e31c2b;
+  }
+
+  .fox-map {
+    width: 100%;
+    height: 16rem;
     background: transparent;
     border: 0;
+  }
+
+  .fox-map-hex {
+    position: absolute;
+    right: 0.35rem;
+    bottom: 0.25rem;
+    color: #ffd24a;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+  }
+
+  .fox-map .fox-wire {
+    fill: none;
+    stroke: #f6f3f0;
+    stroke-width: 0.35;
+    opacity: 0.55;
+  }
+
+  .fox-map .fox-tube {
+    fill: none;
+    stroke: #e31c2b;
+    stroke-width: 0.7;
+    stroke-dasharray: 2 2;
+    animation: fox-wiggle 0.8s linear infinite;
+  }
+
+  .fox-map .fox-route {
+    fill: none;
+    stroke: #ffd24a;
+    stroke-width: 1.15;
+    stroke-dasharray: 3 2;
+    animation: fox-wiggle 0.55s linear infinite;
+  }
+
+  .fox-map .fox-node,
+  .fox-map .fox-particle {
+    fill: #ffd24a;
+  }
+
+  .fox-rail {
+    position: absolute;
+    top: 0.45rem;
+    right: 0.45rem;
+    bottom: 0.45rem;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    width: min(15rem, 34vw);
+    padding: 0.45rem;
+    overflow: hidden;
+    background: color-mix(in srgb, #100608 82%, transparent);
+    border: 1.5px solid #e31c2b;
+    color: #f6f3f0;
+    backdrop-filter: blur(6px);
+  }
+
+  .fox-rail header {
+    letter-spacing: 0.14em;
+    font-size: 0.72rem;
+  }
+
+  .fox-rail p {
+    margin: 0;
+    font-size: 0.68rem;
+  }
+
+  .fox-hex {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.68rem;
+  }
+
+  .fox-hex button {
+    border: 0;
+    background: transparent;
+    color: #ffd24a;
+    text-align: left;
+    padding: 0;
+    line-height: 1.35;
+  }
+
+  .fox-hex button.is-bad {
+    color: #ffb4b4;
+  }
+
+  .fox-rail-fx {
+    color: #f6f3f0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .fox-shogi {
+    display: grid;
+    grid-template-columns: repeat(5, 2.4rem);
+    gap: 0.2rem;
+  }
+
+  .fox-shogi button {
+    height: 2.4rem;
+    border: 1px solid #3c4043;
+    background: #1a120c;
+    color: #f6f3f0;
+  }
+
+  .fox-shogi button.is-on {
+    border-color: #ffd24a;
+  }
+
+  @keyframes fox-wiggle {
+    to { stroke-dashoffset: -20; }
+  }
+
+  @keyframes fox-load {
+    from { width: 8%; }
+    to { width: 85%; }
+  }
+
+  .fox-exp-row {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .fox-exp-bar input {
+    flex: 1;
+    min-width: 0;
+    min-height: 2rem;
+    background: #100608;
+    color: var(--color-fg);
+    border: 1px solid var(--color-line);
+    padding: 0 0.4rem;
+  }
+
+  .fox-exp-row button:first-child {
+    flex: 1;
+    text-align: left;
+  }
+
+  .fox-run,
+  .fox-tasks,
+  .fox-quick,
+  .fox-notes,
+  .fox-assist {
+    position: absolute;
+    z-index: 8;
+    background: color-mix(in srgb, #100608 90%, transparent);
+    border: 1.5px solid #ffd24a;
+    color: #f6f3f0;
+    backdrop-filter: blur(8px);
+  }
+
+  .fox-run {
+    left: 50%;
+    top: 28%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    width: min(22rem, calc(100% - 2rem));
+    padding: 0.8rem;
+    transform: translateX(-50%);
+  }
+
+  .fox-run label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+  }
+
+  .fox-run input,
+  .fox-tasks button,
+  .fox-quick button,
+  .fox-notes button,
+  .fox-assist button {
+    min-height: 2.1rem;
+    border: 1px solid #7a2a32;
+    background: transparent;
+    color: #f6f3f0;
+    padding: 0.2rem 0.45rem;
+  }
+
+  .fox-tasks,
+  .fox-quick,
+  .fox-notes {
+    right: 1rem;
+    bottom: 3.8rem;
+    width: min(18rem, calc(100% - 2rem));
+    padding: 0.55rem;
+  }
+
+  .fox-tasks header,
+  .fox-task-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.4rem;
+    align-items: center;
+  }
+
+  .fox-assist {
+    left: 50%;
+    top: 18%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    width: min(16rem, calc(100% - 2rem));
+    padding: 0.6rem;
+    transform: translateX(-50%);
+  }
+
+  .fox-assist p,
+  .fox-start-menu .fox-note {
+    margin: 0.35rem 0 0;
+    font-size: 0.68rem;
+  }
+
+  .fox-pass {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-top: 1rem;
+  }
+
+  .fox-pass h2 {
+    margin: 0;
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+    font-weight: 500;
+  }
+
+  .fox-pass label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
     color: var(--color-muted);
-    padding: 0.1rem 0.35rem;
+    font-size: 0.72rem;
+  }
+
+  .fox-pass input {
+    min-height: 2.2rem;
+    background: color-mix(in srgb, #100608 80%, transparent);
+    color: var(--color-fg);
+    border: 1px solid var(--color-line);
+    padding: 0 0.5rem;
+  }
+
+  .fox-window .fox-panel,
+  .fox-window .fox-term,
+  .fox-window .fox-qdev,
+  .fox-window .fox-ai,
+  .fox-window .fox-sys {
+    grid-column: auto;
+    grid-row: auto;
+    height: 100%;
+    border-width: 0;
+    opacity: 1;
+  }
+
+  .fox-slack.is-embedded {
+    position: relative;
+    inset: auto;
+    height: 100%;
+    border: 0;
+  }
+
+  .fox-web,
+  .fox-explorer {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+  }
+
+  .fox-web iframe {
+    flex: 1;
+    min-height: 12rem;
+    border: 0;
+    background: #fff;
+  }
+
+  .fox-web pre,
+  .fox-explorer pre {
+    margin: 0;
+    padding: 0.8rem;
+    white-space: pre-wrap;
+  }
+
+  .fox-web-home {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.8rem;
+  }
+
+@keyframes line-in {
+  from { clip-path: inset(100% 0 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+@keyframes line-out {
+  from { clip-path: inset(0 0 0 0); opacity: 1; }
+  to { clip-path: inset(100% 0 0 0); opacity: 0; }
+}
+
+@keyframes term-up {
+  from { clip-path: inset(100% 0 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+@keyframes term-down {
+  from { clip-path: inset(0 0 0 0); opacity: 1; }
+  to { clip-path: inset(100% 0 0 0); opacity: 0; }
+}
+
+@keyframes dissolve-scan {
+  from { top: 0; opacity: 1; }
+  to { top: 28%; opacity: 0; }
+}
+
+@keyframes scan-up {
+  from { top: 100%; }
+  to { top: 0; }
+}
+
+@keyframes scan-down {
+  from { top: 0; }
+  to { top: 100%; }
+}
+
+@keyframes fox-launch {
+  0% { box-shadow: inset 0 0 0 2px var(--color-warn); }
+  100% { box-shadow: inset 0 0 0 0 transparent; }
+}
+
+@keyframes fox-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes hive-cell {
+  0% { opacity: 0; }
+  35% { opacity: 0.85; }
+  100% { opacity: 0.16; }
+}
+
+@media (max-width: 960px) {
+  .fox-stage {
+    display: block;
+    overflow: hidden;
+  }
+
+  .fox-panel {
+    display: none;
+    height: 100%;
+  }
+
+  .fox-panel.is-active {
+    display: flex;
+  }
+
+  .fox-term.is-closed.is-active {
+    display: flex;
+  }
+
+  .fox-apps {
+    display: none;
+  }
+
+  .fox-dock {
+    display: flex;
+    flex-wrap: wrap;
+    grid-template-columns: none;
   }
 }
 
 @keyframes hive-cell {
-  0% { opacity: 0; transform: scale(0.4); }
-  55% { opacity: 0.95; }
-  100% { opacity: 0.35; transform: scale(1); }
+  0% { opacity: 0; }
+  35% { opacity: 0.85; }
+  100% { opacity: 0.16; }
 }
-@keyframes fox-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+
+@keyframes hive-cell {
+  0% { opacity: 0; }
+  28% { opacity: 0.95; }
+  100% { opacity: 0.08; }
 }
+
 @keyframes boot-out {
   to { opacity: 0; }
 }
 
-/* Qan · π */
-.fox-qan-out {
-  margin: 0.5rem 0 0;
-  padding: 0.5rem;
-  background: #041008;
-  border: 1px solid var(--color-line, #14532d);
-  max-height: 12rem;
+@media (prefers-reduced-motion: reduce) {
+  .fox-term.is-opening .fox-term-body,
+  .fox-term.is-closing .fox-term-body,
+  .fox-term.is-opening .fox-scan,
+  .fox-term.is-closing .fox-scan,
+  .fox-boot-center,
+  .fox-boot.is-leaving,
+  .fox-hive polygon {
+    animation: none;
+  }
+
+  .fox-hive polygon {
+    opacity: 0.16;
+  }
+}
+
+.fox-sat {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: #0c1014;
+  color: #e8eaed;
+}
+
+.fox-sat-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.5rem;
+  background: #171b20;
+  border-bottom: 1px solid #2a3138;
+}
+
+.fox-sat-search {
+  display: flex;
+  gap: 0.35rem;
+  padding: 0.4rem 0.5rem;
+}
+
+.fox-sat-search input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #3a434c;
+  background: #101418;
+  color: #e8eaed;
+  padding: 0.35rem 0.5rem;
+}
+
+.fox-sat-stage {
+  position: relative;
+  flex: 1;
+  min-height: 14rem;
+  margin: 0 0.5rem;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 42%, #123 0%, #05070c 62%);
+  perspective: 640px;
+  cursor: grab;
+  touch-action: none;
+}
+
+.fox-sat-globe {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 11.5rem;
+  height: 11.5rem;
+  margin: -5.75rem 0 0 -5.75rem;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 30%, #8fd 0%, transparent 18%),
+    radial-gradient(circle at 62% 58%, #1a6b3c 0%, #0c2a22 46%, #061018 78%);
+  box-shadow: inset -18px -12px 24px #000a, 0 0 0 1px #9ff4, 0 0 28px #0ff3;
+  transform-style: preserve-3d;
+}
+
+.fox-sat-stage.is-dem .fox-sat-globe {
+  background: radial-gradient(circle at 40% 40%, #e8c27a 0%, #6a4a22 45%, #1a120c 80%);
+}
+
+.fox-sat-stage.is-ir .fox-sat-globe {
+  background: radial-gradient(circle at 45% 42%, #ffb199 0%, #8a1c2a 42%, #14060c 80%);
+}
+
+.fox-sat-stage.is-night .fox-sat-globe {
+  background:
+    radial-gradient(circle at 30% 40%, #ffe08a 0 2px, transparent 3px),
+    radial-gradient(circle at 62% 55%, #fff 0 1.5px, transparent 3px),
+    radial-gradient(circle at 48% 48%, #102040 0%, #05060c 72%);
+}
+
+.fox-sat-meridian,
+.fox-sat-parallel {
+  position: absolute;
+  inset: 8%;
+  border: 1px solid #ffffff55;
+  border-radius: 50%;
+}
+
+.fox-sat-parallel {
+  inset: 28% 8%;
+}
+
+.fox-sat-stage .fox-sat-pin {
+  left: 58%;
+  top: 42%;
+}
+
+.fox-sat-readout {
+  position: absolute;
+  left: 0.55rem;
+  bottom: 0.45rem;
+  display: flex;
+  gap: 0.6rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: #d7fff4;
+}
+
+.fox-sat-plane {
+  width: 140%;
+  height: 140%;
+  background-image:
+    linear-gradient(rgba(12, 18, 14, 0.25), rgba(12, 18, 14, 0.45)),
+    repeating-linear-gradient(0deg, transparent, transparent 18px, rgba(255, 255, 255, 0.04) 19px),
+    repeating-linear-gradient(90deg, transparent, transparent 18px, rgba(255, 255, 255, 0.04) 19px),
+    radial-gradient(circle at 30% 40%, #3d6b45 0%, #1a3a28 42%, #0d1a14 100%);
+  background-size: 100% 100%, 24px 24px, 24px 24px, 100% 100%;
+}
+
+.fox-sat-map.is-dem .fox-sat-plane {
+  background-image:
+    linear-gradient(rgba(20, 16, 8, 0.2), rgba(8, 10, 16, 0.5)),
+    repeating-linear-gradient(45deg, transparent, transparent 12px, rgba(255, 210, 120, 0.06) 13px),
+    radial-gradient(circle at 55% 50%, #8a6a3a 0%, #3a2a18 50%, #101018 100%);
+}
+
+.fox-sat-map.is-ir .fox-sat-plane {
+  background-image: radial-gradient(circle at 40% 45%, #ff6b4a 0%, #5a1020 40%, #080810 100%);
+}
+
+.fox-sat-map.is-night .fox-sat-plane {
+  background-image:
+    radial-gradient(circle at 20% 30%, #ffe08a 0%, transparent 8%),
+    radial-gradient(circle at 70% 55%, #ffd24a 0%, transparent 6%),
+    radial-gradient(circle at 45% 70%, #fff 0%, transparent 4%),
+    linear-gradient(#05060a, #0a1020);
+}
+
+.fox-sat-pin {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  background: #e31c2b;
+  box-shadow: 0 0 0 2px #f6f3f0, 0 0 12px #e31c2b;
+}
+
+.fox-sat-badge {
+  position: absolute;
+  left: 0.5rem;
+  bottom: 0.5rem;
+  padding: 0.15rem 0.4rem;
+  background: #000a;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+}
+
+.fox-sat-note {
+  margin: 0.35rem 0.6rem 0.5rem;
+  color: #9aa0a6;
+  font-size: 0.75rem;
+}
+
+.fox-colors {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.6rem 0 1rem;
+}
+
+.fox-colors label {
+  display: grid;
+  grid-template-columns: auto 7rem 1fr;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+}
+
+.fox-color-wheel {
+  width: 1.8rem;
+  height: 1.8rem;
+  padding: 0;
+  border: 1px solid var(--color-line);
+  border-radius: 50%;
+  background: transparent;
+}
+
+.fox-hex-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 1.2rem;
+  background: rgba(8, 4, 6, 0.55);
+}
+
+.fox-hex-prism {
+  position: relative;
+  width: 8rem;
+  height: 8rem;
+  transform-style: preserve-3d;
+  transition: transform 0.45s ease;
+}
+
+.fox-hex-face {
+  position: absolute;
+  inset: 1.2rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--color-accent);
+  background: color-mix(in srgb, var(--color-panel) 88%, transparent);
+  color: var(--color-fg);
+  backface-visibility: hidden;
+}
+
+.fox-hex-face.is-on {
+  background: var(--color-accent);
+}
+
+.fox-hex-menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: center;
+  max-width: 28rem;
+}
+
+.fox-desk-lock {
+  position: absolute;
+  inset: 0;
+  z-index: 45;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.6rem;
+  background: rgba(8, 4, 6, 0.82);
+}
+
+.fox-floor {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  background:
+    linear-gradient(180deg, rgba(8, 16, 28, 0.2), rgba(8, 4, 6, 0.72)),
+    repeating-linear-gradient(90deg, transparent 0 46px, rgba(227, 28, 43, 0.08) 46px 47px);
+}
+
+.fox-floor-sheet {
+  width: min(34rem, calc(100% - 1.5rem));
+  padding: 0.8rem 0.9rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 70%, transparent);
+  background: color-mix(in srgb, var(--color-panel) 72%, transparent);
+  backdrop-filter: blur(6px);
+}
+
+.fox-floor-sheet header,
+.fox-mix header,
+.fox-hexdock header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+}
+
+.fox-floor-stage {
+  display: grid;
+  grid-template-columns: 7.5rem 1fr;
+  gap: 0.6rem;
+  min-height: 16rem;
+}
+
+.fox-gram {
+  width: 100%;
+  height: 16rem;
+  color: #f2f4f8;
+  opacity: 0.85;
+}
+
+.fox-floor-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+
+.fox-floor-stack button {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  text-align: left;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-fg);
+  padding: 0.28rem 0.4rem;
+}
+
+.fox-floor-stack button i {
+  width: 0.55rem;
+  height: 0.55rem;
+  background: var(--color-line);
+}
+
+.fox-floor-stack button.is-on {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 28%, transparent);
+}
+
+.fox-floor-stack button.is-on i {
+  background: var(--color-accent);
+}
+
+.fox-floor-stack small {
+  display: block;
+  color: var(--color-muted);
+  font-size: 0.68rem;
+}
+
+.fox-hexdock {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.45rem;
+  z-index: 5;
+  width: 11.2rem;
+  max-height: calc(100% - 1.2rem);
   overflow: auto;
-  font-family: var(--font-mono, monospace);
-  font-size: 0.78rem;
+  padding: 0.4rem 0.45rem;
+  border: 1px solid var(--color-line);
+  background: color-mix(in srgb, var(--color-panel) 88%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+}
+
+.fox-hexdock.is-hot {
+  border-color: var(--color-accent);
+}
+
+.fox-hexdock ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fox-hexdock li.is-bad {
+  color: #ffb4b4;
+}
+
+.fox-hexdock p,
+.fox-floor-sheet p {
+  color: var(--color-muted);
+  font-size: 0.68rem;
+}
+
+.fox-mix {
+  position: absolute;
+  right: 0.6rem;
+  bottom: 3.2rem;
+  z-index: 30;
+  width: min(18rem, calc(100% - 1.2rem));
+  padding: 0.55rem 0.7rem 0.7rem;
+  border: 1px solid var(--color-line);
+  background: color-mix(in srgb, var(--color-panel) 94%, black);
+}
+
+.fox-mix label {
+  display: grid;
+  gap: 0.15rem;
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+}
+
+.fox-qan,
+.fox-imode,
+.fox-hexwin {
+  height: 100%;
+  overflow: auto;
+}
+
+.fox-qan header,
+.fox-imode .fox-phone header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.fox-qan header button.is-on {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.fox-qan textarea,
+.fox-qan pre,
+.fox-extra pre {
+  width: 100%;
+  min-height: 8rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
   white-space: pre-wrap;
 }
-.fox-qan-out [data-kind="err"] { color: #fca5a5; }
-.fox-qan-out [data-kind="sys"] { color: #a7f3d0; }
-.fox-qan-pi aside .fox-btn { margin-top: 0.5rem; width: 100%; }
+
+.fox-phone {
+  width: min(16rem, 100%);
+  margin: 0.4rem 0;
+  border: 1px solid var(--color-line);
+  background: #071018;
+}
+
+.fox-phone header {
+  padding: 0.35rem 0.5rem;
+  background: #123a66;
+}
+
+.fox-phone nav,
+.fox-phone canvas {
+  display: block;
+  width: 100%;
+  padding: 0.45rem;
+}
+
+.fox-phone canvas {
+  padding: 0;
+}
+
+
+.fox-desk-load {
+  position: absolute;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 1rem;
+  background: rgba(6, 8, 12, 0.9);
+}
+
+.fox-www {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  height: 100%;
+  min-height: 0;
+  color: var(--color-fg);
+}
+.fox-www header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+.fox-www header span { color: var(--color-muted); flex: 1; }
+.fox-www-note { margin: 0; color: var(--color-muted); font-size: 0.72rem; }
+.fox-www-stage {
+  display: grid;
+  grid-template-columns: 1fr 11rem;
+  gap: 0.4rem;
+  min-height: 0;
+  flex: 1;
+}
+.fox-www svg { width: 100%; height: 100%; min-height: 220px; background: #04140c; border: 1px solid var(--color-line); }
+.fox-www-node { fill: #22c55e; }
+.fox-www-node { animation: fox-www-pulse 1.6s ease-in-out infinite; }
+.fox-www-arc {
+  stroke-dasharray: 8 6;
+  animation: fox-www-dash 1.1s linear infinite;
+}
+.fox-www aside {
+  border: 1px solid var(--color-line);
+  background: #07140d;
+  padding: 0.4rem;
+  overflow: auto;
+  font-size: 0.68rem;
+}
+.fox-www aside h3 { margin: 0 0 0.35rem; font-size: 0.72rem; letter-spacing: 0.12em; }
+.fox-www aside ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 0.35rem; }
+.fox-www aside li { color: #bef264; }
+@keyframes fox-www-dash { to { stroke-dashoffset: -28; } }
+@keyframes fox-www-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+@media (max-width: 720px) {
+  .fox-www-stage { grid-template-columns: 1fr; }
+}
+
+

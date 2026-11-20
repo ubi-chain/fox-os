@@ -1,6 +1,6 @@
 import { joinPath, type Line } from "./model";
 
-export type DeskKind = "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg" | "sky" | "guard" | "net" | "furry" | "inari" | "atlas" | "crypt" | "qan" | "ime";
+export type DeskKind = "term" | "dev" | "ai" | "sys" | "browser" | "explorer" | "chat" | "dict" | "pkg" | "sky" | "guard" | "net" | "furry" | "inari" | "atlas" | "crypt" | "qan" | "ime" | "sat" | "hex" | "fzip" | "imode" | "qref" | "www";
 
 export type DeskWindowRef = { id: string; kind: DeskKind; title: string; z: number };
 
@@ -22,13 +22,16 @@ export type DeskFx =
   | { op: "open"; kind: DeskKind; title: string }
   | { op: "close"; id: string }
   | { op: "rename"; id: string; title: string }
+  | { op: "catch"; ip: string }
+  | { op: "stop-catch" }
+  | { op: "socket"; name: string; from: string; to: string }
+  | { op: "send"; name: string; ip: string; port: string }
+  | { op: "asm"; app: string; text: string }
+  | { op: "asm-edit"; app: string; text: string }
   | { op: "enter"; on: boolean }
   | { op: "deploy"; name: string; file: string; host: string; port: string }
   | { op: "undeploy"; name: string }
-  | { op: "asm"; app: string; text: string }
-  | { op: "asm-edit"; app: string; text: string }
-  | { op: "map-open"; kind: DeskKind; title: string }
-  | { op: "map-close" };
+  | { op: "sms"; phone: string };
 
 export type DeskResult = { lines: Line[]; files?: Record<string, string>; fx?: DeskFx };
 
@@ -64,12 +67,20 @@ const KINDS: Record<string, DeskKind> = {
   "inari.exe": "inari",
   "map.exe": "atlas",
   "atlas.exe": "atlas",
-  "ietfubi.exe": "atlas",
+  "sat.exe": "sat",
+  "satellite.exe": "sat",
+  "satelite-map.exe": "sat",
   "crypt.exe": "crypt",
   "foxcrypt.exe": "crypt",
   "eclipse.exe": "crypt",
   "qan.exe": "qan",
   "ime.exe": "ime",
+  "hex.exe": "hex",
+  "fzip.exe": "fzip",
+  "imode.exe": "imode",
+  "qref.exe": "qref",
+  "www-map.exe": "www",
+  "wwwmap.exe": "www",
 };
 
 const TITLES: Record<DeskKind, string> = {
@@ -87,10 +98,16 @@ const TITLES: Record<DeskKind, string> = {
   net: "回線",
   furry: "Furrysys",
   inari: "Inari",
-  atlas: "衛星図",
+  atlas: "地図",
+  sat: "衛星図",
   crypt: "Foxcrypt",
   qan: "Qan",
   ime: "IME",
+  hex: "HEX",
+  fzip: "F-ZIP",
+  imode: "iモード",
+  qref: "Qan リファレンス",
+  www: "WWW-MAP",
 };
 
 function out(text: string): Line {
@@ -118,7 +135,7 @@ function resolveKind(raw: string, ctx: DeskContext): { kind: DeskKind; title: st
   if (alias) return alias;
   const kind = KINDS[key];
   if (!kind) return null;
-  return { kind, title: key === "ietfubi.exe" ? "IETFUBI" : TITLES[kind] };
+  return { kind, title: TITLES[kind] };
 }
 
 function front(ctx: DeskContext): DeskWindowRef | null {
@@ -171,17 +188,15 @@ export function deskCommand(input: string, ctx: DeskContext): DeskResult | null 
   if (typed === "/true enter") return { lines: [sys("改行入力です。Ctrl+Enter で実行します。")], fx: { op: "enter", on: true } };
   if (typed === "/false enter") return { lines: [sys("改行入力を終了しました。")], fx: { op: "enter", on: false } };
 
-  const consentMap = typed.match(/^\/catch\s+(?:satelite|satellite)-map$/i);
-  if (consentMap) {
+  const sms = typed.match(/^\/sms\s+(\S+)\s+to\s+(\S+)$/i);
+  if (sms) {
+    if (sms[1].toLowerCase() !== "foxsky") return { lines: [err("使い方: /sms foxsky to 電話番号")] };
+    const phone = sms[2];
+    if (!/^\+?[0-9][0-9\-()]{5,18}$/.test(phone)) return { lines: [err("電話番号の形ではありません")] };
     return {
-      lines: [sys("IETFUBI の衛星図ウィンドウを開きます。位置共有は本人の明示同意時のみです。")],
-      fx: { op: "open", kind: "atlas", title: "IETFUBI" },
+      lines: [sys(`FoxSky から ${phone} へスキャナーのリンクを送ります。端末の SMS 画面が開きます。送信はそこで確定してください。`)],
+      fx: { op: "sms", phone },
     };
-n  }
-  if (/^\/close\s+(?:satelite|satellite)-map$/i.test(typed)) {
-    const win = ctx.windows.filter((item) => item.kind === "atlas" && item.title === "IETFUBI").sort((a, b) => b.z - a.z)[0];
-    if (!win) return { lines: [err("IETFUBI の衛星図ウィンドウは開いていません。")] };
-    return { lines: [sys("IETFUBI の衛星図を閉じます。")], fx: { op: "close", id: win.id } };
   }
 
   const open = typed.match(/^\/open\s+(\S+)$/i);
@@ -207,6 +222,50 @@ n  }
     return {
       lines: [sys(`${win.title} を ${title} に変更しました。/close ${title}.exe で閉じられます`)],
       fx: { op: "rename", id: win.id, title },
+    };
+  }
+
+  if (/^\/catch\s+www-map$/i.test(typed)) {
+    return {
+      lines: [sys("WWW-MAP を開きます。レーダー・警報・通信弧は机の中の模擬です。")],
+      fx: { op: "open", kind: "www", title: "WWW-MAP" },
+    };
+  }
+
+  if (/^\/catch\s+satel+ite[- ]?map$/i.test(typed)) {
+    return {
+      lines: [sys("模擬衛星図を開きます。実衛星・実通信にはつながりません。")],
+      fx: { op: "open", kind: "sat", title: "衛星図" },
+    };
+  }
+
+  const catchPacket = typed.match(/^\/catch packet of\s+(\S+)$/i);
+  if (catchPacket) {
+    return {
+      lines: [sys(`${catchPacket[1]} のパケットログを開始しました。模擬です。実通信はしていません。`)],
+      fx: { op: "catch", ip: catchPacket[1] },
+    };
+  }
+  if (/^\/stop catch packet$/i.test(typed)) {
+    return { lines: [sys("パケットログを停止しました。")], fx: { op: "stop-catch" } };
+  }
+
+  const socket = typed.match(/^\/change packet to (.+?) to (.+?) name as (\S+)$/i);
+  if (socket) {
+    return {
+      lines: [sys(`ソケット ${socket[3]} を作りました。${socket[1]} → ${socket[2]}。送信は模擬です。`)],
+      fx: { op: "socket", name: socket[3], from: socket[1], to: socket[2] },
+    };
+  }
+
+  const send = typed.match(/^\/send socket\s+(\S+)\s+to\s+(\S+)(?:\s*\/\s*(\d+))?$/i);
+  if (send) {
+    const hostport = send[3] ? { host: send[2], port: send[3] } : splitHost(send[2]);
+    if (!hostport) return { lines: [err("/send socket 名前 to IP/ポート の形式です")] };
+    if (!ctx.sockets.some((item) => item.name === send[1])) return { lines: [err(`ソケット ${send[1]} はありません`)] };
+    return {
+      lines: [sys(`${send[1]} を ${hostport.host}:${hostport.port} へ模擬送信しました。実ソケットは開いていません。`)],
+      fx: { op: "send", name: send[1], ip: hostport.host, port: hostport.port },
     };
   }
 
@@ -254,6 +313,11 @@ n  }
       lines: [sys(`${file} をワークスペースに作りました。実通信はしていません。`)],
       files: { ...ctx.files, [file]: `模擬ダウンロード ${download[1]}.${download[2]}\n実ネットワークからは取得していません。\n` },
     };
+  }
+
+  const upload = typed.match(/^\/upload to FTP\s+(\S+)\s+(\d+)\s+(\S+)\s+(\S+)$/i);
+  if (upload) {
+    return { lines: [sys(`FTP ${upload[3]}@${upload[1]}:${upload[2]} への模擬アップロードを記録しました。資格情報は送っていません。`)] };
   }
 
   const save = typed.match(/^(.*?)name to (\S+) save$/i);

@@ -91,9 +91,9 @@ function cubeSurface(size,n,sphere=false){
   {N:[0,0,1],U:[1,0,0],V:[0,1,0]},
   {N:[0,0,-1],U:[-1,0,0],V:[0,1,0]}
  ];
- function vertex(x,y,z){const key=x+','+y+','+z;if(map.has(key))return map.get(key);let p=new THREE.Vector3(x,y,z);if(sphere)p.normalize().multiplyScalar(size/2);const id=points.length;points.push(p);map.set(key,id);return id;}
+ function vertex(x,y,z){const key=x+','+y+','+z;if(map.has(key))return map.get(key);let p=new THREE.Vector3(x*size/(2*n),y*size/(2*n),z*size/(2*n));if(sphere)p.normalize().multiplyScalar(size/2);const id=points.length;points.push(p);map.set(key,id);return id;}
  for(const f of faces){for(let j=0;j<n;j++)for(let i=0;i<n;i++){
-  const uv=(a,b)=>{const t=-size/2+size*a/n,u=-size/2+size*b/n;return [Math.round(f.N[0]*size/2+f.U[0]*t+f.V[0]*u),Math.round(f.N[1]*size/2+f.U[1]*t+f.V[1]*u),Math.round(f.N[2]*size/2+f.U[2]*t+f.V[2]*u)];};
+  const uv=(a,b)=>{const t=-n+2*a,u=-n+2*b;return [f.N[0]*n+f.U[0]*t+f.V[0]*u,f.N[1]*n+f.U[1]*t+f.V[1]*u,f.N[2]*n+f.U[2]*t+f.V[2]*u];};
   const a=vertex(...uv(i,j)),b=vertex(...uv(i+1,j)),c=vertex(...uv(i+1,j+1)),d=vertex(...uv(i,j+1));
   const pa=points[a],pb=points[b],pc=points[c],normal=new THREE.Vector3().subVectors(pb,pa).cross(new THREE.Vector3().subVectors(pc,pb));
   const outward=new THREE.Vector3(...f.N);if(normal.dot(outward)<0)quads.push([a,d,c,b]);else quads.push([a,b,c,d]);
